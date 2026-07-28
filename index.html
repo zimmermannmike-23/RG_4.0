@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zimmermann Capital · RebalGold</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#000;--bg1:#0A0A0F;--bg2:#0d1a1f;--b:#1a2a2e;--t:#fff;--t2:#9CA3AF;--t3:#6B7280;
+  --cyan:#00F0FF;--green:#39FF6A;--red:#FF1744;--yellow:#FFE600;--orange:#FF8A00;--rr:14px;--tab:64px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+#backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background .4s}
+#app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:var(--tab)}
+#content{flex:1;padding:0 14px 28px;max-width:580px;margin:0 auto;width:100%}
+#tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;height:var(--tab);
+  background:rgba(0,0,0,.96);border-top:1px solid rgba(0,240,255,.12);
+  padding-bottom:env(safe-area-inset-bottom,0);backdrop-filter:blur(16px)}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;border:none;background:none;color:var(--t3);font-size:9px;font-weight:700;padding:4px 2px;transition:color .2s}
+.tb .ic{font-size:18px;line-height:1}
+.tb.on{color:var(--tc,var(--cyan));text-shadow:0 0 12px var(--tg,rgba(0,240,255,.5))}
+.card{background:var(--bg1);border:1px solid var(--b);border-radius:var(--rr);padding:16px;margin-bottom:12px}
+.card-c{border-color:rgba(0,240,255,.4);box-shadow:0 0 18px rgba(0,240,255,.07),inset 0 0 18px rgba(0,240,255,.03)}
+.ctitle{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);font-weight:700;margin-bottom:12px}
+/* KZ TILES */
+.kz-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kz-tile{background:#040d10;border:1px solid var(--cyan);border-radius:12px;padding:14px 12px;
+  box-shadow:0 0 14px rgba(0,240,255,.18),inset 0 0 14px rgba(0,240,255,.04)}
+.kz-lbl{font-size:11px;color:var(--t2);line-height:1.3;margin-bottom:6px}
+.kz-val{font-size:20px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 12px rgba(0,240,255,.5);line-height:1.2}
+.kz-val.g{color:var(--green);text-shadow:0 0 12px rgba(57,255,106,.5)}
+.kz-val.r{color:var(--red);text-shadow:0 0 12px rgba(255,23,68,.5)}
+/* RINGS */
+.gauge-wrap{display:flex;justify-content:center;margin:8px 0 14px}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.mini-cell{display:flex;flex-direction:column;align-items:center;gap:5px}
+.mini-lbl{font-size:9px;font-weight:700;color:var(--cyan);text-align:center;min-height:24px;display:flex;align-items:center;justify-content:center}
+/* MONTH GRID */
+.mog{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.mob{background:#040d10;border:1px solid rgba(0,240,255,.3);border-radius:10px;padding:8px 4px;text-align:center}
+.mob.hi{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.3)}
+.mon{font-size:10px;font-weight:700;color:var(--t2);margin-bottom:2px}
+.moa{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.mob.hi .moa{color:var(--cyan)}
+/* PORTFOLIO */
+.pf-row{display:flex;align-items:center;gap:8px;padding:14px;border:1px solid rgba(0,240,255,.35);border-radius:12px;margin-bottom:9px;cursor:pointer;background:var(--bg1)}
+.pf-name{flex:1;font-size:15px;font-weight:700;color:var(--cyan)}
+.pminus{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--t2);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+/* POSITIONS */
+.pos-row{padding:12px 14px;border-bottom:1px solid var(--b);cursor:pointer}
+.pos-row:last-child{border-bottom:none}
+.pos-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pos-name{flex:1;font-size:14px;font-weight:700;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-bar{height:5px;border-radius:3px;background:var(--b);overflow:hidden;margin:4px 0;position:relative}
+.pos-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;transition:width .6s}
+.pos-bar-tgt{position:absolute;top:-3px;width:2px;height:11px;background:rgba(255,255,255,.4)}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:9999px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0}
+.b-sofort{border:1.5px solid var(--red);color:var(--red)}
+.b-pruefen{border:1.5px solid var(--yellow);color:var(--yellow)}
+.b-ok{border:1.5px solid var(--green);color:var(--green)}
+.b-aktiv{background:rgba(57,255,106,.15);border:1px solid var(--green);color:var(--green)}
+/* TOGGLE */
+.tog{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0}
+.tog.on{background:var(--cyan)}.tog.off{background:rgba(255,255,255,.15)}
+.tog::after{content:'';position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:white;transition:left .25s}
+.tog.on::after{left:21px}.tog.off::after{left:3px}
+/* PILLS */
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.pill{padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+  border:1.5px solid rgba(0,240,255,.4);background:var(--bg2);color:var(--t2);transition:all .2s}
+.pill.on{background:rgba(57,255,106,.15);border-color:var(--green);color:var(--green)}
+/* MERKER SCROLL */
+.merker-wrap{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.merker-wrap::-webkit-scrollbar{display:none}
+.merker-tile{background:var(--bg2);border:2px solid var(--cyan);border-radius:12px;padding:14px;flex-shrink:0;min-width:145px;
+  box-shadow:0 0 18px rgba(0,240,255,.2),inset 0 0 18px rgba(0,240,255,.05)}
+.merker-lbl{font-size:10px;color:var(--cyan);font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.merker-inp{display:flex;align-items:center;gap:4px;background:#000;border:1px solid rgba(0,240,255,.4);border-radius:8px;padding:8px 10px}
+.merker-inp input{background:none;border:none;color:var(--t);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;width:100%;outline:none;min-width:0}
+.merker-inp span{color:var(--cyan);font-size:13px;flex-shrink:0}
+/* SPARPLAN */
+.spar-etf{background:var(--bg2);border:1px solid rgba(0,240,255,.3);border-radius:12px;padding:14px;margin-bottom:8px}
+.spar-rate-row{display:flex;align-items:center;gap:8px;background:#000;border:1px solid rgba(0,240,255,.4);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.spar-rate-row input{background:none;border:none;color:var(--t);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;flex:1;outline:none;min-width:0}
+/* ORDER CARDS */
+.order-card{display:flex;align-items:center;gap:12px;padding:14px;background:#040d10;border:1px solid rgba(0,240,255,.3);border-radius:12px;margin-bottom:8px}
+.order-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.buy-ic{background:rgba(57,255,106,.2);border:2px solid var(--green)}
+.sell-ic{background:rgba(255,23,68,.2);border:2px solid var(--red)}
+.order-info{flex:1;min-width:0}
+.order-name{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:2px}
+.order-sub{font-size:11px;color:var(--t2)}
+.order-amt{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0;color:var(--cyan)}
+/* SETTINGS */
+.acc{background:var(--bg1);border:1px solid rgba(255,230,0,.3);border-radius:var(--rr);margin-bottom:9px;overflow:hidden}
+.acc.open{border-color:rgba(255,230,0,.55)}
+.acc-h{display:flex;align-items:center;gap:10px;padding:15px;cursor:pointer}
+.acc-ic{font-size:18px}.acc-t{flex:1;font-size:16px;font-weight:700;color:var(--yellow)}
+.acc-ch{font-size:13px;color:var(--yellow);transition:transform .25s}
+.acc.open .acc-ch{transform:rotate(180deg)}
+.acc-b{display:none;padding:0 15px 15px;border-top:1px solid rgba(255,230,0,.1)}
+.acc.open .acc-b{display:block}
+/* FORMS */
+.field{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.field label{font-size:12px;color:var(--t2);min-width:120px;flex-shrink:0}
+.field input,.field select{flex:1;background:var(--bg0);border:1px solid var(--b);border-radius:8px;color:var(--t);padding:8px 10px;font-size:14px;min-width:0}
+.field input:focus{outline:none;border-color:var(--cyan)}
+.edf{background:var(--bg0);border:1px solid rgba(0,240,255,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.edf label{font-size:12px;color:var(--t2);display:block;margin-bottom:4px}
+.edf input{background:none;border:none;color:var(--t);font-size:17px;font-weight:700;width:100%;outline:none;font-variant-numeric:tabular-nums}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid;transition:all .2s}
+.btn-c{background:rgba(0,240,255,.07);border-color:rgba(0,240,255,.4);color:var(--cyan)}
+.btn-c:hover{background:rgba(0,240,255,.14)}
+.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:800}
+.btn-gh{background:none;border-color:var(--b);color:var(--t2)}
+.btn-r{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.4);color:var(--red)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* BACK HEADER */
+.back-hdr{display:flex;align-items:center;gap:10px;padding:16px 0 10px}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.3);color:var(--cyan);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.back-title{font-size:15px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* YEAR PICKER */
+.yr-pick{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.yr-pick span{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.yp-btn{width:36px;height:36px;border-radius:50%;background:var(--cyan);border:none;color:#000;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{padding:7px 5px;text-align:right;color:var(--t2);font-weight:600;border-bottom:1px solid var(--b);font-size:10px;white-space:nowrap}
+.tbl th:first-child,.tbl th:nth-child(2){text-align:left}
+.tbl td{padding:9px 5px;border-bottom:1px solid rgba(26,42,46,.6);vertical-align:middle;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl td:first-child{text-align:left;color:var(--cyan);font-weight:600}
+.tbl td:nth-child(2){text-align:left;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.tbl tr:last-child td{border-bottom:none}
+/* MODAL */
+#modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0)}
+#modal.open{display:flex}
+.modal-box{background:var(--bg1);border:1px solid rgba(0,240,255,.4);border-radius:20px 20px 0 0;width:100%;max-width:580px;padding:20px 16px 24px;max-height:82vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:16px;text-align:center}
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--tab) + 14px);left:50%;transform:translateX(-50%) translateY(20px);background:rgba(57,255,106,.15);border:1px solid var(--green);border-radius:9999px;padding:8px 20px;font-size:13px;font-weight:700;color:var(--green);opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sep{border:none;border-top:1px solid var(--b);margin:10px 0}
+.sum-row{display:flex;justify-content:space-between;padding:8px 0;font-size:14px}
+.sum-row+.sum-row{border-top:1px solid var(--b)}
+.hint{font-size:12px;color:var(--t3);line-height:1.5}
+.stitle{text-align:center;font-family:'Pacifico',serif;font-weight:400;line-height:1.2;margin:18px 0 16px}
+.gc{color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.7),0 0 24px rgba(0,240,255,.4)}
+.gg{color:var(--green);text-shadow:0 0 10px rgba(57,255,106,.7),0 0 24px rgba(57,255,106,.4)}
+.gy{color:var(--yellow);text-shadow:0 0 10px rgba(255,230,0,.7),0 0 24px rgba(255,230,0,.4)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen{animation:fadeUp .22s ease}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="backdrop"></div>
+<div id="app"><main id="content"></main><nav id="tabbar"></nav></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<input type="file" id="json-file" accept=".json,application/json" style="display:none">
+
+<script>
+// ===== COLORS =====
+const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'};
+const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
+const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
+const APP_VERSION='3.5';
+
+// ===== HELPERS =====
+function b64dec(s){try{return JSON.parse(atob(s.replace(/-/g,'+').replace(/_/g,'/')));}catch{return null;}}
+function posVal(p){return(p.stueck||0)*(p.kurs||0);}
+function posCost(p){return(p.stueck||0)*(p.kaufkurs||0);}
+function pfAP(pf){return(pf.positions||[]).filter(p=>p.active);}
+function pfTotal(pf){return pfAP(pf).reduce((s,p)=>s+posVal(p),0);}
+
+// Normalisiertes Zielgewicht für eine aktive Position.
+// Wenn inaktive Positionen Gewicht haben, wird der Rest auf 100% hochskaliert.
+function effTarget(p,pf){
+  const ap=pfAP(pf);
+  const sumRaw=ap.reduce((s,x)=>s+x.target,0);
+  if(sumRaw<=0)return p.target;
+  return p.target/sumRaw*100;
+}
+
+function posIst(p,pf){const t=pfTotal(pf);return t>0?posVal(p)/t*100:0;}
+function posDev(p,pf){return posIst(p,pf)-effTarget(p,pf);}
+function pfMaxDev(pf){const ap=pfAP(pf);return ap.length?Math.max(...ap.map(p=>Math.abs(posDev(p,pf)))):0;}
+function pfScore(pf){return Math.max(0,Math.min(100,Math.round(100-pfMaxDev(pf)*3)));}
+function totalScore(){const s=state.portfolios.filter(p=>p.enabled).map(pfScore);return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):100;}
+function pfAmpel(pf){const d=pfMaxDev(pf);return d<2?'ok':d<5?'pruefen':'sofort';}
+function scoreColor(s){return s>=90?N.green:s>=75?N.cyan:s>=55?N.orange:N.red;}
+function ampelBadge(a){
+  const m={ok:{c:N.green,t:'● OK',cl:'b-ok'},pruefen:{c:N.yellow,t:'● PRÜFEN',cl:'b-pruefen'},sofort:{c:N.red,t:'● SOFORT',cl:'b-sofort'}};
+  const r=m[a]||m.sofort;return`<span class="badge ${r.cl}">${r.t}</span>`;
+}
+// Gibt alle Positionen global zurück — dedupliziert nach ISIN.
+// Gleiche ISIN in mehreren Portfolios = selbe physische Position → nur einmal zählen.
+function uniquePositions(){
+  const seen=new Set();
+  const result=[];
+  state.portfolios.forEach(pf=>{
+    if(!pf.enabled)return;
+    pf.positions.forEach(pos=>{
+      if(!pos.name)return;
+      const key=pos.isin&&pos.isin.trim()?pos.isin.trim():null;
+      if(key){
+        if(seen.has(key))return; // Duplikat überspringen
+        seen.add(key);
+      }
+      result.push({pos,pfName:pf.name});
+    });
+  });
+  return result;
+}
+// FIX v3.5: Deduplizierte Summe über eine Teilmenge von Portfolios (nach Namen).
+// Verhindert Doppelzählung von Positionen, die in mehreren Portfolios liegen.
+function uniqueValueOf(pfNames){
+  const seen=new Set();let sum=0;
+  state.portfolios.forEach(pf=>{
+    if(!pfNames.includes(pf.name))return;
+    pf.positions.forEach(pos=>{
+      const key=(pos.isin||'').trim();
+      if(key){if(seen.has(key))return;seen.add(key);}
+      sum+=posVal(pos);
+    });
+  });
+  return sum;
+}
+function allTotal(){return uniquePositions().reduce((s,{pos})=>s+posVal(pos),0);}
+function allCost(){return uniquePositions().reduce((s,{pos})=>s+posCost(pos),0);}
+// FIX v3.5: TER-Kosten nur über aktivierte Portfolios und ohne Doppelzählung
+function allTerCost(){return uniquePositions().reduce((s,{pos})=>s+posVal(pos)*(pos.ter||0)/100,0);}
+function monthlyDivs(year){
+  const d=Array(12).fill(0);
+  uniquePositions().forEach(({pos})=>{
+    const yd=(pos.divs||{})[year]||[];
+    yd.forEach((v,i)=>d[i]+=(v||0)*(pos.stueck||0));
+  });
+  return d;
+}
+// BUY-ONLY: buy_i = max(0, effTarget_i/100 × (T+sp) − val_i), dann auf sp skalieren
+function buyOnlyOrders(pf){
+  const t=pfTotal(pf),sp=pf.sparAmount||state.sparrate;
+  const tNew=t+sp;
+  const raw=pfAP(pf).map(p=>{
+    const ist=posIst(p,pf),eff=effTarget(p,pf),dev=eff-ist;
+    const buy=Math.max(0,(eff/100)*tNew - posVal(p));
+    const buyShares=p.kurs>0?buy/p.kurs:0;
+    return{...p,ist,dev,effTgt:eff,buy,buyShares};
+  });
+  const sum=raw.reduce((s,r)=>s+r.buy,0);
+  const scale=(sum>sp&&sum>0)?sp/sum:1;
+  raw.forEach(r=>{r.buy*=scale;r.buyShares=r.kurs>0?r.buy/r.kurs:0;});
+  return raw;
+}
+
+// REBALANCING (mit Verkäufen): diff_i = effTarget_i/100 × T − val_i
+function rebalancingOrders(pf){
+  const t=pfTotal(pf);
+  if(t<=0)return[];
+  return pfAP(pf).map(p=>{
+    const ist=posIst(p,pf),eff=effTarget(p,pf);
+    const diff=(eff/100)*t - posVal(p);
+    const shares=p.kurs>0?Math.abs(diff)/p.kurs:0;
+    return{...p,ist,effTgt:eff,diff,shares,isBuy:diff>0};
+  }).filter(o=>Math.abs(o.diff)>0.005);
+}
+
+// Minimum-Investition für vollständiges Buy-Only Ausgleichen
+function fullRebalanceAmount(pf){
+  const t=pfTotal(pf);
+  const ap=pfAP(pf);
+  const underweight=ap.filter(p=>posIst(p,pf)<effTarget(p,pf));
+  const sumTgt=underweight.reduce((s,p)=>s+effTarget(p,pf)/100,0);
+  const sumVal=underweight.reduce((s,p)=>s+posVal(p),0);
+  const denom=1-sumTgt;
+  if(denom<=0)return 0;
+  return Math.max(0,(sumTgt*t-sumVal)/denom);
+}
+const EUR0=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' €';
+
+// ===== SVG RING =====
+let uid=0;
+function svgRing({progress=0,color=N.cyan,size=100,lw=6,label='',sub=''}={}){
+  const r=(size-lw*2)/2,c=size/2,ci=2*Math.PI*r;
+  const off=ci*(1-Math.min(1,Math.max(0,progress)));
+  const id='r'+(++uid);
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">
+    <defs><filter id="gf${id}"><feGaussianBlur stdDeviation="${size*.03}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#1a2a2e" stroke-width="${lw}"/>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${lw}"
+      stroke-linecap="round" stroke-dasharray="${ci}" stroke-dashoffset="${off}"
+      transform="rotate(-90 ${c} ${c})" filter="url(#gf${id})"
+      style="animation:ringA .8s ease forwards"/>
+    ${label?`<text x="${c}" y="${sub?c-4:c+1}" text-anchor="middle" dominant-baseline="middle"
+      fill="white" font-size="${size*.22}px" font-weight="700" font-family="monospace">${label}</text>`:''}
+    ${sub?`<text x="${c}" y="${c+size*.16}" text-anchor="middle" dominant-baseline="middle"
+      fill="${color}" font-size="${size*.11}px" font-family="'Pacifico',serif">${sub}</text>`:''}
+  </svg><style>@keyframes ringA{from{stroke-dashoffset:${ci}}to{stroke-dashoffset:${off}}}</style>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DEFAULT STATE — Stand: TR-Vermögensübersicht 27.07.2026, geprüft & korrigiert
+// ═══════════════════════════════════════════════════════════════════════════
+// Korrekturen v3.5 gegenüber dem Backup vom 27.07.2026:
+//   • WSML (IE00BF4RFH31): 5,603803 → 7,420492 Stk, Kurs 8,73 → 9,12 €
+//     (in Oskar 1 UND Oskar 2 waren Stückzahl und Kurs von AYEM eingetragen)
+//   • IEAC (IE00B3F81R35): 1,41315 → 1,413515 Stk (Zifferndreher)
+//   • VGWD (IE00B8GKDB10): Dividenden von 12 Monatswerten auf Quartalszahler
+//     Mär/Jun/Sep/Dez umgestellt — 4,96 → 1,98 €/Stk/Jahr (Rendite 6,15 → 2,46 %)
+//   • USDV (IE00B6YX5D40): Beträge halbiert — 3,41 → 1,51 €/Stk/Jahr (4,53 → 2,01 %)
+//   • ZPRG (IE00B9CQXS71): Monate Jan/Jun/Sep/Dez → Feb/Mai/Aug/Nov,
+//     1,67 → 1,30 €/Stk/Jahr (Rendite 4,68 → 3,64 %)
+//   • VDIV (NL0011683594): Juni-Wert korrigiert (0,16 → 0,81 €/Stk),
+//     1,10 → 1,66 €/Stk/Jahr (Rendite 2,03 → 3,06 %)
+// Dividendenwerte für Sep/Dez 2026 sind Fortschreibungen auf Basis der
+// veröffentlichten Jahresprognosen, keine Zusagen.
+function defaultState(){
+  const Z=()=>Array(12).fill(0);
+  return{
+    tab:0,view:'list',subIdx:0,posIdx:-1,divCalYear:2026,selectedSparIdx:4,
+    strategyV:3,
+    sparrate:110,
+    portfolios:[
+      {name:'AVD-ETF',id:'FD8EF5E2',strategy:'gewinnorientiert',activePortfolio:false,enabled:true,sparAmount:40,
+       positions:[
+         {name:'Amundi Core MSCI World UCITS ETF Acc',isin:'IE000BI8OT95',wkn:'ETF146',ticker:'WRDU.AS',stueck:1.190255,kurs:158.1,kaufkurs:153.75,target:61,ter:0.12,active:true,klasse:0,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares Core MSCI Emerging Markets IMI UCITS ETF (Acc)',isin:'IE00BKM4GZ66',wkn:'A111X9',ticker:'IS3N',stueck:1.346271,kurs:46.25,kaufkurs:44.57,target:13,ter:0.18,active:true,klasse:1,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Acc',isin:'IE00BG47KH54',wkn:'A2PJZJ',ticker:'VAGF',stueck:3.287309,kurs:23.53,kaufkurs:23.73,target:26,ter:0.08,active:true,klasse:2,divs:{2025:Z(),2026:Z(),2027:Z()}}
+       ]},
+      {name:'Optimal-ETF',id:'FB81E3D4',strategy:'gewinnorientiert',activePortfolio:false,enabled:true,sparAmount:20,
+       positions:[
+         {name:'JPMorgan Global Research Enhanced Index Equity (ESG) UCITS ETF USD (acc)',isin:'IE00BF4G6Y48',wkn:'A2DWM6',ticker:'JREG',stueck:1.326193,kurs:58.26,kaufkurs:56.55,target:50,ter:0.25,active:true,klasse:0,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'Xtrackers Global Growth Leaders Active UCITS ETF 1C Capitalisation',isin:'IE000M8F3JA6',wkn:'DBX1GL',ticker:'XGLA',stueck:0.877877,kurs:32.53,kaufkurs:34.17,target:30,ter:0.50,active:true,klasse:1,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'ARK Innovation UCITS ETF USD Accumulating',isin:'IE000GA3D489',wkn:'A408AW',ticker:'ARXK',stueck:6.074636,kurs:7.11,kaufkurs:7.41,target:20,ter:0.75,active:true,klasse:2,divs:{2025:Z(),2026:Z(),2027:Z()}}
+       ]},
+      {name:'ReBal 1-ETF',id:'C3CA7BBF',strategy:'gewinnorientiert',activePortfolio:false,enabled:true,sparAmount:680,
+       positions:[
+         {name:'JPMorgan Global Equity Premium Income Active UCITS ETF USD (dist)',isin:'IE0003UVYC20',wkn:'A3EHRE',ticker:'JGPI',stueck:16.924265,kurs:22.83,kaufkurs:22.63,target:20.8,ter:0.35,active:true,klasse:0,
+          divs:{2025:Z(),2026:[0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259,0.1259],2027:Z()}},
+         {name:'State Street SPDR S&P Global Dividend Aristocrats UCITS ETF USD',isin:'IE00B9CQXS71',wkn:'A1T8GD',ticker:'ZPRG',stueck:11.860684,kurs:35.83,kaufkurs:33.34,target:16.7,ter:0.45,active:true,klasse:1,
+          divs:{2025:Z(),2026:[0,0.1981,0,0,0.1981,0,0,0.1981,0,0,0.1981,0],2027:Z()}},
+         {name:'Xtrackers STOXX Global Select Dividend 100 Swap UCITS ETF 1D',isin:'LU0292096186',wkn:'DBX1DG',ticker:'XGSD',stueck:272.637805,kurs:38.78,kaufkurs:29.52,target:16.7,ter:0.50,active:false,klasse:2,
+          divs:{2025:Z(),2026:[0,0,0.3301,0,0,0.3301,0,0,0.3301,0,0,0.3301],2027:Z()}},
+         {name:'Global X SuperDividend UCITS ETF Dist',isin:'IE00077FRP95',wkn:'A3DEKS',ticker:'SDIV.L',stueck:47.974082,kurs:8.8,kaufkurs:8.85,target:12.5,ter:0.45,active:true,klasse:3,
+          divs:{2025:Z(),2026:[0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604,0.0604],2027:Z()}},
+         {name:'Global X Nasdaq 100 Covered Call UCITS ETF D',isin:'IE00BM8R0J59',wkn:'A2QR39',ticker:'QYLE',stueck:26.80679,kurs:14.49,kaufkurs:14.44,target:16.7,ter:0.45,active:true,klasse:4,
+          divs:{2025:Z(),2026:[0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488,0.1488],2027:Z()}},
+         {name:'Global X S&P 500 Covered Call UCITS ETF D',isin:'IE0002L5QB31',wkn:'A3DC8Q',ticker:'XYLU.L',stueck:3.644314,kurs:13.79,kaufkurs:13.72,target:16.7,ter:0.45,active:true,klasse:4,
+          divs:{2025:Z(),2026:[0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098,0.1098],2027:Z()}}
+       ]},
+      {name:'ReBal 2-ETF',id:'0097287E',strategy:'gewinnorientiert',activePortfolio:false,enabled:true,sparAmount:360,
+       positions:[
+         {name:'VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF',isin:'NL0011683594',wkn:'A2JAHJ',ticker:'VDIV',stueck:7.656385,kurs:54.57,kaufkurs:51.51,target:35,ter:0.38,active:true,klasse:0,
+          divs:{2025:Z(),2026:[0,0,0.5969,0,0,0.5969,0,0,0.5969,0,0,0.5969],2027:Z()}},
+         {name:'Vanguard FTSE All-World High Dividend Yield UCITS ETF Distributing',isin:'IE00B8GKDB10',wkn:'A1T8FV',ticker:'VGWD',stueck:3.59949,kurs:81.33,kaufkurs:76.68,target:25,ter:0.29,active:true,klasse:1,
+          divs:{2025:Z(),2026:[0.7057,0,0,0.7057,0,0,0.7057,0,0,0.7057,0,0],2027:Z()}},
+         {name:'State Street SPDR S&P U.S. Dividend Aristocrats UCITS ETF USD Unhedged (Dist)',isin:'IE00B6YX5D40',wkn:'A1JKS0',ticker:'A1JKS0',stueck:3.94798,kurs:75.8,kaufkurs:70.92,target:25,ter:0.35,active:true,klasse:2,
+          divs:{2025:Z(),2026:[0,0,0.3521,0,0,0.3521,0,0,0.3521,0,0,0.3521],2027:Z()}},
+         {name:'iShares Core EUR Corporate Bond UCITS ETF (Dist)',isin:'IE00B3F81R35',wkn:'A0RGEP',ticker:'IEAC.L',stueck:1.413515,kurs:117.62,kaufkurs:119.56,target:15,ter:0.09,active:true,klasse:3,
+          divs:{2025:Z(),2026:[0,0,0,0,0,0,0,0,0,0,0,0],2027:Z()}}
+       ]},
+      {name:'Oskar 1 ab 2027',id:'97779BB5',strategy:'gewinnorientiert',activePortfolio:true,enabled:true,sparAmount:20,
+       positions:[
+         {name:'Amundi Core MSCI World UCITS ETF Acc',isin:'IE000BI8OT95',wkn:'ETF146',ticker:'WRDU.AS',stueck:1.190255,kurs:158.1,kaufkurs:153.75,target:55,ter:0.12,active:true,klasse:0,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares MSCI World Small Cap UCITS ETF USD (Acc)',isin:'IE00BF4RFH31',wkn:'A2DWBY',ticker:'WSML.L',stueck:7.420492,kurs:9.12,kaufkurs:9.10,target:20,ter:0.35,active:true,klasse:1,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares MSCI EM IMI Screened UCITS ETF USD (Acc)',isin:'IE00BFNM3P36',wkn:'A2N6TH',ticker:'AYEM.DE',stueck:5.603803,kurs:8.9,kaufkurs:9.10,target:15,ter:0.18,active:true,klasse:2,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'Invesco S&P 500 Scored & Screened ETF Acc',isin:'IE00BKS7L097',wkn:'A2PX8A',ticker:'SPXE.L',stueck:0.368663,kurs:91.46,kaufkurs:89.51,target:10,ter:0.09,active:true,klasse:3,divs:{2025:Z(),2026:Z(),2027:Z()}}
+       ]},
+      {name:'Oskar 2 ab 2027',id:'C5079240',strategy:'gewinnorientiert',activePortfolio:false,enabled:true,sparAmount:20,
+       positions:[
+         {name:'Amundi Core MSCI World UCITS ETF Acc',isin:'IE000BI8OT95',wkn:'ETF146',ticker:'WRDU.AS',stueck:1.190255,kurs:158.1,kaufkurs:153.75,target:60,ter:0.12,active:true,klasse:0,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares MSCI World Small Cap UCITS ETF USD (Acc)',isin:'IE00BF4RFH31',wkn:'A2DWBY',ticker:'WSML.L',stueck:7.420492,kurs:9.12,kaufkurs:9.10,target:15,ter:0.35,active:true,klasse:1,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares MSCI EM IMI Screened UCITS ETF USD (Acc)',isin:'IE00BFNM3P36',wkn:'A2N6TH',ticker:'AYEM.DE',stueck:5.603803,kurs:8.9,kaufkurs:9.10,target:15,ter:0.18,active:true,klasse:2,divs:{2025:Z(),2026:Z(),2027:Z()}},
+         {name:'iShares Edge MSCI World Quality Factor UCITS ETF USD (Acc)',isin:'IE00BP3QZ601',wkn:'A12ATE',ticker:'IWQU.L',stueck:0.404062,kurs:77.48,kaufkurs:74.25,target:10,ter:0.25,active:true,klasse:3,divs:{2025:Z(),2026:Z(),2027:Z()}}
+       ]}
+    ]
+  };
+}
+let state=defaultState();
+
+// ===== PERSISTENZ (localStorage) =====
+const STORAGE_KEY='rebalGold_v3';
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  }catch(e){
+    console.warn('Speichern fehlgeschlagen:',e);
+  }
+  if(window.CloudSync&&window.CloudSync.onLocalSave)window.CloudSync.onLocalSave(state);
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return;
+    const saved=JSON.parse(raw);
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','selectedSparIdx',
+                   'sparrate','portfolios','strategyV'];
+    allowed.forEach(k=>{
+      if(k in saved && saved[k]!==undefined && saved[k]!==null){
+        state[k]=saved[k];
+      }
+    });
+    // Struktur absichern
+    state.portfolios.forEach(pf=>{
+      (pf.positions||[]).forEach(pos=>{
+        if(!pos.divs)pos.divs={};
+        [2024,2025,2026,2027].forEach(yr=>{
+          if(!Array.isArray(pos.divs[yr]))pos.divs[yr]=Array(12).fill(0);
+        });
+        if(pos.stueck===undefined)pos.stueck=0;
+        if(pos.kurs===undefined)pos.kurs=0;
+        if(pos.kaufkurs===undefined)pos.kaufkurs=0;
+        if(pos.ter===undefined)pos.ter=0;
+        if(pos.active===undefined)pos.active=true;
+        if(pos.klasse===undefined)pos.klasse=0;
+        if(!pos.wkn)pos.wkn='';
+        if(!pos.ticker)pos.ticker='';
+      });
+      if(pf.sparAmount===undefined)pf.sparAmount=0;
+      if(pf.enabled===undefined)pf.enabled=true;
+    });
+
+    // ===== MIGRATION v3 (27.07.2026) =====
+    // Datenfehler aus älteren Ständen einmalig korrigieren.
+    if((state.strategyV||1)<3){
+      const FIX={
+        'IE00BF4RFH31':{stueck:7.420492,kurs:9.12},                                   // WSML: AYEM-Werte überschrieben
+        'IE00B3F81R35':{stueck:1.413515},                                             // IEAC: Zifferndreher
+        'IE00B8GKDB10':{div2026:[0,0,0.37,0,0,0.81,0,0,0.40,0,0,0.40]},               // VGWD: Quartalszahler
+        'IE00B6YX5D40':{div2026:[0,0,0.37,0,0,0.40,0,0,0.37,0,0,0.37]},               // USDV: Beträge zu hoch
+        'IE00B9CQXS71':{div2026:[0,0.23,0,0,0.31,0,0,0.38,0,0,0.38,0]},               // ZPRG: Feb/Mai/Aug/Nov
+        'NL0011683594':{div2026:[0,0,0.21,0,0,0.81,0,0,0.32,0,0,0.32]},              // VDIV: Juni-Wert
+        'IE0003UVYC20':{wkn:'A3EHRE'}                                                  // JGPI: Ticker stand im WKN-Feld
+      };
+      let n=0;
+      state.portfolios.forEach(pf=>{
+        (pf.positions||[]).forEach(pos=>{
+          const f=FIX[(pos.isin||'').trim()];
+          if(!f)return;
+          if(f.stueck!==undefined&&Math.abs(pos.stueck-f.stueck)>1e-6){pos.stueck=f.stueck;n++;}
+          if(f.kurs!==undefined&&Math.abs(pos.kurs-f.kurs)>0.005){pos.kurs=f.kurs;n++;}
+          if(f.div2026){pos.divs[2026]=f.div2026.slice();n++;}
+          if(f.wkn&&pos.wkn!==f.wkn){pos.wkn=f.wkn;n++;}
+        });
+      });
+      state.strategyV=3;
+      console.log('✓ Migration v3: '+n+' Datenfelder korrigiert (Stückzahlen & Ausschüttungen)');
+    }
+
+    console.log('✓ State geladen:',state.portfolios.length,'Portfolios');
+  }catch(e){
+    console.warn('Laden fehlgeschlagen, nutze Standardwerte:',e);
+  }
+}
+
+// State beim Start laden
+loadState();
+
+
+function screenDashboard(){
+  const sc=totalScore(),scC=scoreColor(sc),now=new Date().getMonth();
+  const md=monthlyDivs(state.divCalYear),t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0;
+  return`<div class="screen">
+    <h1 class="stitle gg" style="font-size:42px">Dashboard</h1>
+    ${checkDue()?`<div class="card" style="border-color:rgba(255,209,57,.55);background:rgba(255,209,57,.07)">
+      <div class="ctitle" style="color:var(--yellow)">📤 MONATS-CHECK FÄLLIG</div>
+      <div style="font-size:13px;line-height:1.6;margin-bottom:10px">
+        Es ist der ${new Date().getDate()}. — Zeit für den Monats-Check.
+        Exportiere dein JSON-Backup und lade es in Claude hoch: Positionen, Kurse,
+        Dividendenmonate und der Zielpfad werden dann gegengeprüft.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="checkExport()" style="flex:1;min-width:140px">JSON exportieren</button>
+        <button class="btn btn-r" onclick="checkDone()" style="flex:0 0 auto">Erledigt</button>
+      </div>
+    </div>`:''}
+    <div class="gauge-wrap">${svgRing({progress:sc/100,color:scC,size:220,lw:16,label:String(sc),sub:'Score'})}</div>
+    <div class="card">
+      <div class="ctitle">TEIL-PORTFOLIOS (REBALANCING &amp; SCORE)</div>
+      <div class="mini-grid">${state.portfolios.filter(p=>p.enabled).map((pf,fi)=>{
+        const idx=state.portfolios.indexOf(pf);
+        const s=pfScore(pf),c=scoreColor(s);
+        return`<div class="mini-cell" onclick="openPfFromDash(${idx})" style="cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.6'" onmouseup="this.style.opacity='1'">
+          <div class="mini-lbl">${pf.name}</div>${svgRing({progress:s/100,color:c,size:86,lw:6,label:String(s)})}</div>`;
+      }).join('')}</div>
+    </div>
+    <div class="card card-c">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Gesamtkapital</div>
+          <div style="font-size:20px;font-weight:700" class="gc">${EUR0(t)}</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Performance</div>
+          <div style="font-size:20px;font-weight:700;color:${g>=0?N.green:N.red}">${yp.toFixed(2)}%</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ${MN[now]}</div>
+          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md[now])}</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ø / Monat</div>
+          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md.reduce((a,b)=>a+b)/12)}</div></div>
+      </div>
+    </div>
+    ${(()=>{
+      const jetzt=new Date().getFullYear(), p=planFor(jetzt);
+      const incVal=uniqueValueOf(['ReBal 1-ETF','ReBal 2-ETF']);
+      const diff=incVal-p.income, ok=diff>=-p.income*0.05;
+      const jahreRest=Math.max(0,ZIELJAHR-jetzt);
+      const pct=Math.min(100,incVal/ZIEL_INCOME*100);
+      return`<div class="card" style="border-color:rgba(255,209,57,.35)">
+        <div class="ctitle" style="color:var(--yellow)">ZIELPFAD ${jetzt} → ${ZIELJAHR}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+          <div><div style="font-size:11px;color:var(--t2)">Soll ${jetzt}</div>
+            <div style="font-size:18px;font-weight:700">${EUR0(p.income)}</div></div>
+          <div><div style="font-size:11px;color:var(--t2)">Ist (Income)</div>
+            <div style="font-size:18px;font-weight:700;color:${ok?'var(--green)':'var(--red)'}">${EUR0(incVal)}</div></div>
+          <div><div style="font-size:11px;color:var(--t2)">Abweichung</div>
+            <div style="font-size:16px;font-weight:700;color:${ok?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${EUR0(diff)}</div></div>
+          <div><div style="font-size:11px;color:var(--t2)">Noch ${jahreRest} Jahre</div>
+            <div style="font-size:16px;font-weight:700" class="gc">${pct.toFixed(1)} %</div></div>
+        </div>
+        <div style="height:8px;border-radius:4px;background:var(--b);overflow:hidden">
+          <div style="height:100%;border-radius:4px;width:${pct.toFixed(1)}%;background:var(--yellow);box-shadow:0 0 10px rgba(255,209,57,.5);transition:width .8s"></div>
+        </div>
+        <div class="hint" style="margin-top:6px">Planwert ${jetzt}: ${EUR0(p.div)}/Monat netto · Ziel ${ZIELJAHR}: ${ZIEL_NETTO} €/Monat · Sparrate 1.140 €</div>
+      </div>`;
+    })()}
+    ${(()=>{
+      // Meilenstein Ziel 2: 138.000 € Income-Kapital → 500 €/Monat netto
+      // FIX v3.5: uniqueValueOf() dedupliziert nach ISIN — Positionen, die in
+      // ReBal 1 UND ReBal 2 liegen, wurden vorher doppelt gezählt.
+      const MILESTONE=ZIEL_INCOME;
+      const incomeVal=uniqueValueOf(['ReBal 1-ETF','ReBal 2-ETF']);
+      const pct=Math.min(100,incomeVal/MILESTONE*100);
+      return`<div class="card" style="border-color:rgba(57,255,106,.35)">
+        <div class="ctitle" style="color:var(--green)">ZIEL · INCOME-KAPITAL 2040</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+          <span style="font-size:20px;font-weight:700" class="gg">${EUR0(incomeVal)}</span>
+          <span style="font-size:13px;color:var(--t2)">von 264.000 € → 1.000 €/Monat netto</span>
+        </div>
+        <div style="height:8px;border-radius:4px;background:var(--b);overflow:hidden">
+          <div style="height:100%;border-radius:4px;width:${pct.toFixed(1)}%;background:var(--green);box-shadow:0 0 10px rgba(57,255,106,.5);transition:width .8s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <span class="hint">Fortschritt (ISIN-dedupliziert)</span>
+          <span style="font-size:13px;font-weight:700;color:var(--green)">${pct.toFixed(1)} %</span>
+        </div>
+      </div>`;
+    })()}
+  </div>`;
+}
+
+
+
+
+// ══ DEPOTAUSZUG-IMPORT (Trade Republic Vermögensübersicht) ════════════════
+// Liest Stückzahlen und Kurse aus dem kopierten Text des PDF-Auszugs.
+// Robust gegen: ganzzahlige Bestände ("2 Stk."), Tausenderpunkte (10.572,89),
+// Datumsangaben in Kursspalten und ISINs auf beliebiger Folgezeile.
+function trNum(x){
+  if(x==null)return NaN;
+  x=String(x).trim();
+  if(!/^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$/.test(x))return NaN;
+  return parseFloat(x.replace(/\./g,'').replace(',','.'));
+}
+function parseTR(text){
+  const rows=[],warn=[];
+  if(!text||!text.trim())return{rows,warn:['Kein Text eingefügt.']};
+  const lines=text.replace(/\r/g,'').split('\n');
+  const STK=/(^|\s)(\d{1,3}(?:\.\d{3})*(?:,\d+)?)\s*Stk\./;
+  const ISIN=/ISIN:\s*([A-Z]{2}[A-Z0-9]{9}[0-9])/;
+  const NUM=/(?:^|\s)(\d{1,3}(?:\.\d{3})*,\d{2})(?=\s|$)/g;
+  const starts=[];lines.forEach((l,i)=>{if(STK.test(l))starts.push(i);});
+  if(!starts.length)return{rows,warn:['Keine Positionen gefunden — wurde der Wertpapier-Teil mitkopiert?']};
+  for(let b=0;b<starts.length;b++){
+    const from=starts[b],to=(b+1<starts.length?starts[b+1]:lines.length);
+    const block=lines.slice(from,to).join('\n'),head=lines[from];
+    const mS=head.match(STK);if(!mS)continue;
+    const stueck=trNum(mS[2]);
+    const mI=block.match(ISIN);
+    if(!mI){warn.push('Ohne ISIN übersprungen: '+head.trim().slice(0,42));continue;}
+    const tail=head.slice(head.indexOf('Stk.')+4).replace(/\d{2}\.\d{2}\.\d{4}/g,' ');
+    let pool=(tail.match(NUM)||[]).map(v=>trNum(v.trim())).filter(n=>!isNaN(n));
+    if(pool.length<2){
+      const t2=block.replace(/\d{2}\.\d{2}\.\d{4}/g,' ').replace(ISIN,' ');
+      pool=(t2.match(NUM)||[]).map(v=>trNum(v.trim())).filter(n=>!isNaN(n));
+    }
+    let kurs=NaN,wert=NaN,best=Infinity;
+    for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++){
+      const d=Math.abs(pool[i]*stueck-pool[j]);
+      if(d<best){best=d;kurs=pool[i];wert=pool[j];}
+    }
+    if(!(best<=Math.max(0.02,(wert||0)*0.005))){if(pool.length)kurs=pool[0];wert=NaN;}
+    if(isNaN(stueck)||isNaN(kurs)){warn.push(mI[1]+': Stück oder Kurs unlesbar');continue;}
+    rows.push({isin:mI[1],stueck,kurs,wert:isNaN(wert)?null:wert});
+  }
+  return{rows,warn};
+}
+let _trRows=null;
+function openTRModal(){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">📄 Depotauszug importieren</div>
+    <p class="hint" style="margin-bottom:10px">Trade-Republic-Vermögensübersicht als PDF öffnen · alles markieren · kopieren · hier einfügen. Übernommen werden <strong>Stückzahlen und Kurse</strong>, zugeordnet über die ISIN.</p>
+    <div class="field"><label>Text aus dem Auszug</label>
+      <textarea id="tr_txt" rows="5" placeholder="4,893074 Stk.  Automation &amp; Robotics …&#10;ISIN: IE00BYWZ0333 …"
+        style="width:100%;background:var(--bg2);color:var(--t1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;font-size:12px;font-family:monospace"></textarea></div>
+    <div class="btnrow">
+      <button class="btn btn-c" style="flex:1" onclick="trAnalyse()">🔍 Analysieren</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+    <div id="tr_out" style="margin-top:12px"></div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function trAnalyse(){
+  const txt=document.getElementById('tr_txt')?.value||'';
+  const {rows,warn}=parseTR(txt);
+  const out=document.getElementById('tr_out');
+  if(!rows.length){out.innerHTML=`<div class="hint" style="color:var(--red)">✕ ${warn[0]||'Nichts erkannt.'}</div>`;return;}
+  const inApp=new Map();
+  state.portfolios.forEach(pf=>pf.positions.forEach(p=>{
+    const k=(p.isin||'').trim(); if(k&&!inApp.has(k))inApp.set(k,p);
+  }));
+  const treffer=[],neu=[];
+  rows.forEach(r=>{
+    const p=inApp.get(r.isin);
+    if(!p){neu.push(r);return;}
+    // Kaufkurs fortschreiben: gewichteter Durchschnitt bei Zukauf.
+    // Verkauf laesst den Einstand unveraendert (steuerliche Konvention).
+    const zu = r.stueck - p.stueck;
+    const kkAlt = p.kaufkurs || 0;
+    let kkNeu = kkAlt;
+    if(zu > 1e-6 && kkAlt > 0 && r.stueck > 0)
+      kkNeu = (p.stueck*kkAlt + zu*r.kurs) / r.stueck;
+    treffer.push({...r,name:p.name,stueckAlt:p.stueck,kursAlt:p.kurs,
+      kkAlt, kkNeu, zu,
+      chg:(Math.abs(p.stueck-r.stueck)>1e-6)||(Math.abs(p.kurs-r.kurs)>1e-4)});
+  });
+  const fehlt=[...inApp.keys()].filter(k=>!rows.some(r=>r.isin===k));
+  _trRows=treffer;
+  const zeilen=treffer.filter(t=>t.chg).map(t=>{
+    const ds=Math.abs(t.stueckAlt-t.stueck)>1e-6?`<span style="color:var(--yellow)">${t.stueckAlt} → ${t.stueck}</span>`:`${t.stueck}`;
+    const dk=Math.abs(t.kursAlt-t.kurs)>1e-4?`<span style="color:var(--yellow)">${t.kursAlt.toFixed(2)} → ${t.kurs.toFixed(2)} €</span>`:`${t.kurs.toFixed(2)} €`;
+    const dkk = (t.zu>1e-6 && Math.abs(t.kkNeu-t.kkAlt)>1e-4)
+      ? `<div style="color:var(--green)">↗ Zukauf ${t.zu.toFixed(6)} Stk · Einstand ${t.kkAlt.toFixed(2)} → ${t.kkNeu.toFixed(2)} €</div>`
+      : (t.zu<-1e-6 ? `<div style="color:var(--yellow)">↘ Verkauf ${Math.abs(t.zu).toFixed(6)} Stk · Einstand unverändert</div>` : '');
+    return `<div style="font-size:11px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="color:var(--t1)">${t.name.slice(0,40)}</div>
+      <div style="color:var(--t2)">Stk ${ds} · Kurs ${dk}</div>${dkk}</div>`;
+  }).join('')||'<div class="hint">Alle Werte sind bereits aktuell.</div>';
+  out.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:80px;background:rgba(0,240,255,.08);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:17px;font-weight:700">${treffer.length}</div><div style="font-size:10px;color:var(--t2)">zugeordnet</div></div>
+      <div style="flex:1;min-width:80px;background:rgba(255,209,57,.08);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:17px;font-weight:700">${treffer.filter(t=>t.chg).length}</div><div style="font-size:10px;color:var(--t2)">geändert</div></div>
+      <div style="flex:1;min-width:80px;background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:17px;font-weight:700">${neu.length}</div><div style="font-size:10px;color:var(--t2)">nicht in App</div></div>
+    </div>
+    ${fehlt.length?`<div class="hint" style="color:var(--yellow);margin-bottom:6px">⚠ ${fehlt.length} Position(en) der App fehlen im Auszug: ${fehlt.join(', ')}</div>`:''}
+    ${warn.length?`<div class="hint" style="margin-bottom:6px">${warn.slice(0,3).map(w=>'· '+w).join('<br>')}</div>`:''}
+    <div style="max-height:190px;overflow-y:auto;margin-bottom:10px">${zeilen}</div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t2);margin-bottom:8px;cursor:pointer">
+      <input type="checkbox" id="tr_kk" checked style="width:16px;height:16px;accent-color:var(--green)"/>
+      Einstandskurse bei Zukäufen fortschreiben (${treffer.filter(t=>t.zu>1e-6&&Math.abs(t.kkNeu-t.kkAlt)>1e-4).length} betroffen)
+    </label>
+    <button class="btn btn-g" style="width:100%" onclick="trApply()">✓ ${treffer.filter(t=>t.chg).length} Änderung(en) übernehmen</button>`;
+}
+function trApply(){
+  if(!_trRows){showToast('Bitte zuerst analysieren');return;}
+  const mitKK = document.getElementById('tr_kk')?.checked !== false;
+  let n=0,k=0;
+  _trRows.forEach(t=>{
+    state.portfolios.forEach(pf=>pf.positions.forEach(p=>{
+      if((p.isin||'').trim()===t.isin){
+        if(Math.abs(p.stueck-t.stueck)>1e-6||Math.abs(p.kurs-t.kurs)>1e-4)n++;
+        p.stueck=t.stueck; p.kurs=t.kurs;
+        if(mitKK && t.zu>1e-6 && Math.abs(t.kkNeu-t.kkAlt)>1e-4){
+          p.kaufkurs=Math.round(t.kkNeu*10000)/10000; k++;
+        }
+      }
+    }));
+  });
+  saveState(); closeModal(); render();
+  showToast(`✓ ${n} Position(en) aktualisiert${k?` · ${k} Einstand fortgeschrieben`:''}`);
+}
+
+// ══ MONATS-CHECK · Erinnerung am 5. jedes Monats ═══════════════════════════
+// Erinnert daran, das JSON-Backup zu exportieren und zur Querprüfung
+// hochzuladen. Quittierung wird pro Monat in localStorage gespeichert.
+const CHECK_KEY='rebalgold_monatscheck';
+function checkDue(){
+  const d=new Date(), tag=d.getDate();
+  const monat=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  let done=null; try{done=localStorage.getItem(CHECK_KEY);}catch(e){}
+  return tag>=5 && done!==monat;
+}
+function checkDone(){
+  const d=new Date();
+  const monat=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  try{localStorage.setItem(CHECK_KEY,monat);}catch(e){}
+  render(); showToast('✓ Monats-Check quittiert');
+}
+async function checkExport(){ await doExport(); checkDone(); }
+
+// ══ ZIELPFAD 2027–2040 · Zimmermann Capital ═══════════════════════════════
+// Basis: Start 01/2027 · 1.140 €/Monat (Income 1.040 € · Growth 100 €)
+// Ausschüttungen aus TR-Kontoauszug Jan–Jul 2026 verifiziert (47 Zahlungen)
+// XGSD 3,40 % · Income aktiv 5,49 % — gemessen, nicht geschätzt
+// XGSD wird gehalten, aber nicht bespart → Klumpen verwässert von 79 % auf 4 %
+// Annahmen: Gesamtrendite Income 5,0 % · XGSD 5,5 % · Growth 6,5 % p.a.
+// Steuern: 26,375 % auf 70 % (Teilfreistellung), Pauschbetrag 2.000 € (Zusammenveranlagung)
+const ZIELJAHR = 2040, ZIEL_NETTO = 1000, ZIEL_INCOME = 264000;
+const PLAN = [
+  {y:2027,income:26965, total:28910, div:74},
+  {y:2028,income:41187, total:44500, div:136},
+  {y:2029,income:56044, total:60814, div:194},
+  {y:2030,income:71494, total:77816, div:249},
+  {y:2031,income:87561, total:95536, div:306},
+  {y:2032,income:104268,total:114003,div:365},
+  {y:2033,income:121642,total:133251,div:427},
+  {y:2034,income:139708,total:153314,div:492},
+  {y:2035,income:158495,total:174227,div:558},
+  {y:2036,income:178031,total:196028,div:628},
+  {y:2037,income:198346,total:218754,div:700},
+  {y:2038,income:219471,total:242448,div:775},
+  {y:2039,income:241438,total:267150,div:854},
+  {y:2040,income:264281,total:292906,div:935},
+];
+function planFor(y){ return PLAN.find(p=>p.y===y) || (y<2027?PLAN[0]:PLAN[PLAN.length-1]); }
+
+function screenDepot(){
+  const t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0,now=new Date().getMonth();
+  const md=monthlyDivs(state.divCalYear),divSum=md.reduce((a,b)=>a+b,0);
+  // FIX v3.5: TER nur über aktivierte Portfolios und ISIN-dedupliziert
+  const terCost=allTerCost();
+  const divYield=t>0?divSum/t*100:0;
+  const kz=[
+    {lb:'Gesamtkapital',val:EUR0(t),cls:''},
+    {lb:'Kaufkostenbasis',val:EUR0(cb),cls:''},
+    {lb:'Gewinn/Verlust (unrealisiert)',val:EUR0(g),cls:g>=0?'g':'r'},
+    {lb:'Performance',val:yp.toFixed(2)+' %',cls:g>=0?'g':'r'},
+    {lb:'Geschätzte ETF-Kosten p.a.',val:EUR0(terCost),cls:''},
+    {lb:'Dividende pro Monat (Ø, EUR)',val:EUR0(divSum/12),cls:''},
+    {lb:'Gesamtdividende pro Jahr (EUR)',val:EUR0(divSum),cls:''},
+    {lb:'Dividende pro Jahr (geschätzt)',val:divYield.toFixed(2)+' %',cls:''}
+  ];
+  return`<div class="screen">
+    <h1 class="stitle gc" style="font-size:46px">Depot</h1>
+    <div class="card card-c">
+      <div class="ctitle">DEPOT-KENNZAHLEN</div>
+      <div class="kz-grid">${kz.map(k=>`<div class="kz-tile"><div class="kz-lbl">${k.lb}</div><div class="kz-val ${k.cls}">${k.val}</div></div>`).join('')}</div>
+    </div>
+    <div class="card card-c">
+      <div class="ctitle">MONATLICHE DIVIDENDEN (KALENDERJAHR)</div>
+      <div class="yr-pick">
+        <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
+        <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
+        <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
+      </div>
+      <div class="mog">${md.map((v,i)=>`<div class="mob${i===now?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===now?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div class="kz-tile"><div class="kz-lbl">Dieser Monat</div><div class="kz-val">${EUR0(md[now])}</div></div>
+        <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(0,240,255,.3)">
+      <div class="ctitle">EINZELPOSITIONEN — ALLE PORTFOLIOS</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="tbl" style="min-width:680px">
+          <thead><tr>
+            <th>Portfolio</th><th>Position</th><th>ISIN</th>
+            <th>Stück</th><th>Kurs €</th><th>Kaufbasis</th>
+            <th>Marktwert</th><th>G/V %</th>
+            <th>Div/Stk ${state.divCalYear}</th><th>Div gesamt</th>
+          </tr></thead>
+          <tbody>
+          ${state.portfolios.filter(pf=>pf.enabled).flatMap(pf=>
+            pf.positions.map(p=>{
+              const mw=posVal(p),kbv=posCost(p),gv=kbv>0?(mw-kbv)/kbv*100:0;
+              const divPerStk=((p.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+              const divTotal=divPerStk*(p.stueck||0);
+              return`<tr style="opacity:${p.active?1:.45}">
+                <td style="color:var(--cyan);font-weight:600;white-space:nowrap">${pf.name}</td>
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                  color:${p.active?'var(--t)':'var(--t3)'}" title="${p.name}">${p.name}</td>
+                <td style="font-family:monospace;font-size:10px;color:var(--t2)">${p.isin}</td>
+                <td>${p.stueck.toFixed(4)}</td>
+                <td style="font-weight:700;color:var(--cyan)">${p.kurs.toFixed(4)}</td>
+                <td>${EUR0(kbv)}</td>
+                <td style="font-weight:700">${EUR0(mw)}</td>
+                <td style="color:${gv>=0?N.green:N.red};font-weight:700">${gv>=0?'+':''}${gv.toFixed(1)} %</td>
+                <td style="color:var(--cyan)">${divPerStk>0?divPerStk.toFixed(4)+' €':'–'}</td>
+                <td style="color:var(--cyan);font-weight:700">${divTotal>0?EUR0(divTotal):'–'}</td>
+              </tr>`;
+            })
+          ).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--b)">
+        <span class="hint">Gesamt: ${state.portfolios.filter(p=>p.enabled).reduce((s,pf)=>s+pf.positions.length,0)} Positionen (inkl. Duplikate über Portfolios)</span>
+        <span style="font-weight:700;color:var(--cyan)">${EUR0(allTotal())} (dedup.)</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function screenPortfolio(){
+  if(state.view==='detail')return screenPfDetail();
+  if(state.view==='etfDetail')return screenETFDetail();
+  return`<div class="screen">
+    <h1 class="stitle gc" style="font-size:42px">Portfolio</h1>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span class="ctitle" style="margin:0">Teil-Portfolios</span>
+        <button class="btn btn-c" style="padding:6px 14px;font-size:18px" onclick="addPf()">+ Neu</button>
+      </div>
+      ${state.portfolios.map((pf,i)=>`
+        <div class="pf-row" onclick="openPf(${i})">
+          <button class="pminus" onclick="event.stopPropagation();removePf(${i})">−</button>
+          <span class="pf-name">${pf.name}</span>
+          ${pf.activePortfolio?'<span class="badge b-aktiv">Aktiv</span>':''}
+          ${ampelBadge(pfAmpel(pf))}
+          <span style="font-size:18px;color:var(--cyan)">⊕</span>
+          <span style="font-size:14px;color:var(--t2)">›</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ===== SHARED CARD RENDERERS =====
+function renderRebalancingCard(pf){
+  const ro=rebalancingOrders(pf);
+  const amp=pfAmpel(pf);
+  const totalSell=ro.filter(o=>!o.isBuy).reduce((s,o)=>s+Math.abs(o.diff),0);
+  const totalBuy=ro.filter(o=>o.isBuy).reduce((s,o)=>s+o.diff,0);
+  return`<div class="card" style="border-color:rgba(0,240,255,.4)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span class="ctitle" style="margin:0">REBALANCING</span>${ampelBadge(amp)}</div>
+    <div class="ctitle">ORDERS (REBALANCING)</div>
+    <p class="hint" style="margin-bottom:12px">Alle Ziel-Ist-Abweichungen erscheinen (auch unter 1 % des Portfoliowerts), je aktiver Position.</p>
+    ${ro.length===0
+      ? `<div class="hint" style="text-align:center;padding:8px;color:var(--green)">✓ Portfolio im Gleichgewicht</div>`
+      : ro.map(o=>`
+        <div class="order-card">
+          <div class="order-icon ${o.isBuy?'buy-ic':'sell-ic'}">${o.isBuy?'↓':'↑'}</div>
+          <div class="order-info">
+            <div class="order-name">${o.isBuy?'Nachkauf':'Verkauf'}: ${o.name}</div>
+            <div class="order-sub">${KLASSEN[o.klasse]||o.isin}</div>
+          </div>
+          <div class="order-amt" style="color:${o.isBuy?N.green:N.red}">${EUR0(Math.abs(o.diff))}</div>
+        </div>`).join('')}
+    ${ro.length>0?`
+    <div class="sep"></div>
+    <div class="sum-row"><span style="color:var(--red)">Verkäufe</span><span style="font-weight:700;color:var(--red)">${EUR0(totalSell)}</span></div>
+    <div class="sum-row"><span style="color:var(--green)">Käufe</span><span style="font-weight:700;color:var(--green)">${EUR0(totalBuy)}</span></div>`:''}
+  </div>`;
+}
+
+function renderBuyOnlyCard(pf){
+  const orders=buyOnlyOrders(pf);
+  const sp=pf.sparAmount||state.sparrate;
+  const t=pfTotal(pf);
+  const distrib=orders.reduce((s,o)=>s+o.buy,0);
+  const rest=Math.max(0,sp-distrib);
+  const fullAmt=fullRebalanceAmount(pf);
+  const monate=sp>0?Math.ceil(fullAmt/sp):0;
+  return`<div class="card" style="border-color:rgba(0,240,255,.35)">
+    <div class="ctitle">BUY-ONLY (NACHKAUF)</div>
+    <p class="hint" style="margin-bottom:12px">Zielgewichtung nur durch Nachkäufe untergewichteter ETFs — ohne Verkäufe. Basis ist die monatliche Sparrate aus „Deine Angaben".</p>
+    <div class="sum-row" style="margin-bottom:8px">
+      <span style="color:var(--t2)">Monatliche Sparrate</span>
+      <span style="font-size:22px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums">${sp} €</span>
+    </div>
+    <div class="sep"></div>
+    ${orders.map(o=>`
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--b)">
+        <div class="pdot" style="background:${o.buy>0?N.green:N.red};box-shadow:0 0 6px ${o.buy>0?N.green:N.red}60;margin-top:4px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;line-height:1.3;margin-bottom:2px">${o.name}</div>
+          <div style="font-size:11px;color:var(--t2);margin-bottom:5px">${o.wkn||o.isin} · Ist: ${o.ist.toFixed(2)} % · Ziel: ${o.effTgt.toFixed(2)} %</div>
+          <div style="height:5px;border-radius:3px;background:var(--b);overflow:hidden;position:relative">
+            <div style="position:absolute;left:0;top:0;height:100%;border-radius:3px;
+              width:${Math.min(100,o.effTgt>0?o.ist/o.effTgt*100:0).toFixed(0)}%;
+              background:${o.buy>0?N.green:N.red}"></div>
+            <div style="position:absolute;top:-3px;left:${Math.min(100,o.effTgt)}%;width:2px;height:11px;background:rgba(255,255,255,.4)"></div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;padding-left:8px">
+          <div style="font-size:20px;font-weight:700;color:${o.buy>0?N.green:N.red};font-variant-numeric:tabular-nums">${Math.round(o.buy)} €</div>
+          <div style="font-size:11px;color:var(--t2)">${o.buyShares.toFixed(3)} Stück</div>
+        </div>
+      </div>`).join('')}
+    <div class="sum-row"><span style="color:var(--t2)">Verteilt (Käufe)</span><span style="font-weight:700;color:var(--green)">${EUR0(distrib)}</span></div>
+    <div class="sum-row"><span style="color:var(--t2)">Rest (unter Mindestkauf)</span><span style="font-weight:700">${EUR0(rest)}</span></div>
+    <div class="sum-row"><span style="color:var(--t2)">Depotwert vorher → nachher</span><span style="font-weight:700;color:var(--cyan)">${EUR0(t)} → ${EUR0(t+distrib)}</span></div>
+    <p class="hint" style="margin-top:8px">Für ein vollständiges Ausgleichen (nur Nachkauf): ca. <strong style="color:var(--yellow)">${Math.round(fullAmt)} €</strong>${monate>1?` — bei ${sp} €/Monat rund <strong style="color:var(--yellow)">${monate} Monate</strong>`:''}.</p>
+  </div>`;
+}
+
+function screenPfDetail(){
+  const pf=state.portfolios[state.subIdx];
+  if(!pf)return`<div class="screen"><div class="hint">Nicht gefunden</div></div>`;
+  const t=pfTotal(pf);
+  return`<div class="screen">
+    <div class="back-hdr">
+      <button class="back-btn" onclick="state.view='list';render()">‹</button>
+      <span class="back-title">${pf.name}</span>
+      <button class="btn btn-c" style="padding:5px 10px;font-size:12px" onclick="setActive(${state.subIdx})">${pf.activePortfolio?'✓ Aktiv':'Als aktiv'}</button>
+    </div>
+    <div class="card card-c">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span class="ctitle" style="margin:0">REBALANCING</span>${ampelBadge(pfAmpel(pf))}</div>
+      <div class="ctitle">STRATEGIE</div>
+      <div class="pills">${['konservativ','moderat','gewinnorientiert'].map(s=>`
+        <button class="pill${pf.strategy===s?' on':''}" onclick="state.portfolios[${state.subIdx}].strategy='${s}';render()">${s==='gewinnorientiert'?'Gewinnorientiert':s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('')}
+      </div>
+      <div class="ctitle" style="margin-top:14px">POSITIONEN</div>
+      <div style="background:var(--bg2);border-radius:10px;overflow:hidden;margin-bottom:12px">
+        ${pf.positions.length===0?`<div style="padding:16px;text-align:center;color:var(--t2)">Noch keine Positionen</div>`:''}
+        ${pf.positions.map((pos,pi)=>{
+          const ist=pos.active?posIst(pos,pf):0;
+          const eff=pos.active?effTarget(pos,pf):pos.target;
+          const dev=ist-eff;
+          const ac=!pos.active?N.cyan:Math.abs(dev)<2?N.green:Math.abs(dev)<5?N.yellow:N.red;
+          return`<div class="pos-row" onclick="openETF(${pi})">
+            <div class="pos-top">
+              <div class="pdot" style="background:${ac};box-shadow:0 0 6px ${ac}60"></div>
+              <span class="pos-name">${pos.name}</span>
+              <button class="tog${pos.active?' on':' off'}" onclick="event.stopPropagation();togglePos(${state.subIdx},${pi});render()"></button>
+            </div>
+            <div style="font-size:11px;color:var(--t2);margin-bottom:4px;margin-left:18px">${pos.isin} · Ist: ${ist.toFixed(2)} % · Ziel: ${eff.toFixed(2)} %</div>
+            <div class="pos-bar">
+              <div class="pos-bar-fill" style="width:${Math.min(100,ist).toFixed(1)}%;background:${ac};box-shadow:0 0 6px ${ac}50"></div>
+              <div class="pos-bar-tgt" style="left:${Math.min(100,eff)}%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2)">
+              <span>${ist.toFixed(1)}% · ${eff.toFixed(1)}% ${!pos.active?'(inaktiv)':'›'}</span>
+              <span>${pos.stueck.toFixed(4)} Stk · ${EUR0(pos.kurs)}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <button class="btn btn-c" style="width:100%;margin-bottom:14px" onclick="openAddModal()">+ Neue Position</button>
+      ${t>0?`<div class="sep"></div><div class="sum-row"><span style="color:var(--t2)">Depotwert</span><span style="font-weight:700;color:var(--cyan)">${EUR0(t)}</span></div>`:''}
+    </div>
+    ${renderRebalancingCard(pf)}
+    ${renderBuyOnlyCard(pf)}
+  </div>`;
+}
+
+function screenETFDetail(){
+  const pf=state.portfolios[state.subIdx];
+  const pos=pf?.positions[state.posIdx];
+  if(!pos)return`<div class="screen"><div class="hint">Position nicht gefunden</div></div>`;
+  const yr=state.divCalYear;
+  if(!pos.divs)pos.divs={};
+  if(!pos.divs[yr])pos.divs[yr]=Array(12).fill(0);
+  const gvpct=pos.kaufkurs>0?(pos.kurs-pos.kaufkurs)/pos.kaufkurs*100:0;
+  const divSum=(pos.divs[yr]||[]).reduce((a,b)=>a+(b||0),0);
+  const divYld=pos.kurs>0?divSum/pos.kurs*100:0;
+  return`<div class="screen">
+    <div class="back-hdr">
+      <button class="back-btn" onclick="state.view='detail';render()">‹</button>
+      <span class="back-title">${pos.name}</span>
+    </div>
+    <div class="card" style="border-color:rgba(57,255,106,.4)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700;font-size:16px">Aktiv</div>
+          <div class="hint">Aktive Positionen fließen in die Allokation ein</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:14px;color:var(--cyan);font-weight:700">${posIst(pos,pf).toFixed(2)} %</span>
+          <button class="tog${pos.active?' on':' off'}" onclick="togglePos(${state.subIdx},${state.posIdx});render()"></button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Identifikation</div>
+      <div class="edf"><label>Name</label><input type="text" value="${pos.name}" oninput="state.portfolios[${state.subIdx}].positions[${state.posIdx}].name=this.value" style="font-size:14px"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="edf"><label>ISIN</label><input type="text" value="${pos.isin}" oninput="state.portfolios[${state.subIdx}].positions[${state.posIdx}].isin=this.value"/></div>
+        <div class="edf"><label>WKN</label><input type="text" value="${pos.wkn||''}" oninput="state.portfolios[${state.subIdx}].positions[${state.posIdx}].wkn=this.value"/></div>
+        <div class="edf"><label>Ticker (Yahoo)</label><input type="text" value="${pos.ticker||''}" oninput="state.portfolios[${state.subIdx}].positions[${state.posIdx}].ticker=this.value"/></div>
+        <div class="edf"><label>Ziel-% (Klasse)</label><input type="text" inputmode="decimal" value="${pos.target}" onchange="updPos(${state.subIdx},${state.posIdx},'target',+this.value.replace(',','.'))"/></div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(0,240,255,.35)">
+      <div class="ctitle">Kursdaten</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="edf"><label>Stückzahl</label><input type="text" inputmode="decimal" value="${pos.stueck.toFixed(6)}" onchange="updPos(${state.subIdx},${state.posIdx},'stueck',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>Akt. Kurs €</label><input type="text" inputmode="decimal" value="${pos.kurs}" onchange="updPos(${state.subIdx},${state.posIdx},'kurs',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>Kaufkurs €</label><input type="text" inputmode="decimal" value="${pos.kaufkurs}" onchange="updPos(${state.subIdx},${state.posIdx},'kaufkurs',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>TER % p.a.</label><input type="text" inputmode="decimal" value="${pos.ter}" onchange="updPos(${state.subIdx},${state.posIdx},'ter',+this.value.replace(',','.'))"/></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">
+        <span style="color:var(--t2)">Marktwert</span><span style="font-weight:700;color:var(--cyan)">${EUR0(posVal(pos))}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-top:1px solid var(--b)">
+        <span style="color:var(--t2)">G/V</span><span style="font-weight:700;color:${gvpct>=0?N.green:N.red}">${gvpct>=0?'+':''}${gvpct.toFixed(2)}%</span></div>
+      <button class="btn btn-c" style="width:100%;margin-top:8px" onclick="loadYahoo(${state.subIdx},${state.posIdx})">↓ Kurs von Yahoo laden</button>
+      <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
+    </div>
+    <div class="card" style="border-color:rgba(0,240,255,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="ctitle" style="margin:0">Dividenden je Stück ${yr}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="yp-btn" onclick="state.divCalYear--;ensureDivs(${state.subIdx},${state.posIdx});render()">−</button>
+          <span style="font-size:16px;font-weight:700">${yr}</span>
+          <button class="yp-btn" onclick="state.divCalYear++;ensureDivs(${state.subIdx},${state.posIdx});render()">+</button>
+        </div>
+      </div>
+      <div class="sum-row" style="margin-bottom:8px">
+        <span style="color:var(--t2)">Summe ${yr} · implizite Rendite</span>
+        <span style="font-weight:700;color:var(--cyan)">${divSum.toFixed(4)} € · ${divYld.toFixed(2)} %</span>
+      </div>
+      ${MNF.map((m,i)=>`
+        <div class="field">
+          <label>${m}</label>
+          <input type="text" inputmode="decimal" value="${((pos.divs[yr]||[])[i]||0).toFixed(4)}"
+            onchange="state.portfolios[${state.subIdx}].positions[${state.posIdx}].divs[${yr}][${i}]=+this.value.replace(',','.')||0;render()"
+            placeholder="0,0000"/>
+          <span class="hint" style="flex-shrink:0;margin-left:4px">€/Stk</span>
+        </div>`).join('')}
+      <p class="hint">Kontrolle: Die implizite Rendite oben sollte zur veröffentlichten Ausschüttungsrendite des ETFs passen. Weicht sie stark ab, stimmen Beträge oder Monate nicht.</p>
+    </div>
+    <div class="btnrow">
+      <button class="btn btn-c" onclick="state.view='detail';render()">← Zurück</button>
+      <button class="btn btn-r" onclick="deletePos(${state.subIdx},${state.posIdx})">Position löschen</button>
+    </div>
+  </div>`;
+}
+
+function screenSparplan(){
+  if(state.selectedSparIdx>=state.portfolios.length)state.selectedSparIdx=0;
+  const apf=state.portfolios[state.selectedSparIdx]||state.portfolios[0];
+  const sp=apf.sparAmount||state.sparrate;
+  return`<div class="screen">
+    <h1 class="stitle gg" style="font-size:50px;margin-top:16px">Sparplan</h1>
+
+    <!-- MERKER: klickbare Tiles -->
+    <div class="card card-c">
+      <div class="ctitle">SPARPLAN JE ETF (MERKER)</div>
+      <div class="merker-wrap">
+        ${state.portfolios.filter(p=>p.enabled).map((pf)=>{
+          const idx=state.portfolios.indexOf(pf);
+          const sel=idx===state.selectedSparIdx;
+          return`<div class="merker-tile" data-idx="${idx}" onclick="selectSpar(${idx})" style="cursor:pointer;transition:all .2s;
+            ${sel?'border-color:var(--green);box-shadow:0 0 20px rgba(57,255,106,.4),inset 0 0 18px rgba(57,255,106,.08)':''}">
+            <div class="merker-lbl" style="${sel?'color:var(--green)':''}">
+              ${sel?'▶ ':'📑 '}${pf.name}
+            </div>
+            <div class="merker-inp" style="${sel?'border-color:rgba(57,255,106,.5)':''}">
+              <input type="text" inputmode="decimal" value="${pf.sparAmount||0}"
+                onclick="event.stopPropagation()"
+                onchange="state.portfolios[${idx}].sparAmount=+this.value.replace(',','.')||0;if(state.selectedSparIdx===${idx})render();else showToast('Gespeichert')"/>
+              <span style="${sel?'color:var(--green)':''}">€</span>
+            </div>
+            ${sel?`<div style="margin-top:6px;font-size:10px;color:var(--green);font-weight:700;text-align:center">AUSGEWÄHLT</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="hint" style="margin-top:8px;text-align:center">Tile antippen → Berechnung unten aktualisiert sich · Summe aller Raten:
+        <strong style="color:var(--green)">${state.portfolios.filter(p=>p.enabled).reduce((s,pf)=>s+(pf.sparAmount||0),0)} €/Monat</strong></div>
+    </div>
+
+    <!-- EMPFOHLENE AUFTEILUNG für ausgewähltes Portfolio -->
+    <div class="card card-c" style="border-color:rgba(57,255,106,.4);box-shadow:0 0 20px rgba(57,255,106,.08)">
+      <div class="ctitle" style="color:var(--green)">EMPFOHLENE AUFTEILUNG · ${apf.name}</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="font-size:18px">⊡</span> Monatliche Sparrate</div>
+      <div class="spar-rate-row" style="border-color:rgba(57,255,106,.4)">
+        <input type="text" inputmode="decimal" value="${sp}"
+          onchange="state.portfolios[${state.selectedSparIdx}].sparAmount=+this.value.replace(',','.')||0;render()"/>
+        <span style="color:var(--t2);font-size:16px">€</span>
+      </div>
+      ${pfAP(apf).length===0
+        ? `<div class="hint" style="text-align:center;padding:12px">Keine aktiven Positionen in diesem Portfolio</div>`
+        : pfAP(apf).map(p=>{
+          const ist=posIst(p,apf),eff=effTarget(p,apf);
+          const allocated=(sp*eff/100);
+          const istC=Math.abs(ist-eff)<2?N.cyan:Math.abs(ist-eff)<5?N.yellow:'#A855F7';
+          return`<div class="spar-etf">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <span class="pdot" style="background:${istC};box-shadow:0 0 6px ${istC}60;margin-top:2px;flex-shrink:0"></span>
+                <span style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+              </div>
+              <span style="font-size:14px;font-weight:700;color:var(--t);flex-shrink:0;padding-left:8px">${ist.toFixed(1)} %</span>
+            </div>
+            <div style="font-size:24px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;margin-bottom:3px">${allocated.toFixed(2).replace('.',',')} €</div>
+            <div style="font-size:12px;color:var(--t2);margin-bottom:6px">Zielquote <span style="color:var(--green)">${eff.toFixed(1)} %</span>
+              &nbsp;·&nbsp;Ist <span style="color:${istC}">${ist.toFixed(1)} %</span>
+              &nbsp;·&nbsp;Δ <span style="color:${istC}">${(ist-eff>=0?'+':'')+(ist-eff).toFixed(1)} %</span>
+            </div>
+            <div style="height:5px;border-radius:3px;background:var(--b);overflow:hidden;position:relative">
+              <div style="position:absolute;left:0;top:0;height:100%;border-radius:3px;width:${Math.min(100,eff>0?ist/eff*100:0).toFixed(0)}%;background:${istC}"></div>
+              <div style="position:absolute;top:-3px;left:${Math.min(100,eff)}%;width:2px;height:11px;background:rgba(255,23,68,.7)"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      <div class="sep"></div>
+      <div class="sum-row">
+        <span style="color:var(--t2)">Summe geplant</span>
+        <span style="font-weight:700;color:var(--green)">${EUR0(pfAP(apf).reduce((s,p)=>s+sp*effTarget(p,apf)/100,0))}</span>
+      </div>
+    </div>
+
+    <!-- REBALANCING (mit Verkäufen) -->
+    ${renderRebalancingCard(apf)}
+
+    <!-- BUY-ONLY (nur Käufe, Sparrate-basiert) -->
+    ${renderBuyOnlyCard(apf)}
+  </div>`;
+}
+
+function buildBuyOnlySettingsBody(){
+  const enabledPfs=state.portfolios.filter(p=>p.enabled);
+  let grandTotal=0;
+  let grandSp=0;
+
+  const pfBlocks=enabledPfs.map(pf=>{
+    const orders=buyOnlyOrders(pf);
+    const sp=pf.sparAmount||state.sparrate;
+    const t=pfTotal(pf);
+    const distrib=orders.reduce((s,o)=>s+o.buy,0);
+    const fullAmt=fullRebalanceAmount(pf);
+    grandTotal+=distrib;
+    grandSp+=sp;
+
+    const hasOrders=orders.some(o=>o.buy>0.01);
+    return`
+      <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--b)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:14px;font-weight:800;color:var(--cyan)">${pf.name}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${ampelBadge(pfAmpel(pf))}
+            <span style="font-size:13px;font-weight:700;color:var(--green)">${sp} €</span>
+          </div>
+        </div>
+        ${!hasOrders
+          ? `<div class="hint" style="color:var(--green)">✓ Portfolio im Gleichgewicht</div>`
+          : orders.map(o=>{
+              const ac=o.buy>0.01?N.green:N.red;
+              return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div class="pdot" style="background:${ac};box-shadow:0 0 6px ${ac}60;flex-shrink:0"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.name}</div>
+                  <div style="font-size:10px;color:var(--t2)">${o.wkn||o.isin} · Ist: ${o.ist.toFixed(1)}% · Ziel: ${o.effTgt.toFixed(1)}%</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:15px;font-weight:700;color:${ac};font-variant-numeric:tabular-nums">${Math.round(o.buy)} €</div>
+                  <div style="font-size:10px;color:var(--t2)">${o.buyShares.toFixed(3)} Stk</div>
+                </div>
+              </div>`;
+            }).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(26,42,46,.8)">
+          <span style="color:var(--t2)">Verteilt</span>
+          <span style="font-weight:700;color:var(--green)">${EUR0(distrib)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+          <span style="color:var(--t2)">Depotwert → nachher</span>
+          <span style="font-weight:700;color:var(--cyan)">${EUR0(t)} → ${EUR0(t+distrib)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">Vollst. Ausgleich: ca. <strong style="color:var(--yellow)">${Math.round(fullAmt)} €</strong>${sp>0&&fullAmt>sp?` (${Math.ceil(fullAmt/sp)} Monate)`:''}</div>
+      </div>`;
+  }).join('');
+
+  return`
+    <p class="hint" style="margin-bottom:14px">Buy-Only Berechnung für alle aktiven Portfolios — nur Nachkäufe, keine Verkäufe.</p>
+    ${pfBlocks}
+    <div style="background:rgba(57,255,106,.07);border:1.5px solid var(--green);border-radius:12px;padding:14px;margin-top:4px;box-shadow:0 0 16px rgba(57,255,106,.1)">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);font-weight:700;margin-bottom:10px">GESAMTINVESTITION (ALLE PORTFOLIOS)</div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:14px">
+        <span style="color:var(--t2)">Summe Sparraten</span>
+        <span style="font-weight:700;color:var(--green);font-variant-numeric:tabular-nums">${EUR0(grandSp)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-top:1px solid rgba(57,255,106,.2)">
+        <span style="color:var(--t2)">Verteilt gesamt</span>
+        <span style="font-weight:700;color:var(--green);font-variant-numeric:tabular-nums">${EUR0(grandTotal)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-top:1px solid rgba(57,255,106,.2)">
+        <span style="color:var(--t2)">Rest gesamt</span>
+        <span style="font-weight:700;font-variant-numeric:tabular-nums">${EUR0(Math.max(0,grandSp-grandTotal))}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:16px;border-top:1px solid rgba(57,255,106,.3)">
+        <span style="font-weight:700;color:var(--green)">Gesamtinvestition</span>
+        <span style="font-size:22px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(57,255,106,.5)">${EUR0(grandTotal)}</span>
+      </div>
+    </div>`;
+}
+
+function buildKurseBody(){
+  const groups=[];
+  state.portfolios.filter(pf=>pf.enabled).forEach(pf=>{
+    const pfRows=pf.positions.map((pos,pi)=>({pos,pi,pfIdx:state.portfolios.indexOf(pf),pfName:pf.name}));
+    if(pfRows.length)groups.push({pfName:pf.name,rows:pfRows});
+  });
+
+  return`<p class="hint" style="margin-bottom:14px">Kurse manuell eingeben — werden sofort in allen Berechnungen und allen Portfolios mit gleicher ISIN übernommen. Automatischer Abruf via Yahoo über den Button unten.</p>
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn btn-c" style="flex:1" onclick="_autoFetchDone=false;autoFetchAllPrices();showToast('⏳ Starte Kursabruf…')">↻ Alle Kurse automatisch laden</button>
+  </div>
+  ${groups.map(g=>`
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);font-weight:700;margin-bottom:8px;padding:6px 0;border-bottom:1px solid rgba(0,240,255,.2)">${g.pfName}</div>
+      ${g.rows.map(({pos,pi,pfIdx})=>{
+        const gv=pos.kaufkurs>0?(pos.kurs-pos.kaufkurs)/pos.kaufkurs*100:0;
+        const gvColor=gv>=0?N.green:N.red;
+        return`<div style="background:var(--bg2);border:1px solid var(--b);border-radius:10px;padding:12px;margin-bottom:8px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700;color:${pos.active?'var(--t)':'var(--t3)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pos.name}</div>
+              <div style="font-size:10px;color:var(--t2);margin-top:2px">${pos.isin} · ${pos.wkn||'–'} · ${pos.stueck.toFixed(6)} Stk</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:12px;font-weight:700;color:${gvColor}">${gv>=0?'+':''}${gv.toFixed(2)}%</div>
+              <div style="font-size:11px;color:var(--t2)">Kauf: ${pos.kaufkurs.toFixed(4)} €</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:11px;color:var(--t2);flex-shrink:0;min-width:80px">Akt. Kurs €</label>
+            <input type="text" inputmode="decimal"
+              value="${pos.kurs}"
+              style="flex:1;background:var(--bg0);border:1.5px solid rgba(0,240,255,.4);border-radius:8px;
+                color:var(--cyan);padding:9px 12px;font-size:16px;font-weight:700;
+                font-variant-numeric:tabular-nums;outline:none;min-width:0"
+              onfocus="this.style.borderColor='var(--green)'"
+              onblur="this.style.borderColor='rgba(0,240,255,.4)'"
+              onchange="updatePriceByISIN('${pos.isin}',${pfIdx},${pi},this.value)"/>
+            <div style="font-size:12px;font-weight:700;color:var(--cyan);flex-shrink:0;min-width:60px;text-align:right">${EUR0(posVal(pos))}</div>
+          </div>
+          ${pos.kurs>0&&pos.stueck>0?`
+          <div style="margin-top:6px;font-size:11px;color:var(--t2);display:flex;justify-content:space-between">
+            <span>Marktwert: <strong style="color:var(--cyan)">${EUR0(posVal(pos))}</strong></span>
+            <span>G/V: <strong style="color:${gvColor}">${EUR0(posVal(pos)-posCost(pos))}</strong></span>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`).join('')}`;
+}
+
+// Kurs einer Position aktualisieren — propagiert auf alle Positionen mit gleicher ISIN
+function updatePriceByISIN(isin, pfIdx, posIdx, rawVal){
+  const val=parseFloat(String(rawVal).replace(',','.'))||0;
+  if(val<=0)return;
+  const targetIsin=(isin||'').trim();
+  state.portfolios.forEach(pf=>{
+    pf.positions.forEach(pos=>{
+      if((pos.isin||'').trim()===targetIsin){
+        pos.kurs=val;
+      }
+    });
+  });
+  if(state.portfolios[pfIdx]?.positions[posIdx]){
+    state.portfolios[pfIdx].positions[posIdx].kurs=val;
+  }
+  saveState();
+  showToast(`✓ Kurs ${val.toFixed(4)} € für ${targetIsin} gesetzt`);
+}
+
+// Stückzahl analog zur Kurspflege über alle Portfolios synchronisieren
+function updateSharesByISIN(isin, rawVal){
+  const val=parseFloat(String(rawVal).replace(',','.'));
+  if(isNaN(val)||val<0)return;
+  const targetIsin=(isin||'').trim();
+  if(!targetIsin)return;
+  state.portfolios.forEach(pf=>{
+    pf.positions.forEach(pos=>{
+      if((pos.isin||'').trim()===targetIsin)pos.stueck=val;
+    });
+  });
+  saveState();
+  showToast(`✓ ${val} Stk für ${targetIsin} in allen Portfolios gesetzt`);
+}
+
+function screenSettings(){
+  const items=[
+    {t:'Cloud-Sync',ic:'☁',body:(window.buildCloudSyncSettingsBody?window.buildCloudSyncSettingsBody():'<p class="hint">Lädt…</p>')},
+    {t:'Persönlicher Check',ic:'👤',body:`
+      <div class="field"><label>Sparrate / Monat €</label><input type="text" inputmode="decimal" id="ss_sr" value="${state.sparrate}"/></div>
+      <p class="hint">Nur Fallback, falls ein Teil-Portfolio keine eigene Rate hat. Summe der Portfolio-Raten aktuell:
+        <strong style="color:var(--green)">${state.portfolios.filter(p=>p.enabled).reduce((s,pf)=>s+(pf.sparAmount||0),0)} €/Monat</strong>.</p>
+      <div class="btnrow"><button class="btn btn-c" onclick="saveSpar()">Speichern</button></div>`},
+    {t:'Kurse',ic:'💹',body:buildKurseBody()},
+    {t:'Buy Only',ic:'📈',body:buildBuyOnlySettingsBody()},
+    {t:'Datenprüfung',ic:'🔍',body:buildDataCheckBody()},
+    {t:'Export / Import',ic:'📤',body:`
+      <p class="hint" style="margin-bottom:12px">Auf <strong>iOS/iPhone</strong>: Exportieren öffnet den iOS-Teilen-Dialog — tippe auf <strong>„In Dateien sichern"</strong> um direkt in iCloud Drive zu speichern.<br><br>Auf <strong>Desktop</strong>: normaler Datei-Download.</p>
+      <div class="btnrow">
+        <button class="btn btn-c" onclick="doExport()">📥 JSON exportieren / Teilen</button>
+        <button class="btn btn-gh" onclick="document.getElementById('json-file').click()">📤 JSON importieren…</button>
+      </div>
+      <p class="hint" style="margin-top:8px;color:var(--green)">✓ Kompatibel mit RebalGold_Backup_*.json (iOS/macOS App)</p>`},
+    {t:'Depotauszug-Import',ic:'📄',body:`
+      <p class="hint" style="margin-bottom:10px">Übernimmt <strong>Stückzahlen und Kurse</strong> direkt aus der Trade-Republic-Vermögensübersicht. Zuordnung über die ISIN — gespiegelte Positionen werden in allen Teil-Portfolios gleichzeitig aktualisiert.</p>
+      <button class="btn btn-c" style="width:100%" onclick="openTRModal()">📄 Auszug einfügen und abgleichen</button>
+      <p class="hint" style="margin-top:8px">Empfohlener Rhythmus: quartalsweise nach den Ausschüttungen im März, Juni, September und Dezember.</p>`},
+    {t:'Wissensdatenbank',ic:'💡',body:`
+      <p><strong style="color:var(--yellow)">Ampel:</strong> Grün = Δ &lt;2% · Gelb = 2–5% · Rot = &gt;5%</p>
+      <p><strong style="color:var(--yellow)">Buy-Only:</strong> Nur Käufe, keine Verkäufe — Buy-and-Hold-kompatibel.</p>
+      <p><strong style="color:var(--yellow)">Score:</strong> 100 − max(|Δ|) × 3 pro Portfolio</p>
+      <p><strong style="color:var(--yellow)">Zielgewichte:</strong> Inaktive Positionen fallen aus der Rechnung; die Zielquoten der aktiven werden auf 100 % normiert (effTarget).</p>
+      <p><strong style="color:var(--yellow)">Dividenden:</strong> Eingabe in €/Stück/Monat. Wert = Div je Stück × Stückzahl. Die implizite Rendite im ETF-Detail muss zur veröffentlichten Ausschüttungsrendite passen.</p>
+      <p><strong style="color:var(--yellow)">ReBal 1 (Stand 27.07.2026):</strong> JGPI 20,8 % · ZPRG 16,7 % · SDIV 12,5 % · QYLE 16,7 % · SPCC 16,7 % · XGSD 16,7 % inaktiv (Bestand hält).</p>
+      <p><strong style="color:var(--yellow)">ReBal 2 (Stand 27.07.2026):</strong> VDIV 35 % · VGWD 25 % · USDV 25 % · IEAC 15 %.</p>
+      <p><strong style="color:var(--yellow)">Ausschüttungsmonate:</strong> VDIV/VGWD/USDV Mär·Jun·Sep·Dez · ZPRG Feb·Mai·Aug·Nov · IEAC Jan·Jul · JGPI/SDIV monatlich · QYLE/SPCC monatlich · XGSD Mär·Jun·Sep·Dez.</p>
+      <p><strong style="color:var(--yellow)">Drei-Topf-System:</strong> Topf 1 ~53% (inkl. AVD ab 01/2027) · Topf 2 ~33% · Topf 3 max. 13–15%.</p>
+      <p><strong style="color:var(--yellow)">Ziel 2040:</strong> 264.000 € Income-Kapital → 1.000 €/Monat netto (ReBal 1 + ReBal 2, ISIN-dedupliziert). Zwischenziel 138.000 € = 500 €/Monat.</p>`},
+    {t:'Teil-Portfolios Übersicht',ic:'⊕',body:state.portfolios.map((pf,i)=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b)">
+        <span style="font-weight:700;color:var(--cyan)">${pf.name}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${pf.activePortfolio?'<span class="badge b-aktiv">Aktiv</span>':''}
+          ${ampelBadge(pfAmpel(pf))}
+          <span style="font-size:13px;color:var(--t2)">${EUR0(pfTotal(pf))}</span>
+        </div>
+      </div>`).join('')},
+    {t:'Sonstiges',ic:'⋯',body:`
+      <p>RebalGold Web v${APP_VERSION} · Zimmermann Capital</p>
+      <p style="margin-top:6px">Daten werden automatisch im Browser gespeichert (localStorage).</p>
+      <p class="hint" style="margin-top:4px">Wird beim Schließen/Reload beibehalten. Gespeichert: ${(()=>{try{const r=localStorage.getItem(STORAGE_KEY);return r?(new Blob([r]).size/1024).toFixed(1)+' KB':'–';}catch{return'–';}})()}</p>
+      <p class="hint" style="margin-top:8px">Diese App stellt keine Anlageberatung dar. Ausschüttungswerte für zukünftige Monate sind Fortschreibungen, keine Zusagen.</p>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn btn-r" onclick="if(confirm('Wirklich ALLE Daten zurücksetzen? Dies kann nicht rückgängig gemacht werden.')){localStorage.removeItem(STORAGE_KEY);state=defaultState();render();showToast('✓ Zurückgesetzt')}">🗑 Alle Daten löschen</button>
+      </div>`}
+  ];
+  return`<div class="screen">
+    <h1 class="stitle gy" style="font-size:50px;margin-top:16px">Einstellungen</h1>
+    ${items.map((it,i)=>`
+      <div class="acc" id="ac${i}">
+        <div class="acc-h" onclick="toggleAcc(${i})">
+          <span class="acc-ic">${it.ic}</span><span class="acc-t">${it.t}</span><span class="acc-ch">▼</span>
+        </div>
+        <div class="acc-b">${it.body}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// NEU v3.5: automatische Plausibilitätsprüfung der eigenen Daten
+function buildDataCheckBody(){
+  const issues=[];
+  // 1. Gleiche ISIN mit abweichender Stückzahl oder Kurs
+  const byIsin={};
+  state.portfolios.forEach(pf=>pf.positions.forEach(p=>{
+    const k=(p.isin||'').trim(); if(!k)return;
+    (byIsin[k]=byIsin[k]||[]).push({pf:pf.name,p});
+  }));
+  Object.entries(byIsin).forEach(([isin,list])=>{
+    if(list.length<2)return;
+    const st=new Set(list.map(x=>x.p.stueck.toFixed(6)));
+    const ku=new Set(list.map(x=>x.p.kurs.toFixed(4)));
+    if(st.size>1)issues.push(`<strong>${isin}</strong> hat unterschiedliche Stückzahlen in ${list.map(x=>x.pf).join(', ')}: ${[...st].join(' / ')}`);
+    if(ku.size>1)issues.push(`<strong>${isin}</strong> hat unterschiedliche Kurse in ${list.map(x=>x.pf).join(', ')}: ${[...ku].join(' / ')}`);
+  });
+  // 2. Zielgewichte
+  state.portfolios.forEach(pf=>{
+    const all=pf.positions.reduce((s,p)=>s+p.target,0);
+    if(pf.positions.length&&Math.abs(all-100)>1)
+      issues.push(`<strong>${pf.name}</strong>: Zielgewichte aller Positionen summieren auf ${all.toFixed(1)} % statt 100 %`);
+  });
+  // 3. Unplausible Ausschüttungsrenditen
+  uniquePositions().forEach(({pos})=>{
+    const s=((pos.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    if(s<=0||pos.kurs<=0)return;
+    const y=s/pos.kurs*100;
+    if(y>16)issues.push(`<strong>${pos.name.slice(0,40)}</strong>: implizite Ausschüttungsrendite ${y.toFixed(1)} % — bitte Beträge prüfen`);
+  });
+  // 4. Positionen ohne Stückzahl oder Kurs
+  uniquePositions().forEach(({pos,pfName})=>{
+    if(pos.stueck<=0)issues.push(`<strong>${pos.name.slice(0,40)}</strong> (${pfName}): Stückzahl ist 0`);
+    else if(pos.kurs<=0)issues.push(`<strong>${pos.name.slice(0,40)}</strong> (${pfName}): kein Kurs hinterlegt`);
+  });
+  return`<p class="hint" style="margin-bottom:12px">Automatischer Selbsttest der hinterlegten Daten. Ersetzt keinen Abgleich mit dem Depotauszug.</p>
+    ${issues.length===0
+      ? `<div class="hint" style="color:var(--green);padding:8px">✓ Keine Auffälligkeiten gefunden</div>`
+      : issues.map(i=>`<div style="font-size:12px;line-height:1.5;padding:8px 10px;margin-bottom:6px;background:rgba(255,230,0,.07);border:1px solid rgba(255,230,0,.3);border-radius:8px;color:var(--t2)">⚠ ${i}</div>`).join('')}`;
+}
+
+// ===== MODAL =====
+function openAddModal(){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">+ Neue Position</div>
+    <div class="field"><label>Name</label><input type="text" id="m_n" placeholder="z.B. iShares Core MSCI World"/></div>
+    <div class="field"><label>ISIN</label><input type="text" id="m_i" placeholder="IE00B4L5Y983"/></div>
+    <div class="field"><label>WKN</label><input type="text" id="m_w" placeholder="A0RPWH"/></div>
+    <div class="field"><label>Ticker (Yahoo)</label><input type="text" id="m_t" placeholder="IWDA"/></div>
+    <div class="field"><label>Stückzahl</label><input type="text" inputmode="decimal" id="m_s" value="0"/></div>
+    <div class="field"><label>Aktueller Kurs €</label><input type="text" inputmode="decimal" id="m_k" value="0"/></div>
+    <div class="field"><label>Kaufkurs €</label><input type="text" inputmode="decimal" id="m_kk" value="0"/></div>
+    <div class="field"><label>Ziel-% in Portfolio</label><input type="text" inputmode="decimal" id="m_tg" value="100"/></div>
+    <div class="field"><label>TER % p.a.</label><input type="text" inputmode="decimal" id="m_ter" value="0.20"/></div>
+    <div class="btnrow">
+      <button class="btn btn-g" onclick="confirmAdd()" style="flex:1">Hinzufügen</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function closeModal(){const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML='';}
+function gv(id){const el=document.getElementById(id);if(!el)return 0;const v=el.value.replace(',','.');return parseFloat(v)||0;}
+function gs(id){return document.getElementById(id)?.value?.trim()||'';}
+function confirmAdd(){
+  const pos={name:gs('m_n')||'Neue Position',isin:gs('m_i'),wkn:gs('m_w'),ticker:gs('m_t'),
+    stueck:gv('m_s'),kurs:gv('m_k'),kaufkurs:gv('m_kk')||gv('m_k'),
+    target:gv('m_tg')||100,ter:gv('m_ter')||0.20,active:true,klasse:0,
+    divs:{2024:Array(12).fill(0),2025:Array(12).fill(0),2026:Array(12).fill(0),2027:Array(12).fill(0)}};
+  state.portfolios[state.subIdx].positions.push(pos);
+  closeModal();render();showToast('Position hinzugefügt');
+}
+
+// ===== ACTIONS =====
+function toggleAcc(i){document.getElementById('ac'+i).classList.toggle('open');}
+function addPf(){const n=prompt('Name des neuen Teil-Portfolios:');if(n?.trim()){state.portfolios.push({name:n.trim(),id:'new-'+Date.now(),strategy:'moderat',activePortfolio:false,enabled:true,sparAmount:0,positions:[]});render();showToast('Portfolio erstellt');}}
+function removePf(i){if(state.portfolios.length<=1){showToast('Mindestens 1 Portfolio erforderlich');return;}if(confirm(`"${state.portfolios[i].name}" löschen?`)){state.portfolios.splice(i,1);if(state.subIdx>=state.portfolios.length)state.subIdx=0;render();showToast('Gelöscht');}}
+function openPf(i){state.subIdx=i;state.view='detail';render();}
+function openETF(pi){state.posIdx=pi;state.view='etfDetail';render();}
+function setActive(i){state.portfolios.forEach((p,j)=>p.activePortfolio=(j===i&&!p.activePortfolio));render();}
+function togglePos(pfI,pI){state.portfolios[pfI].positions[pI].active=!state.portfolios[pfI].positions[pI].active;}
+function updPos(pfI,pI,f,v){
+  if(isNaN(v))return;
+  const pos=state.portfolios[pfI].positions[pI];
+  pos[f]=v;
+  // Stückzahl und Kurs gelten physisch für die ISIN — überall synchronisieren
+  if(f==='stueck'||f==='kurs'){
+    const isin=(pos.isin||'').trim();
+    if(isin)state.portfolios.forEach(pf=>pf.positions.forEach(q=>{if((q.isin||'').trim()===isin)q[f]=v;}));
+  }
+}
+function ensureDivs(pfI,pI){const pos=state.portfolios[pfI]?.positions[pI];if(pos&&!pos.divs[state.divCalYear])pos.divs[state.divCalYear]=Array(12).fill(0);}
+function deletePos(pfI,pI){if(confirm('Position löschen?')){state.portfolios[pfI].positions.splice(pI,1);state.view='detail';render();showToast('Gelöscht');}}
+function selectSpar(i){
+  const sy=window.scrollY;
+  state.selectedSparIdx=i;
+  render();
+  requestAnimationFrame(()=>{
+    window.scrollTo(0,sy);
+    const tile=document.querySelector(`.merker-tile[data-idx="${i}"]`);
+    if(tile)tile.scrollIntoView({behavior:'instant',block:'nearest',inline:'center'});
+  });
+}
+function openPfFromDash(i){
+  state.subIdx=i;state.view='detail';state.tab=2;render();window.scrollTo(0,0);
+}
+function saveSpar(){const v=parseFloat(document.getElementById('ss_sr')?.value?.replace(',','.'));if(!isNaN(v))state.sparrate=v;render();showToast('Gespeichert');}
+
+
+// ===== YAHOO FINANCE KURSABRUF =====
+// allorigins /get?url= gibt {contents:"JSON-String"}, corsproxy gibt direktes JSON
+async function _fetchYahoo(ticker){
+  const yurl=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=2d`;
+  for(const proxy of[
+    'https://api.allorigins.win/get?url=',
+    'https://corsproxy.io/?'
+  ]){
+    try{
+      const res=await fetch(proxy+encodeURIComponent(yurl),{signal:AbortSignal.timeout(8000)});
+      if(!res.ok)continue;
+      const json=await res.json();
+      const raw=json.contents??json;
+      const data=typeof raw==='string'?JSON.parse(raw):raw;
+      const meta=data?.chart?.result?.[0]?.meta;
+      if(meta?.regularMarketPrice>0){
+        return{price:Math.round(meta.regularMarketPrice*10000)/10000,symbol:ticker};
+      }
+    }catch{}
+  }
+  return null;
+}
+
+// Symbol via Yahoo Search finden (ISIN → Ticker)
+async function _searchYahoo(q){
+  const surl=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=1&newsCount=0`;
+  for(const proxy of['https://api.allorigins.win/get?url=','https://corsproxy.io/?']){
+    try{
+      const res=await fetch(proxy+encodeURIComponent(surl),{signal:AbortSignal.timeout(8000)});
+      if(!res.ok)continue;
+      const json=await res.json();
+      const raw=json.contents??json;
+      const data=typeof raw==='string'?JSON.parse(raw):raw;
+      const sym=data?.quotes?.[0]?.symbol;
+      if(sym)return sym;
+    }catch{}
+  }
+  return null;
+}
+
+// Kurs für eine Position: Ticker → ISIN-Suche → WKN-Suche → WKN+Suffix
+async function fetchPriceForPos(pos){
+  if(pos.ticker){const r=await _fetchYahoo(pos.ticker);if(r)return r;}
+  if(pos.isin){const s=await _searchYahoo(pos.isin);if(s){const r=await _fetchYahoo(s);if(r)return{...r,symbol:s};}}
+  if(pos.wkn){const s=await _searchYahoo(pos.wkn);if(s){const r=await _fetchYahoo(s);if(r)return{...r,symbol:s};}}
+  if(pos.wkn){
+    for(const sx of['.DE','.F','.L','.AS','.PA','.MI','.SW','.MC']){
+      const r=await _fetchYahoo(pos.wkn+sx);if(r)return r;
+    }
+  }
+  if(pos.isin){const r=await _fetchYahoo(pos.isin);if(r)return r;}
+  return null;
+}
+
+async function loadYahoo(pfI,pI){
+  const pos=state.portfolios[pfI].positions[pI];
+  if(!pos.isin&&!pos.ticker&&!pos.wkn){showToast('Kein ISIN/Ticker/WKN vorhanden');return;}
+  showToast('⏳ Lade Kurs…');
+  const r=await fetchPriceForPos(pos);
+  if(r){
+    const isin=(pos.isin||'').trim();
+    state.portfolios.forEach(pf=>pf.positions.forEach(q=>{if(isin&&(q.isin||'').trim()===isin)q.kurs=r.price;}));
+    pos.kurs=r.price;
+    if(!pos.ticker&&r.symbol)pos.ticker=r.symbol;
+    render();showToast(`✓ ${r.symbol}: ${r.price} €`);
+  }
+  else showToast('Kurs nicht verfügbar — bitte manuell eingeben');
+}
+
+let _autoFetchDone=false;
+async function autoFetchAllPrices(){
+  if(_autoFetchDone)return;
+  _autoFetchDone=true;
+  const map=new Map();
+  state.portfolios.forEach(pf=>{
+    if(!pf.enabled)return;
+    pf.positions.forEach(pos=>{
+      const key=(pos.isin||pos.ticker||'').trim();
+      if(!key)return;
+      if(!map.has(key))map.set(key,{poses:[],pos});
+      map.get(key).poses.push(pos);
+    });
+  });
+  let ok=0,fail=0;
+  for(const[,{poses,pos}] of map){
+    const r=await fetchPriceForPos(pos);
+    if(r){poses.forEach(p=>{p.kurs=r.price;if(!p.ticker&&r.symbol)p.ticker=r.symbol;});ok++;}
+    else fail++;
+    await new Promise(res=>setTimeout(res,250));
+  }
+  render();
+  showToast(ok>0?`✓ ${ok} Kurse geladen${fail?` · ${fail} n.v.`:''}`:'Kursabruf fehlgeschlagen');
+}
+
+// ===== EXPORT (iOS iCloud Drive + Desktop Download) =====
+async function doExport(){
+  const fn=`RebalGold-${new Date().toISOString().slice(0,10)}.json`;
+  const json=JSON.stringify(state,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  if(typeof navigator.share==='function'){
+    try{
+      await navigator.share({files:[new File([blob],fn,{type:'application/json'})],title:'RebalGold Backup'});
+      showToast('✓ Gespeichert');return;
+    }catch(e){if(e.name==='AbortError')return;}
+  }
+  const url=URL.createObjectURL(blob);
+  const a=Object.assign(document.createElement('a'),{href:url,download:fn,style:'display:none'});
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+  showToast('✓ Download gestartet');
+}
+
+// ===== IMPORT (natives RebalGold JSON + eigenes Format) =====
+document.getElementById('json-file').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const raw=JSON.parse(ev.target.result);
+      // Eigenes Format (zuvor exportiert)
+      if(Array.isArray(raw.portfolios)){
+        const allowed=['tab','sparrate','portfolios','divCalYear','strategyV','selectedSparIdx'];
+        allowed.forEach(k=>{if(k in raw)state[k]=raw[k];});
+        // Struktur absichern (wie beim Laden aus localStorage)
+        state.portfolios.forEach(pf=>{
+          (pf.positions||[]).forEach(pos=>{
+            if(!pos.divs)pos.divs={};
+            [2024,2025,2026,2027].forEach(yr=>{if(!Array.isArray(pos.divs[yr]))pos.divs[yr]=Array(12).fill(0);});
+            ['stueck','kurs','kaufkurs','ter'].forEach(f=>{if(pos[f]===undefined)pos[f]=0;});
+            if(pos.active===undefined)pos.active=true;
+            if(pos.klasse===undefined)pos.klasse=0;
+          });
+          if(pf.sparAmount===undefined)pf.sparAmount=0;
+          if(pf.enabled===undefined)pf.enabled=true;
+        });
+        state.view='list';saveState();render();showToast('Import erfolgreich (Web-Format)!');return;
+      }
+      // Natives RebalGold-Format (entries + __avd_data)
+      if(raw.entries&&raw.schemaVersion){
+        const entries=raw.entries;
+        const dec=key=>{const v=entries[key];if(!v)return null;if(v.__avd_data)return b64dec(v.__avd_data);return v;};
+        if(entries['PlanningInputStore.planning.monthly'])state.sparrate=entries['PlanningInputStore.planning.monthly'];
+        const sp=dec('PortfolioStore.subPortfolios.v1');
+        if(sp&&sp.slots){
+          const reminders=dec('PortfolioStore.sparplanRemindersBySubPortfolio.v1')||{};
+          const divMap=dec('PortfolioStore.manualDividendsByPosition.v1')||{};
+          state.portfolios=sp.slots.filter(slot=>slot.displayName).map(slot=>{
+            const positions=[];
+            (slot.assetBuckets||[]).forEach(bkt=>{
+              (bkt.unterpositionen||[]).forEach(pos=>{
+                if(!pos.name&&!pos.isin)return;
+                const rawDivs=divMap[pos.id]||{};
+                const divs={};
+                Object.entries(rawDivs).forEach(([mkey,epsVal])=>{
+                  const yr=parseInt(mkey.slice(0,4));
+                  const mi=parseInt(mkey.slice(5))-1;
+                  if(!divs[yr])divs[yr]=Array(12).fill(0);
+                  divs[yr][mi]=epsVal;
+                });
+                [2024,2025,2026,2027].forEach(y=>{if(!divs[y])divs[y]=Array(12).fill(0);});
+                positions.push({
+                  name:bkt.anzeigeNameOverride||pos.name||'',
+                  isin:pos.isin||'',wkn:pos.wkn||'',ticker:pos.finnhubTicker||pos.ticker||'',
+                  stueck:pos.stueckzahl||0,kurs:pos.kursAktuell||0,kaufkurs:pos.kursKauf||0,
+                  target:bkt.zielProzentRisiko||pos.relGewichtInKlasse*100||100,
+                  ter:pos.terProzentPA||0,active:bkt.klasseIstAktiv!==false&&pos.istAktiv!==false,
+                  klasse:bkt.klasse||0,divs
+                });
+              });
+            });
+            return{
+              name:slot.displayName,id:slot.id,
+              strategy:'gewinnorientiert',activePortfolio:false,enabled:slot.isEnabled!==false,
+              sparAmount:reminders[slot.id]||0,positions
+            };
+          });
+          const ai=sp.activeIndex||0;
+          if(state.portfolios[ai])state.portfolios[ai].activePortfolio=true;
+          state.selectedSparIdx=ai;
+          state.view='list';state.tab=0;
+          saveState();render();showToast('Import erfolgreich ('+state.portfolios.length+' Portfolios)!');
+          return;
+        }
+        showToast('Format erkannt, aber keine Portfolios gefunden.');
+        return;
+      }
+      showToast('Unbekanntes JSON-Format');
+    }catch(err){
+      alert('Import-Fehler: '+err.message);console.error(err);
+    }
+  };
+  reader.readAsText(file,'utf-8');
+  e.target.value='';
+});
+
+// ===== TOAST =====
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===== RENDER =====
+const TABS=[
+  {lb:'Dashboard',ic:'◈',ab:'rgba(57,255,106,.07)',tc:'#39FF6A',tg:'rgba(57,255,106,.5)'},
+  {lb:'Depot',    ic:'▣',ab:'rgba(0,240,255,.07)', tc:'#00F0FF',tg:'rgba(0,240,255,.5)'},
+  {lb:'Portfolio',ic:'⊕',ab:'rgba(0,240,255,.07)', tc:'#00F0FF',tg:'rgba(0,240,255,.5)'},
+  {lb:'Sparplan', ic:'↻',ab:'rgba(57,255,106,.07)',tc:'#39FF6A',tg:'rgba(57,255,106,.5)'},
+  {lb:'Einstellungen',ic:'⚙',ab:'rgba(255,230,0,.07)',tc:'#FFE600',tg:'rgba(255,230,0,.5)'}
+];
+function goTab(i){state.tab=i;if(i===2)state.view='list';render();}
+function render(){
+  const openAccs=[...document.querySelectorAll('.acc.open')].map(el=>el.id);
+  saveState();
+  const tab=TABS[state.tab];
+  document.getElementById('backdrop').style.background=
+    `radial-gradient(ellipse 600px 400px at 50% 0%,${tab.ab} 0%,transparent 68%)`;
+  const screens=[screenDashboard,screenDepot,screenPortfolio,screenSparplan,screenSettings];
+  document.getElementById('content').innerHTML=screens[state.tab]();
+  document.getElementById('tabbar').innerHTML=TABS.map((t,i)=>
+    `<button class="tb${i===state.tab?' on':''}" style="--tc:${t.tc};--tg:${t.tg}" onclick="goTab(${i})" type="button">
+      <span class="ic">${t.ic}</span>${t.lb}
+    </button>`).join('');
+  openAccs.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('open');});
+}
+
+// App starten (kein automatischer Kursabruf — nur manuell via Button)
+render();
+
+// ===== BRÜCKE für Cloud-Sync-Modul =====
+window.__getState=()=>state;
+window.__setState=(newState)=>{state=newState;};
+window.render=render;
+</script>
+
+<!-- ============================================================= -->
+<!-- FIREBASE CLOUD-SYNC MODUL — eigenständig, isoliert            -->
+<!-- ============================================================= -->
+<style>
+#cs-fab{position:fixed;top:calc(env(safe-area-inset-top,0) + 10px);right:12px;z-index:400;
+  width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(0,240,255,.4);
+  background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:var(--cyan);
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 12px rgba(0,240,255,.2);transition:all .2s}
+#cs-fab.synced{border-color:var(--green);color:var(--green);box-shadow:0 0 12px rgba(57,255,106,.3)}
+#cs-fab.syncing{animation:csSpin 1s linear infinite}
+@keyframes csSpin{to{transform:rotate(360deg)}}
+#cs-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.88);
+  backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+#cs-overlay.open{display:flex}
+.cs-box{background:var(--bg1);border:1px solid rgba(0,240,255,.4);border-radius:18px;
+  width:100%;max-width:400px;padding:24px 20px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 0 40px rgba(0,240,255,.15)}
+.cs-title{font-size:20px;font-weight:800;color:var(--cyan);margin-bottom:4px;text-align:center;
+  text-shadow:0 0 12px rgba(0,240,255,.4)}
+.cs-sub{font-size:12px;color:var(--t2);text-align:center;margin-bottom:20px}
+.cs-field{margin-bottom:12px}
+.cs-field label{font-size:11px;color:var(--t2);display:block;margin-bottom:4px;font-weight:600}
+.cs-field input{width:100%;background:var(--bg0);border:1px solid var(--b);border-radius:10px;
+  color:var(--t);padding:11px 13px;font-size:15px;outline:none;transition:border-color .2s}
+.cs-field input:focus{border-color:var(--cyan)}
+.cs-btn{width:100%;padding:12px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;
+  border:none;transition:all .2s;margin-top:4px}
+.cs-btn-primary{background:var(--cyan);color:#000}
+.cs-btn-primary:hover{box-shadow:0 0 16px rgba(0,240,255,.4)}
+.cs-btn-green{background:var(--green);color:#000}
+.cs-btn-ghost{background:transparent;border:1px solid var(--b);color:var(--t2);margin-top:8px}
+.cs-btn-red{background:rgba(255,23,68,.12);border:1px solid rgba(255,23,68,.4);color:var(--red)}
+.cs-tab-row{display:flex;gap:8px;margin-bottom:18px;background:var(--bg0);padding:4px;border-radius:10px}
+.cs-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;border-radius:8px;
+  cursor:pointer;color:var(--t2);transition:all .2s}
+.cs-tab.on{background:var(--cyan);color:#000}
+.cs-msg{font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:12px;line-height:1.4}
+.cs-msg.err{background:rgba(255,23,68,.12);border:1px solid rgba(255,23,68,.3);color:#ff6b8a}
+.cs-msg.ok{background:rgba(57,255,106,.12);border:1px solid rgba(57,255,106,.3);color:var(--green)}
+.cs-msg.info{background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.25);color:var(--cyan)}
+.cs-status-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;
+  border-bottom:1px solid var(--b);font-size:13px}
+.cs-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--t2);
+  font-size:24px;cursor:pointer;line-height:1}
+.cs-config-note{font-size:11px;color:var(--t3);line-height:1.5;margin-top:14px;
+  padding:10px;background:var(--bg0);border-radius:8px;border:1px solid var(--b)}
+</style>
+
+<button id="cs-fab" title="Cloud-Sync" onclick="CloudSync.openPanel()">☁</button>
+<div id="cs-overlay"><div class="cs-box" style="position:relative"></div></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const CFG_KEY='rebalGold_fbConfig';
+  const AUTOSYNC_KEY='rebalGold_fbAutoSync';
+  const CS_DOC_KEY='rebalGold_v3';
+
+  function getConfig(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'null');}catch{return null;}}
+  function setConfigStore(c){localStorage.setItem(CFG_KEY,JSON.stringify(c));}
+  const isConfigured=()=>{const c=getConfig();return!!(c&&c.apiKey&&c.projectId);};
+  function autoSyncOn(){return localStorage.getItem(AUTOSYNC_KEY)!=='0';}
+  function setAutoSync(v){localStorage.setItem(AUTOSYNC_KEY,v?'1':'0');}
+
+  // Toleranter Config-Parser: JSON, JS-Objekt-Syntax, auch ohne geschweifte Klammern
+  function parseConfig(raw){
+    raw=(raw||'').trim();
+    if(!raw)return null;
+    if(!raw.startsWith('{'))raw='{'+raw;
+    if(!raw.endsWith('}'))raw=raw+'}';
+    raw=raw.replace(/^\{?\s*(const|var|let)\s+\w+\s*=\s*\{/,'{');
+    try{return JSON.parse(raw);}catch{}
+    try{
+      const fixed=raw
+        .replace(/([,{]\s*)([A-Za-z_$][\w$]*)\s*:/g,'$1"$2":')
+        .replace(/'/g,'"')
+        .replace(/,\s*([}\]])/g,'$1');
+      return JSON.parse(fixed);
+    }catch{return null;}
+  }
+
+  // Eindeutige, persistente Geräte-ID (Mac ≠ iPhone) — verhindert Sync-Kollisionen
+  const DEVICE_ID=(function(){
+    const k='rebalGold_deviceId';
+    let id=localStorage.getItem(k);
+    if(!id){id='dev-'+Math.random().toString(36).slice(2,10)+'-'+Date.now().toString(36);localStorage.setItem(k,id);}
+    return id;
+  })();
+
+  let fb={app:null,auth:null,db:null,user:null};
+  let ready=false;
+  let syncing=false;
+  let lastSync=null;
+  let debounceTimer=null;
+  let unsubDoc=null;
+  let _suppressPush=false;
+  let panelTab='login';
+
+  const $=s=>document.querySelector(s);
+  const fab=()=>document.getElementById('cs-fab');
+  const overlay=()=>document.getElementById('cs-overlay');
+  const box=()=>overlay().querySelector('.cs-box');
+
+  function toast(msg){if(window.showToast)window.showToast(msg);}
+
+  async function loadFirebaseSDK(){
+    if(window.firebase&&window.firebase.apps)return true;
+    const scripts=[
+      'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+      'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+      'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js'
+    ];
+    for(const src of scripts){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src=src;s.onload=res;s.onerror=()=>rej(new Error('SDK-Laden fehlgeschlagen'));
+        document.head.appendChild(s);
+      });
+    }
+    return true;
+  }
+
+  async function initFirebase(){
+    const cfg=getConfig();
+    if(!cfg||!cfg.apiKey)return false;
+    try{
+      await loadFirebaseSDK();
+      if(!fb.app){
+        fb.app=firebase.initializeApp(cfg);
+        fb.auth=firebase.auth();
+        fb.db=firebase.firestore();
+        fb.auth.onAuthStateChanged(u=>{
+          fb.user=u;
+          updateFab();
+          if(u){
+            if(autoSyncOn())startRealtimeSync();
+            CS_pullNow(true);
+          }
+          else if(unsubDoc){unsubDoc();unsubDoc=null;}
+          if(overlay().classList.contains('open'))renderPanel();
+          if(window.__csSettingsRefresh)window.__csSettingsRefresh();
+        });
+      }
+      ready=true;
+      return true;
+    }catch(e){console.error('Firebase Init fehlgeschlagen:',e);return false;}
+  }
+
+  function userDocRef(){
+    if(!fb.user)return null;
+    return fb.db.collection('users').doc(fb.user.uid).collection('rebalgold').doc('state');
+  }
+
+  function startRealtimeSync(){
+    const ref=userDocRef();if(!ref)return;
+    if(unsubDoc)unsubDoc();
+    unsubDoc=ref.onSnapshot(snap=>{
+      if(!snap.exists)return;
+      const data=snap.data();
+      if(data&&data.state&&data._src!==DEVICE_ID){
+        try{
+          const cloudState=typeof data.state==='string'?JSON.parse(data.state):data.state;
+          applyCloudState(cloudState);
+          lastSync=new Date();updateFab();
+        }catch(e){console.warn('Cloud→Local Merge fehlgeschlagen:',e);}
+      }
+    },err=>console.warn('Snapshot-Fehler:',err));
+  }
+
+  function applyCloudState(cloudState){
+    const getS=window.__getState,setS=window.__setState;
+    if(!getS||!setS||!window.render)return;
+    const cur=getS();
+    if(JSON.stringify(cur)===JSON.stringify(cloudState))return;
+    const merged=cur;
+    Object.keys(cloudState).forEach(k=>{merged[k]=cloudState[k];});
+    setS(merged);
+    _suppressPush=true;
+    try{localStorage.setItem(CS_DOC_KEY,JSON.stringify(merged));}catch{}
+    window.render();
+    _suppressPush=false;
+    toast('☁ Von Cloud aktualisiert');
+  }
+
+  function pushToCloud(stateObj){
+    if(!fb.user||_suppressPush)return;
+    clearTimeout(debounceTimer);
+    debounceTimer=setTimeout(async()=>{
+      const ref=userDocRef();if(!ref)return;
+      syncing=true;updateFab();
+      try{
+        await ref.set({
+          state:JSON.stringify(stateObj),
+          _src:DEVICE_ID,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          device:navigator.userAgent.slice(0,80)
+        },{merge:true});
+        lastSync=new Date();
+      }catch(e){console.warn('Cloud-Push fehlgeschlagen:',e);toast('⚠ Sync-Fehler');}
+      syncing=false;updateFab();
+    },1200);
+  }
+
+  window.CloudSync={
+    onLocalSave(stateObj){if(ready&&fb.user&&autoSyncOn())pushToCloud(stateObj);},
+    openPanel(){
+      const s=window.__getState&&window.__getState();
+      if(s&&window.goTab){
+        window.goTab(4);
+        setTimeout(()=>{
+          const acc=document.getElementById('ac0');
+          if(acc){acc.classList.add('open');acc.scrollIntoView({behavior:'smooth',block:'start'});}
+        },60);
+      }else{
+        renderPanel();overlay().classList.add('open');
+      }
+    }
+  };
+
+  function updateFab(){
+    const f=fab();if(!f)return;
+    f.classList.remove('synced','syncing');
+    if(syncing){f.classList.add('syncing');f.textContent='↻';}
+    else if(fb.user){f.classList.add('synced');f.textContent='☁';f.title='Synchronisiert: '+(fb.user.email||'');}
+    else{f.textContent='☁';f.title='Cloud-Sync (nicht verbunden)';}
+  }
+
+  function renderPanel(){
+    const b=box();
+    if(!isConfigured()){
+      b.innerHTML=`<button class="cs-close" onclick="document.getElementById('cs-overlay').classList.remove('open')">×</button>
+        <div class="cs-title">☁ Cloud-Sync</div>
+        <div class="cs-msg info">Firebase ist noch nicht konfiguriert. Unter Einstellungen → Cloud-Sync die Config einfügen.</div>`;
+      return;
+    }
+    if(fb.user){
+      b.innerHTML=`<button class="cs-close" onclick="document.getElementById('cs-overlay').classList.remove('open')">×</button>
+        <div class="cs-title">☁ Verbunden</div>
+        <div class="cs-sub">${fb.user.email}</div>
+        <div class="cs-status-row"><span style="color:var(--t2)">Letzter Sync</span><span style="font-weight:700">${lastSync?lastSync.toLocaleTimeString('de-DE'):'–'}</span></div>
+        <div class="cs-config-note">Weitere Optionen (Abmelden, manueller Sync) findest du unter Einstellungen → Cloud-Sync.</div>`;
+      return;
+    }
+    b.innerHTML=`<button class="cs-close" onclick="document.getElementById('cs-overlay').classList.remove('open')">×</button>
+      <div class="cs-title">☁ Nicht angemeldet</div>
+      <div class="cs-config-note">Melde dich unter Einstellungen → Cloud-Sync an, um deine Daten zwischen Mac und iPhone zu synchronisieren.</div>`;
+  }
+
+  function showMsg(txt,type,slotId){
+    const slot=$('#'+(slotId||'cs-msg-slot'));
+    if(slot)slot.innerHTML=`<div class="cs-msg ${type}">${txt}</div>`;
+  }
+
+  window.buildCloudSyncSettingsBody=function(){
+    const cfg=getConfig();
+    const cfgText=cfg?JSON.stringify(cfg,null,2):'';
+
+    let dot='⚪',title='Nicht konfiguriert',sub='Firebase-Konfiguration unten eintragen.';
+    if(cfg&&!ready){dot='🟡';title='Verbinde…';sub='Firebase wird geladen.';}
+    else if(cfg&&ready&&!fb.user){dot='🟡';title='Verbunden';sub='Bitte anmelden.';}
+    else if(fb.user){dot='🟢';title='Angemeldet';sub=fb.user.email;}
+
+    if(cfg&&!ready&&!fb.app){
+      setTimeout(()=>{initFirebase().then(()=>{if(window.__csSettingsRefresh)window.__csSettingsRefresh();});},10);
+    }
+
+    return`
+      <p class="hint" style="margin-bottom:12px">Synchronisiert deine Portfolios zwischen Mac und iPhone. Einmalige Einrichtung nötig — Firebase-Config unten einfügen.</p>
+
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:14px;margin-bottom:16px">
+        <span style="font-size:22px">${dot}</span>
+        <div>
+          <div style="font-weight:800;font-size:14px">${title}</div>
+          <div style="font-size:12px;color:var(--t2)">${sub}</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);font-weight:700;margin-bottom:6px">Firebase-Konfiguration (JSON aus der Firebase-Konsole)</div>
+      <textarea id="css-fbcfg" rows="6" spellcheck="false"
+        style="width:100%;background:var(--bg0);border:1px solid var(--b);border-radius:10px;color:var(--t);
+          padding:10px 12px;font-size:12px;font-family:monospace;resize:vertical;outline:none"
+        placeholder='{ "apiKey": "AIza...", "authDomain": "projekt.firebaseapp.com", "projectId": "projekt" }'>${cfgText}</textarea>
+      <div class="btnrow" style="margin-top:8px;margin-bottom:18px">
+        <button class="btn btn-c" style="flex:1" onclick="CS_saveConfig()">💾 Konfiguration speichern &amp; verbinden</button>
+      </div>
+      <div id="css-msg-slot"></div>
+
+      <div style="font-size:15px;font-weight:800;margin-bottom:10px">Anmeldung</div>
+      <div class="field" style="flex-direction:column;align-items:stretch;gap:4px">
+        <label style="min-width:0">E-Mail</label>
+        <input type="email" id="css-email" placeholder="du@example.com" autocomplete="email"
+          value="${fb.user?fb.user.email:''}"/>
+      </div>
+      <div class="field" style="flex-direction:column;align-items:stretch;gap:4px">
+        <label style="min-width:0">Passwort</label>
+        <input type="password" id="css-pw" placeholder="mind. 6 Zeichen" autocomplete="current-password"/>
+      </div>
+      <div class="btnrow">
+        <button class="btn btn-c" style="flex:1" onclick="CS_login()">🔑 Anmelden</button>
+        <button class="btn btn-gh" onclick="CS_register()">+ Konto erstellen</button>
+      </div>
+      <div class="btnrow" style="margin-top:6px">
+        <button class="btn btn-gh" style="border:none;font-size:13px" onclick="CS_logout()">Abmelden</button>
+        <button class="btn btn-gh" style="border:none;font-size:13px" onclick="CS_reset()">Passwort vergessen?</button>
+      </div>
+
+      <div class="sep" style="margin:16px 0"></div>
+      <div class="btnrow">
+        <button class="btn btn-c" style="flex:1" onclick="CS_pushNow()" ${fb.user?'':'disabled style="flex:1;opacity:.4"'}>↑ Jetzt hochladen</button>
+        <button class="btn btn-gh" style="flex:1" onclick="CS_pullNow()" ${fb.user?'':'disabled style="flex:1;opacity:.4"'}>↓ Jetzt laden</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+        <input type="checkbox" id="css-autosync" ${autoSyncOn()?'checked':''}
+          onchange="CS_toggleAutoSync(this.checked)"
+          style="width:18px;height:18px;accent-color:var(--cyan)"/>
+        <label for="css-autosync" style="font-size:13px;font-weight:600">Auto-Sync aktiv</label>
+        <span class="hint">${fb.user&&autoSyncOn()?'Auto-Sync läuft':fb.user?'Auto-Sync pausiert':''}</span>
+      </div>
+      ${lastSync?`<p class="hint" style="margin-top:8px">Letzter Sync: ${lastSync.toLocaleTimeString('de-DE')}</p>`:''}
+      <p class="hint" style="margin-top:10px">Gleiche Config + gleiches Konto auf Mac und iPhone verwenden. Datenpfad: users/…/rebalgold.</p>`;
+  };
+
+  window.__csSettingsRefresh=function(){
+    if(window.__getState&&window.__getState().tab===4)window.render();
+  };
+
+  window.CS_saveConfig=async function(){
+    const raw=$('#css-fbcfg')?.value||'';
+    const cfg=parseConfig(raw);
+    if(!cfg||!cfg.apiKey||!cfg.projectId){
+      showMsg('apiKey/projectId fehlen — bitte komplette Config aus der Firebase-Konsole einfügen (mit oder ohne { } — beides funktioniert).','err','css-msg-slot');
+      return;
+    }
+    setConfigStore(cfg);
+    showMsg('✓ Konfiguration gespeichert — verbinde…','ok','css-msg-slot');
+    ready=false;fb={app:null,auth:null,db:null,user:null};
+    const ok=await initFirebase();
+    if(ok){toast('✓ Firebase verbunden');if(window.__csSettingsRefresh)window.__csSettingsRefresh();}
+    else showMsg('Verbindung fehlgeschlagen — Config prüfen.','err','css-msg-slot');
+  };
+  window.CS_toggleAutoSync=function(on){
+    setAutoSync(on);
+    if(on&&fb.user)startRealtimeSync();
+    else if(!on&&unsubDoc){unsubDoc();unsubDoc=null;}
+    toast(on?'Auto-Sync aktiviert':'Auto-Sync pausiert');
+    if(window.__csSettingsRefresh)window.__csSettingsRefresh();
+  };
+  window.CS_setTab=function(t){panelTab=t;if(window.__csSettingsRefresh)window.__csSettingsRefresh();};
+  window.CS_login=async function(){
+    if(!fb.auth){showMsg('Erst Konfiguration speichern &amp; verbinden.','err','css-msg-slot');return;}
+    const email=$('#css-email')?.value.trim(),pw=$('#css-pw')?.value;
+    if(!email||!pw){showMsg('Bitte E-Mail und Passwort eingeben.','err','css-msg-slot');return;}
+    try{await fb.auth.signInWithEmailAndPassword(email,pw);toast('✓ Angemeldet');}
+    catch(e){showMsg(fbErr(e),'err','css-msg-slot');}
+  };
+  window.CS_register=async function(){
+    if(!fb.auth){showMsg('Erst Konfiguration speichern &amp; verbinden.','err','css-msg-slot');return;}
+    const email=$('#css-email')?.value.trim(),pw=$('#css-pw')?.value;
+    if(!email||!pw){showMsg('Bitte E-Mail und Passwort eingeben.','err','css-msg-slot');return;}
+    if(pw.length<6){showMsg('Passwort muss mindestens 6 Zeichen haben.','err','css-msg-slot');return;}
+    try{await fb.auth.createUserWithEmailAndPassword(email,pw);toast('✓ Konto erstellt');setTimeout(()=>CS_pushNow(),800);}
+    catch(e){showMsg(fbErr(e),'err','css-msg-slot');}
+  };
+  window.CS_reset=async function(){
+    const email=$('#css-email')?.value.trim();
+    if(!email){showMsg('Bitte zuerst E-Mail eingeben.','info','css-msg-slot');return;}
+    try{await fb.auth.sendPasswordResetEmail(email);showMsg('✓ E-Mail zum Zurücksetzen gesendet.','ok','css-msg-slot');}
+    catch(e){showMsg(fbErr(e),'err','css-msg-slot');}
+  };
+  window.CS_logout=async function(){
+    try{await fb.auth.signOut();toast('Abgemeldet');if(window.__csSettingsRefresh)window.__csSettingsRefresh();}catch(e){}
+  };
+  window.CS_pushNow=async function(){
+    if(!fb.user||!window.__getState)return;
+    const ref=userDocRef();if(!ref)return;
+    syncing=true;updateFab();
+    try{
+      await ref.set({state:JSON.stringify(window.__getState()),_src:DEVICE_ID,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      lastSync=new Date();toast('☁ Hochgeladen');
+    }catch(e){toast('⚠ Fehler');console.warn(e);}
+    syncing=false;updateFab();
+    if(overlay().classList.contains('open'))renderPanel();
+  };
+  window.CS_pullNow=async function(silent){
+    if(!fb.user)return;
+    const ref=userDocRef();if(!ref)return;
+    syncing=true;updateFab();
+    try{
+      const snap=await ref.get();
+      if(snap.exists&&snap.data().state){
+        applyCloudState(JSON.parse(snap.data().state));
+        lastSync=new Date();
+        if(!silent)toast('☁ Geladen');
+      }else if(!silent)toast('Keine Cloud-Daten vorhanden');
+    }catch(e){if(!silent)toast('⚠ Fehler');console.warn(e);}
+    syncing=false;updateFab();
+    if(overlay().classList.contains('open'))renderPanel();
+  };
+
+  function fbErr(e){
+    const m={
+      'auth/invalid-email':'Ungültige E-Mail-Adresse.',
+      'auth/user-not-found':'Kein Konto mit dieser E-Mail.',
+      'auth/wrong-password':'Falsches Passwort.',
+      'auth/invalid-credential':'E-Mail oder Passwort falsch.',
+      'auth/email-already-in-use':'E-Mail bereits registriert.',
+      'auth/weak-password':'Passwort zu schwach (min. 6 Zeichen).',
+      'auth/too-many-requests':'Zu viele Versuche. Später erneut.',
+      'auth/network-request-failed':'Netzwerkfehler.',
+      'auth/operation-not-allowed':'E-Mail/Passwort-Login in Firebase nicht aktiviert.'
+    };
+    return m[e.code]||('Fehler: '+(e.message||e.code||'unbekannt'));
+  }
+
+  document.getElementById('cs-overlay').addEventListener('click',function(e){
+    if(e.target===this)this.classList.remove('open');
+  });
+
+  if(isConfigured()){initFirebase().then(ok=>{if(ok)updateFab();});}
+
+})();
+</script>
+</body>
+</html>
