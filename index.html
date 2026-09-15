@@ -170,8 +170,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.8';
+const APP_VERSION='3.9';
 const APP_CHANGELOG=[
+  {v:'3.9',d:'2026-09-15',t:'Ziele-Dashboard: vollständiger Soll/Ist-Abgleich gegen den ZC-K-Bericht (Excel v15) — Gesamtkapital, Performance, Dividende aktuell/Ø, laufendes Jahr, Ziel 2041, Szenario A, Szenario-Einordnung 1–4, Monats- und Jahrestabellen 2027–2042, Annahmen/Depotwert/Ausschüttungen/Kursentwicklung je ETF, als Grafiken mit Prozentangabe. Ist-Werte stammen ausschließlich aus dem DIV ETF Depot. Zusätzlich dessen Stammdaten auf v15 korrigiert: echte Zahlmonate (v14 setzte alle Quartalszahler auf Mär/Jun/Sep/Dez), heutige Ausschüttungsrenditen und tatsächliche TER.'},
   {v:'3.8',d:'2026-09-15',t:'„DIV ETF Depot" (7-ETF „Moderat": DXSA/ISPA/ZPRG/VGWD/XGSD/TDIV/QYLE) aus Excel-Vorlage wiederhergestellt, nachdem ein Cloud-Sync-Fehler es gelöscht hatte. Ziele werten jetzt ausschließlich dieses Depot aus. Update-Banner ergänzt: informiert automatisch, wenn eine neuere Version auf GitHub Pages liegt.'},
   {v:'3.7',d:'2026-09-15',t:'Cloud-Sync-Fix: Ein Gerät kann seinen lokalen Stand nicht mehr vor dem ersten Cloud-Abgleich hochladen — verhindert, dass ein veralteter lokaler Stand neuere Daten eines anderen Geräts überschreibt.'},
   {v:'3.6',d:'2026-09-15',t:'Depots können in den Einstellungen einzeln ein-/ausgeschaltet werden. Deaktivierte Depots verschwinden aus dem Dashboard und fließen nicht mehr in die Zielberechnung ein (Bestand bleibt erhalten).'},
@@ -388,25 +389,25 @@ function defaultState(){
          {name:'iShares Edge MSCI World Quality Factor UCITS ETF USD (Acc)',isin:'IE00BP3QZ601',wkn:'A12ATE',ticker:'IWQU.L',stueck:0.404062,kurs:77.48,kaufkurs:74.25,target:10,ter:0.25,active:true,klasse:3,divs:{2025:Z(),2026:Z(),2027:Z()}}
        ]},
       {name:'DIV ETF Depot',id:'DE7C0710',strategy:'moderat',activePortfolio:false,enabled:true,sparAmount:1430,
-       // Rekonstruiert am 15.09.2026 aus ZC_Sparplan_Projektion_2027-2041_v14.xlsx (Blatt "Annahmen"),
-       // nachdem ein Cloud-Sync-Fehler das selbst angelegte Depot gelöscht hatte. kaufkurs unbekannt
-       // (nicht in der Vorlage enthalten) — vorläufig = aktueller Kurs gesetzt, bitte bei Gelegenheit
-       // mit dem echten Einstandskurs aus Trade Republic korrigieren.
+       // Rekonstruiert 15.09.2026 aus der Excel-Projektion, danach auf die Werte des Berichts
+       // 2026-09-15_ZC-K.md (Excel v15) korrigiert: echte Zahlmonate statt der v14-Annahme
+       // "alle im Quartal Mär/Jun/Sep/Dez", heutige Ausschüttungsrenditen aus den Stammdaten
+       // und die tatsächlichen TER. kaufkurs unbekannt (nicht in der Vorlage) — vorläufig = Kurs.
        positions:[
-         {name:'Xtrackers EURO STOXX Select Dividend 30 UCITS ETF 1D',isin:'LU0292095535',wkn:'',ticker:'DXSA',stueck:19.7443,kurs:30.32,kaufkurs:30.32,target:20,ter:0,active:true,klasse:0,
-          divs:{2025:Z(),2026:[0,0,0.1501,0,0,0.0955,0,0,0.9141,0,0,0.2047],2027:Z()}},
-         {name:'iShares STOXX Global Select Dividend 100 UCITS ETF (DE)',isin:'DE000A0F5UH1',wkn:'',ticker:'ISPA',stueck:14.1685,kurs:40.20,kaufkurs:40.20,target:18,ter:0,active:true,klasse:1,
-          divs:{2025:Z(),2026:[0,0,0.5025,0,0,0.5025,0,0,0.5025,0,0,0.5025],2027:Z()}},
+         {name:'Xtrackers EURO STOXX Select Dividend 30 UCITS ETF 1D',isin:'LU0292095535',wkn:'DBX1DV',ticker:'DXSA',stueck:19.7443,kurs:30.32,kaufkurs:30.32,target:20,ter:0.30,active:true,klasse:0,
+          divs:{2025:Z(),2026:[0,0,0.329,0,0,0.329,0,0,0.329,0,0,0.329],2027:Z()}},
+         {name:'iShares STOXX Global Select Dividend 100 UCITS ETF (DE)',isin:'DE000A0F5UH1',wkn:'263528',ticker:'ISPA',stueck:14.1685,kurs:40.20,kaufkurs:40.20,target:18,ter:0.46,active:true,klasse:1,
+          divs:{2025:Z(),2026:[0.3809,0,0,0.3809,0,0,0.3809,0,0,0.3809,0,0],2027:Z()}},
          {name:'SPDR S&P Global Dividend Aristocrats UCITS ETF',isin:'IE00B9CQXS71',wkn:'A1T8GD',ticker:'ZPRG',stueck:17.4781,kurs:34.86,kaufkurs:34.86,target:18,ter:0.45,active:true,klasse:2,
-          divs:{2025:Z(),2026:[0,0,0.366,0,0,0.366,0,0,0.366,0,0,0.366],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0.3225,0,0,0.3225,0,0,0.3225,0,0,0.3225,0],2027:Z()}},
          {name:'Vanguard FTSE All-World High Dividend Yield UCITS ETF',isin:'IE00B8GKDB10',wkn:'A1T8FV',ticker:'VGWD',stueck:5.4845,kurs:81.61,kaufkurs:81.61,target:12,ter:0.29,active:true,klasse:3,
-          divs:{2025:Z(),2026:[0,0,0.6529,0,0,0.6529,0,0,0.6529,0,0,0.6529],2027:Z()}},
+          divs:{2025:Z(),2026:[0.6121,0,0,0.6121,0,0,0.6121,0,0,0.6121,0,0],2027:Z()}},
          {name:'Xtrackers STOXX Global Select Dividend 100 Swap UCITS ETF 1D',isin:'LU0292096186',wkn:'DBX1DG',ticker:'XGSD',stueck:272.6378,kurs:38.92,kaufkurs:38.92,target:12,ter:0.50,active:true,klasse:4,
-          divs:{2025:Z(),2026:[0,0,0.467,0,0,0.4865,0,0,0.4865,0,0,0.506],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0.3688,0,0,0.3688,0,0,0.3688,0,0,0.3688],2027:Z()}},
          {name:'VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF',isin:'NL0011683594',wkn:'A2JAHJ',ticker:'TDIV',stueck:10.0757,kurs:55.50,kaufkurs:55.50,target:10,ter:0.38,active:true,klasse:5,
-          divs:{2025:Z(),2026:[0,0,0.5966,0,0,0.5966,0,0,0.5966,0,0,0.5966],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0.4163,0,0,0.4163,0,0,0.4163,0,0,0.4163],2027:Z()}},
          {name:'Global X Nasdaq 100 Covered Call UCITS ETF',isin:'IE00BM8R0J59',wkn:'A2QR39',ticker:'QYLE',stueck:37.3875,kurs:14.45,kaufkurs:14.45,target:10,ter:0.45,active:true,klasse:6,
-          divs:{2025:Z(),2026:[0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325,0.1325],2027:Z()}}
+          divs:{2025:Z(),2026:[0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414],2027:Z()}}
        ]}
     ]
   };
@@ -494,11 +495,350 @@ function loadState(){
 loadState();
 
 
+// ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
+function zielPf(){return state.portfolios.find(p=>p.enabled&&ZIEL_PORTFOLIOS.includes(p.name))||null;}
+function zPos(){const pf=zielPf();return pf?pf.positions.filter(p=>p.active!==false):[];}
+function zWert(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kurs||0),0);}
+function zKosten(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kaufkurs||p.kurs||0),0);}
+function zPerf(){const k=zKosten();return k>0?(zWert()-k)/k*100:0;}
+function zDivJahr(y){return zPos().reduce((s,p)=>s+((p.divs||{})[y]||[]).reduce((a,v)=>a+(v||0),0)*(p.stueck||0),0);}
+function zDivMonat(y,m){return zPos().reduce((s,p)=>s+(((p.divs||{})[y]||[])[m]||0)*(p.stueck||0),0);}
+function zByTicker(t){return zPos().find(p=>p.ticker===t)||null;}
+function zTerGew(){const w=zWert();if(w<=0)return 0;return zPos().reduce((s,p)=>s+(p.stueck*p.kurs/w)*(p.ter||0),0);}
+function zRendGew(){const w=zWert();if(w<=0)return 0;
+  return zPos().reduce((s,p)=>{const pv=p.stueck*p.kurs;const d=((p.divs||{})[HEUTE_J]||[]).reduce((a,v)=>a+(v||0),0);
+    return s+(pv/w)*(p.kurs>0?d/p.kurs*100:0);},0);}
+const HEUTE_J=new Date().getFullYear(), HEUTE_M=new Date().getMonth();
+const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+// Soll-Depotwert fuer ein Jahr (Sparphase beginnt 2027 — davor gilt das Startkapital)
+function sollDepot(y){
+  if(y<SOLL.sparStart)return SOLL.startkapital;
+  const r=SOLL.jahre.find(x=>x[0]===y);return r&&r[3]!=null?r[3]:null;
+}
+function sollDivMonNetto(y){const r=SOLL.jahre.find(x=>x[0]===y);return r?r[2]:null;}
+
+// ===== DARSTELLUNGS-HELFER =====
+function pctBadge(ist,soll,invers){
+  if(soll==null||soll===0)return '<span style="color:var(--t3)">–</span>';
+  const d=(ist-soll)/Math.abs(soll)*100;
+  const gut=invers?d<=0:d>=0;
+  const c=Math.abs(d)<2?'var(--yellow)':(gut?'var(--green)':'var(--red)');
+  return `<span style="color:${c};font-weight:700">${d>=0?'+':''}${d.toFixed(1)} %</span>`;
+}
+function dCell(ist,soll){
+  if(ist==null||soll==null)return '<span style="color:var(--t3)">–</span>';
+  const d=ist-soll;const c=Math.abs(d)<0.005?'var(--t2)':(d>=0?'var(--green)':'var(--red)');
+  return `<span style="color:${c}">${d>=0?'+':''}${EUR0(d)}</span>`;
+}
+
+// Balkenpaar Soll/Ist
+function barPair(lb,ist,soll,unit){
+  const max=Math.max(ist||0,soll||0)||1;
+  const wi=Math.max(1,(ist||0)/max*100), ws=Math.max(1,(soll||0)/max*100);
+  return `<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+      <span style="font-weight:700;color:var(--t)">${lb}</span>${pctBadge(ist,soll)}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+      <span style="font-size:10px;color:var(--t3);width:26px">Soll</span>
+      <div style="flex:1;height:9px;background:var(--b);border-radius:5px;overflow:hidden">
+        <div style="width:${ws}%;height:100%;background:var(--t3)"></div></div>
+      <span style="font-size:11px;color:var(--t2);width:82px;text-align:right">${soll==null?'–':EUR0(soll)+(unit||'')}</span></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:10px;color:var(--t3);width:26px">Ist</span>
+      <div style="flex:1;height:9px;background:var(--b);border-radius:5px;overflow:hidden">
+        <div style="width:${wi}%;height:100%;background:var(--cyan)"></div></div>
+      <span style="font-size:11px;color:var(--cyan);width:82px;text-align:right;font-weight:700">${ist==null?'–':EUR0(ist)+(unit||'')}</span></div>
+  </div>`;
+}
+
+// Liniendiagramm Soll-Pfad mit Ist-Punkt
+function svgPfad(rows,valIdx,istJahr,istWert,titel){
+  const W=660,H=210,pl=52,pr=12,pt=16,pb=26;
+  const pts=rows.filter(r=>r[valIdx]!=null).map(r=>({x:r[0],y:r[valIdx]}));
+  if(!pts.length)return '';
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y).concat(istWert!=null?[istWert]:[]);
+  const x0=Math.min(...xs,istJahr||Infinity),x1=Math.max(...xs),y1=Math.max(...ys)*1.06;
+  const X=v=>pl+(v-x0)/((x1-x0)||1)*(W-pl-pr);
+  const Y=v=>H-pb-(v/y1)*(H-pt-pb);
+  const line=pts.map((p,i)=>`${i?'L':'M'}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(' ');
+  const area=`${line} L${X(x1).toFixed(1)},${H-pb} L${X(pts[0].x).toFixed(1)},${H-pb} Z`;
+  let grid='';
+  for(let i=0;i<=3;i++){const v=y1*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" stroke="#1a2a2e" stroke-width="1"/>
+    <text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#6B7280">${v>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0)}</text>`;}
+  let xlab='';
+  pts.forEach((p,i)=>{if(i%3===0||i===pts.length-1)xlab+=`<text x="${X(p.x)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#6B7280">${p.x}</text>`;});
+  const ist=(istWert!=null&&istJahr!=null)?
+    `<circle cx="${X(istJahr).toFixed(1)}" cy="${Y(istWert).toFixed(1)}" r="5" fill="#00F0FF" stroke="#000" stroke-width="2"/>
+     <text x="${X(istJahr).toFixed(1)}" y="${(Y(istWert)-11).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#00F0FF">Ist</text>`:'';
+  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:320px;height:auto">
+    <defs><linearGradient id="gp${valIdx}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#39FF6A" stop-opacity=".22"/><stop offset="100%" stop-color="#39FF6A" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#gp${valIdx})"/>
+    <path d="${line}" fill="none" stroke="#39FF6A" stroke-width="2.2" stroke-linejoin="round"/>
+    ${ist}${xlab}</svg></div>
+    <div class="hint" style="text-align:center;margin-top:2px">${titel} · <span style="color:var(--green)">Soll-Pfad</span> · <span style="color:var(--cyan)">Ist heute</span></div>`;
+}
+
+// Gruppiertes Balkendiagramm Soll vs Ist je ETF
+function svgEtfBars(labels,sollArr,istArr,titel,einheit){
+  const W=660,H=200,pl=44,pr=10,pt=14,pb=34,n=labels.length;
+  const max=Math.max(...sollArr,...istArr.filter(v=>v!=null),0.0001)*1.12;
+  const bw=(W-pl-pr)/n, bar=bw*0.32;
+  const Y=v=>H-pb-(v/max)*(H-pt-pb);
+  let grid='';
+  for(let i=0;i<=3;i++){const v=max*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" stroke="#1a2a2e"/>
+    <text x="${pl-5}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#6B7280">${max>=1000?(v/1000).toFixed(0)+'k':v.toFixed(v<10?1:0)}</text>`;}
+  let bars='';
+  labels.forEach((lb,i)=>{
+    const cx=pl+bw*i+bw/2, s=sollArr[i]||0, ist=istArr[i];
+    bars+=`<rect x="${(cx-bar-2).toFixed(1)}" y="${Y(s).toFixed(1)}" width="${bar.toFixed(1)}" height="${Math.max(0,H-pb-Y(s)).toFixed(1)}" fill="#6B7280" rx="2"/>`;
+    if(ist!=null)bars+=`<rect x="${(cx+2).toFixed(1)}" y="${Y(ist).toFixed(1)}" width="${bar.toFixed(1)}" height="${Math.max(0,H-pb-Y(ist)).toFixed(1)}" fill="#00F0FF" rx="2"/>`;
+    bars+=`<text x="${cx.toFixed(1)}" y="${H-19}" text-anchor="middle" font-size="10" font-weight="700" fill="#9CA3AF">${lb}</text>`;
+    if(ist!=null&&s>0){const d=(ist-s)/s*100;
+      bars+=`<text x="${cx.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="${Math.abs(d)<2?'#FFE600':(d>=0?'#39FF6A':'#FF1744')}">${d>=0?'+':''}${d.toFixed(0)}%</text>`;}
+  });
+  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:340px;height:auto">${grid}${bars}</svg></div>
+  <div class="hint" style="text-align:center">${titel} · <span style="color:var(--t3)">■ Soll</span> <span style="color:var(--cyan)">■ Ist</span>${einheit?' · '+einheit:''}</div>`;
+}
+
+// ===== ZIELE-BLOCK (wird in screenDashboard eingehaengt) =====
+function zieleBlock(){
+  const pf=zielPf();
+  if(!pf)return `<div class="card"><div class="ctitle">ZIELE · SOLL/IST</div>
+    <p class="hint">Kein aktives Depot „${ZIEL_PORTFOLIOS[0]}" gefunden. Der Soll/Ist-Abgleich braucht dieses Depot eingeschaltet.</p></div>`;
+
+  const wert=zWert(),kost=zKosten(),perf=zPerf();
+  const sollHeute=sollDepot(HEUTE_J);
+  const divIstJ=zDivJahr(HEUTE_J), divIstM=zDivMonat(HEUTE_J,HEUTE_M), divIstAvg=divIstJ/12;
+  const sollJ=SOLL.jahre.find(r=>r[0]===HEUTE_J);
+  const sollDivAvg=sollJ?sollJ[1]:null, sollDivJ=sollDivAvg!=null?sollDivAvg*12:null;
+  const jahreBis=SOLL.zielJahr-HEUTE_J;
+  const fortschritt=SOLL.szenarioA.depot>0?wert/SOLL.szenarioA.depot*100:0;
+  const divFortschritt=SOLL.zielReal>0?divIstAvg/SOLL.zielReal*100:0;
+
+  // Szenario-Einordnung 1-4 anhand der gewichteten Ausschuettungsrendite
+  const rIst=zRendGew();
+  const sc=[...SOLL.szenarien].sort((a,b)=>a.depot-b.depot);
+  const einordnung=(()=>{
+    // Ist-Rendite gegen die Renditeannahmen der Szenarien (3,5 / 5,0 / 7,0 / historisch ~9,5 TR)
+    const trIst=SOLL.etfs.reduce((s,e)=>{const p=zByTicker(e.t);const w=p?p.stueck*p.kurs:0;return s+w*e.tr;},0)/(wert||1);
+    if(trIst>=8.5)return{n:1,lb:'historisch (Basis)'};
+    if(trIst>=6.0)return{n:4,lb:'Optimistisch 7,0 %'};
+    if(trIst>=4.25)return{n:2,lb:'Basis 5,0 %'};
+    return{n:3,lb:'Vorsichtig 3,5 %'};
+  })();
+
+  // KPI-Kacheln
+  const kpi=(lb,val,sub,col)=>`<div style="flex:1;min-width:132px;background:var(--bg1);border:1px solid var(--b);border-radius:12px;padding:11px">
+    <div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.5px">${lb}</div>
+    <div style="font-size:19px;font-weight:800;color:${col||'var(--t)'};margin-top:3px">${val}</div>
+    <div style="font-size:11px;color:var(--t2);margin-top:2px">${sub}</div></div>`;
+
+  // Gewichte je ETF
+  const gLabels=SOLL_T,gSoll=SOLL.etfs.map(e=>e.ziel);
+  const gIst=SOLL_T.map(t=>{const p=zByTicker(t);return p&&wert>0?p.stueck*p.kurs/wert*100:null;});
+
+  // Kurse je ETF
+  const kSollRow=SOLL.kurse.find(r=>r[0]===HEUTE_J)||SOLL.kurse[0];
+  const kIst=SOLL_T.map(t=>{const p=zByTicker(t);return p?p.kurs:null;});
+
+  // Ausschuettungsrendite je ETF
+  const rSoll=SOLL.etfs.map(e=>e.rend);
+  const rIstArr=SOLL_T.map(t=>{const p=zByTicker(t);if(!p||!p.kurs)return null;
+    return ((p.divs||{})[HEUTE_J]||[]).reduce((a,v)=>a+(v||0),0)/p.kurs*100;});
+
+  const tblHead=s=>`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px;min-width:${s}px">`;
+  const th=t=>`<th style="text-align:right;padding:5px 4px;color:var(--t3);font-weight:700;border-bottom:1px solid var(--b);white-space:nowrap">${t}</th>`;
+  const td=(t,c)=>`<td style="text-align:right;padding:4px;color:${c||'var(--t2)'};white-space:nowrap">${t}</td>`;
+
+  // Jahrestabelle
+  let jahrRows='';
+  SOLL.jahre.forEach(r=>{
+    const[y,brutto,netto,depot,tg,ges]=r;
+    const isNow=y===HEUTE_J;
+    const iD=(y===HEUTE_J)?wert:null, iDiv=(y===HEUTE_J)?divIstAvg:null;
+    jahrRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)${isNow?';background:rgba(0,240,255,.07)':''}">
+      ${td(`<strong style="color:${isNow?'var(--cyan)':'var(--t)'}">${y}</strong>`)}
+      ${td(EUR0(netto))}${td(iDiv!=null?EUR0(iDiv):'–',iDiv!=null?'var(--cyan)':'var(--t3)')}
+      ${td(iDiv!=null?pctBadge(iDiv,netto):'–')}
+      ${td(depot!=null?EUR0(depot):'–')}${td(iD!=null?EUR0(iD):'–',iD!=null?'var(--cyan)':'var(--t3)')}
+      ${td(iD!=null&&depot!=null?pctBadge(iD,depot):'–')}
+      ${td(ges!=null?EUR0(ges):'–')}</tr>`;
+  });
+
+  // Monatstabelle
+  let monRows='';
+  SOLL.monate.forEach(r=>{
+    const y=r[0],isNow=y===HEUTE_J;
+    monRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)${isNow?';background:rgba(0,240,255,.07)':''}">
+      ${td(`<strong style="color:${isNow?'var(--cyan)':'var(--t)'}">${y}</strong>`)}
+      ${r.slice(1,13).map((v,i)=>{
+        const ist=isNow?zDivMonat(y,i):null;
+        return td(ist!=null?`${v}<br><span style="color:var(--cyan);font-weight:700">${ist.toFixed(0)}</span>`:v);
+      }).join('')}
+      ${td(`<strong>${r[13]}</strong>`,'var(--t)')}</tr>`;
+  });
+
+  // Depotwert je ETF / Jahresende
+  let depotRows='';
+  SOLL.depotJeEtf.forEach(r=>{
+    depotRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)">${td(`<strong style="color:var(--t)">${r[0]}</strong>`)}
+      ${r.slice(1,8).map(v=>td(EUR0(v))).join('')}${td(`<strong>${EUR0(r[8])}</strong>`,'var(--t)')}
+      ${td(EUR0(r[9]))}${td(EUR0(r[10]),'var(--green)')}${td(r[11].toFixed(1)+' %','var(--green)')}</tr>`;
+  });
+
+  // Ausschuettungen je ETF / Jahr
+  let ausRows='';
+  SOLL.ausschJeEtf.forEach(r=>{
+    ausRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)">${td(`<strong style="color:var(--t)">${r[0]}</strong>`)}
+      ${r.slice(1,8).map(v=>td(EUR0(v))).join('')}${td(`<strong>${EUR0(r[8])}</strong>`,'var(--t)')}
+      ${td(EUR0(r[9]))}${td(EUR0(r[10]),'var(--green)')}</tr>`;
+  });
+
+  // Kursentwicklung
+  let kursRows='';
+  SOLL.kurse.forEach(r=>{
+    const isNow=r[0]===HEUTE_J;
+    kursRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)${isNow?';background:rgba(0,240,255,.07)':''}">
+      ${td(`<strong style="color:${isNow?'var(--cyan)':'var(--t)'}">${r[0]}</strong>`)}
+      ${r.slice(1,8).map((v,i)=>{
+        const p=isNow?zByTicker(SOLL_T[i]):null;
+        return td(p?`${EUR0(v)}<br><span style="color:var(--cyan);font-weight:700">${EUR0(p.kurs)}</span>`:EUR0(v));
+      }).join('')}</tr>`;
+  });
+
+  return `
+  <div class="card">
+    <div class="ctitle">ZIELE · SOLL/IST · ${pf.name}</div>
+    <p class="hint" style="margin-bottom:10px">Soll-Basis: ${SOLL.quelle} (Stand ${SOLL.stand}). Ist-Werte ausschließlich aus „${pf.name}" — andere Depots fließen nicht ein.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      ${kpi('GESAMTKAPITAL',EUR0(wert),`Soll heute ${EUR0(sollHeute)} · ${pctBadge(wert,sollHeute)}`,'var(--cyan)')}
+      ${kpi('PERFORMANCE',(perf>=0?'+':'')+perf.toFixed(2)+' %',`Einstand ${EUR0(kost)}`,perf>=0?'var(--green)':'var(--red)')}
+      ${kpi('DIVIDENDE '+MON[HEUTE_M],EUR0(divIstM),`aktueller Monat`,'var(--green)')}
+      ${kpi('Ø DIVIDENDE/MONAT',EUR0(divIstAvg),`Soll ${sollDivAvg!=null?EUR0(sollDivAvg):'–'} · ${sollDivAvg!=null?pctBadge(divIstAvg,sollDivAvg):'–'}`,'var(--green)')}
+    </div>
+    <div class="sep"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">LAUFENDES JAHR ${HEUTE_J}</div>
+    ${barPair('Ausschüttung Jahr',divIstJ,sollDivJ,' €')}
+    ${barPair('Depotwert',wert,sollHeute,' €')}
+    <div class="sep"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
+      <div style="text-align:center">${svgRing({progress:Math.min(1,fortschritt/100),color:N.cyan,size:118,lw:10,label:fortschritt.toFixed(1)+'%',sub:'Kapitalziel'})}
+        <div class="hint" style="margin-top:2px">${EUR0(wert)} von ${EUR0(SOLL.szenarioA.depot)}</div></div>
+      <div style="text-align:center">${svgRing({progress:Math.min(1,divFortschritt/100),color:N.green,size:118,lw:10,label:divFortschritt.toFixed(1)+'%',sub:'Dividendenziel'})}
+        <div class="hint" style="margin-top:2px">${EUR0(divIstAvg)} von ${EUR0(SOLL.zielReal)}/Mon</div></div>
+      <div style="text-align:center">${svgRing({progress:Math.min(1,(HEUTE_J-2026)/(SOLL.zielJahr-2026)),color:N.yellow,size:118,lw:10,label:String(jahreBis),sub:'Jahre'})}
+        <div class="hint" style="margin-top:2px">bis ${SOLL.zielJahr} · Sparende ${SOLL.sparEnde}</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">ZIEL ${SOLL.zielJahr} · SZENARIO A</div>
+    <p class="hint" style="margin-bottom:10px">Szenario A = Ausschüttungen fließen aufs Tagesgeld statt ins Depot. Der praktische Fall und Basis aller Zielzahlen.</p>
+    ${[['Depotwert Sparende',SOLL.szenarioA.depot],['Tagesgeld',SOLL.szenarioA.tagesgeld],['Gesamtvermögen',SOLL.szenarioA.gesamt]]
+      .map(([lb,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b);font-size:13px">
+        <span style="color:var(--t2)">${lb}</span><span style="font-weight:700;color:var(--t)">${EUR0(v)}</span></div>`).join('')}
+    <div class="sep"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">DECKUNG DES ZIELS (1.345,87 €/Monat real)</div>
+    ${[['Ausschüttung Szenario A',SOLL.szenarioA.monat,SOLL.szenarioA.deckung],
+       ['konstante Auszahlung mit Puffer',SOLL.puffer.konstant,SOLL.puffer.deckung]]
+      .map(([lb,v,d])=>`<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+          <span style="color:var(--t)">${lb}</span><span style="font-weight:700;color:${d>=90?'var(--green)':'var(--yellow)'}">${EUR0(v)} · ${d} %</span></div>
+        <div style="height:9px;background:var(--b);border-radius:5px;overflow:hidden">
+          <div style="width:${d}%;height:100%;background:${d>=90?'var(--green)':'var(--yellow)'}"></div></div></div>`).join('')}
+    <p class="hint" style="margin-top:8px">Vergleich Szenario W (volle Wiederanlage): ${EUR0(SOLL.szenarioW.gesamt)} Gesamtvermögen, ${EUR0(SOLL.szenarioW.monat)}/Monat. Differenz ${EUR0(SOLL.szenarioW.gesamt-SOLL.szenarioA.gesamt)}.</p>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">SZENARIO-EINORDNUNG 1–4</div>
+    <p class="hint" style="margin-bottom:10px">Gewichtete Total-Return-Annahme des aktuellen Depots gegen die vier Renditeszenarien der Datei (Annahmen!B7).</p>
+    ${SOLL.szenarien.map(s=>{
+      const on=s.n===einordnung.n;
+      return `<div style="padding:9px 11px;margin-bottom:6px;border-radius:10px;border:1px solid ${on?'var(--cyan)':'var(--b)'};background:${on?'rgba(0,240,255,.09)':'var(--bg1)'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+          <span style="font-weight:700;font-size:13px;color:${on?'var(--cyan)':'var(--t)'}">${on?'▶ ':''}${s.n} · ${s.lb}</span>
+          <span style="font-size:12px;color:var(--t2)">${EUR0(s.depot)} · ${EUR0(s.monNetto)}/Mon netto</span></div>
+        <div class="hint" style="margin-top:2px">Rendite: ${s.rend} · kumuliert netto ${EUR0(s.kum)}</div></div>`;}).join('')}
+    <p class="hint" style="margin-top:6px">Das Depot bewegt sich aktuell im Bereich <strong style="color:var(--cyan)">Szenario ${einordnung.n} — ${einordnung.lb}</strong>. Gewichtete Ausschüttungsrendite Ist ${rIst.toFixed(2)} % (Soll ${SOLL.renditeGew} %), gewichtete TER Ist ${zTerGew().toFixed(2)} % (Soll ${SOLL.terGew} %).</p>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">PROGNOSE · ENDVERMÖGEN &amp; DIVIDENDE</div>
+    ${svgPfad(SOLL.jahre,3,HEUTE_J,wert,'Depotwert 2027–2041')}
+    <div class="sep"></div>
+    ${svgPfad(SOLL.jahre,2,HEUTE_J,divIstAvg,'Ø Dividende netto/Monat')}
+    <div class="sep"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${kpi('ENDVERMÖGEN 2041',EUR0(SOLL.szenarioA.gesamt),'Depot + Tagesgeld','var(--green)')}
+      ${kpi('Ø DIVIDENDE/MON 2042',EUR0(SOLL.szenarioA.monat),'netto, Szenario A','var(--green)')}
+      ${kpi('Ø DIVIDENDE/JAHR 2042',EUR0(SOLL.jahre[SOLL.jahre.length-1][2]*12),'netto','var(--green)')}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">BLATT ANNAHMEN · EINGABEN JE ETF</div>
+    ${svgEtfBars(gLabels,gSoll,gIst,'Gewichtung je ETF','in %')}
+    <div class="sep"></div>
+    ${svgEtfBars(gLabels,rSoll,rIstArr,'Ausschüttungsrendite je ETF','in %')}
+    <div class="sep"></div>
+    ${tblHead(660)}<thead><tr>${th('ETF')}${th('Stück Soll')}${th('Stück Ist')}${th('Kurs Soll')}${th('Kurs Ist')}${th('Wert Soll')}${th('Wert Ist')}${th('Ziel %')}${th('Ist %')}${th('TER Soll')}${th('TER Ist')}${th('Zahlmonate')}</tr></thead><tbody>
+    ${SOLL.etfs.map((e,i)=>{const p=zByTicker(e.t);const w=p?p.stueck*p.kurs:null;
+      return `<tr style="border-bottom:1px solid rgba(26,42,46,.5)">
+        ${td(`<strong style="color:var(--cyan)">${e.t}</strong>`)}
+        ${td(e.stueck.toFixed(4))}${td(p?p.stueck.toFixed(4):'–',p?'var(--cyan)':'var(--t3)')}
+        ${td(EUR0(e.kurs))}${td(p?EUR0(p.kurs):'–',p?'var(--cyan)':'var(--t3)')}
+        ${td(EUR0(e.wert))}${td(w!=null?EUR0(w):'–',w!=null?'var(--cyan)':'var(--t3)')}
+        ${td(e.ziel.toFixed(1)+' %')}${td(gIst[i]!=null?gIst[i].toFixed(1)+' %':'–',gIst[i]!=null?'var(--cyan)':'var(--t3)')}
+        ${td(e.ter.toFixed(2)+' %')}${td(p?(p.ter||0).toFixed(2)+' %':'–',p?'var(--cyan)':'var(--t3)')}
+        ${td(e.zahl)}</tr>`;}).join('')}
+    </tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">JAHR FÜR JAHR BIS 2042</div>
+    ${tblHead(600)}<thead><tr>${th('Jahr')}${th('Div Soll')}${th('Div Ist')}${th('Δ')}${th('Depot Soll')}${th('Depot Ist')}${th('Δ')}${th('Gesamt')}</tr></thead>
+    <tbody>${jahrRows}</tbody></table></div>
+    <p class="hint" style="margin-top:6px">Dividendenspalten sind Ø netto pro Monat. Ist-Werte erscheinen für das laufende Jahr; künftige Jahre füllen sich mit fortschreitender Zeit.</p>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">JEDER EINZELNE MONAT · 2027–2042</div>
+    ${tblHead(700)}<thead><tr>${th('Jahr')}${MON.map(m=>th(m)).join('')}${th('Σ')}</tr></thead>
+    <tbody>${monRows}</tbody></table></div>
+    <p class="hint" style="margin-top:6px">Netto, gerundet. Im laufenden Jahr steht unter dem Soll-Wert der <span style="color:var(--cyan)">Ist-Wert</span>. Sechs der sieben Positionen zahlen quartalsweise — der Monatseingang schwankt deshalb stark.</p>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">DEPOTWERT JE ETF · JAHRESENDE</div>
+    ${tblHead(760)}<thead><tr>${th('Jahr')}${SOLL_T.map(t=>th(t)).join('')}${th('Depot')}${th('Eingezahlt')}${th('Gewinn')}${th('%')}</tr></thead>
+    <tbody>${depotRows}</tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">AUSSCHÜTTUNGEN JE ETF UND JAHR (BRUTTO)</div>
+    ${tblHead(700)}<thead><tr>${th('Jahr')}${SOLL_T.map(t=>th(t)).join('')}${th('Σ Jahr')}${th('Ø Mon')}${th('Ø netto')}</tr></thead>
+    <tbody>${ausRows}</tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">KURSENTWICKLUNG · ANTEILSPREIS (KURS-CAGR)</div>
+    ${svgEtfBars(gLabels,kSollRow.slice(1,8),kIst,`Anteilspreis ${HEUTE_J} Soll vs. Ist`,'in €')}
+    <div class="sep"></div>
+    ${tblHead(620)}<thead><tr>${th('Jahr')}${SOLL_T.map(t=>th(t)).join('')}</tr></thead>
+    <tbody>${kursRows}</tbody></table></div>
+    <p class="hint" style="margin-top:6px">Nur der Anteilspreis, nicht der Depotwert: heutiger Kurs mal (1 + Kurs-CAGR) hoch Jahre. Im laufenden Jahr steht darunter der <span style="color:var(--cyan)">Ist-Kurs</span>.</p>
+  </div>`;
+}
+
 function screenDashboard(){
   const sc=totalScore(),scC=scoreColor(sc),now=new Date().getMonth();
   const md=monthlyDivs(state.divCalYear),t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0;
   return`<div class="screen">
     <h1 class="stitle gg" style="font-size:42px">Dashboard</h1>
+    ${zieleBlock()}
     ${checkDue()?`<div class="card" style="border-color:rgba(255,209,57,.55);background:rgba(255,209,57,.07)">
       <div class="ctitle" style="color:var(--yellow)">📤 MONATS-CHECK FÄLLIG</div>
       <div style="font-size:13px;line-height:1.6;margin-bottom:10px">
@@ -744,6 +1084,133 @@ async function checkExport(){ await doExport(); checkDone(); }
 // XGSD wird gehalten, aber nicht bespart → Klumpen verwässert von 79 % auf 4 %
 // Annahmen: Gesamtrendite Income 5,0 % · XGSD 5,5 % · Growth 6,5 % p.a.
 // Steuern: 26,375 % auf 70 % (Teilfreistellung), Pauschbetrag 2.000 € (Zusammenveranlagung)
+// ===== SOLL-DATEN — Quelle: Bericht 2026-09-15_ZC-K.md (Excel-Projektion v15) =====
+// Einzige Grundlage aller Soll-Werte. Ist-Werte kommen ausschliesslich aus dem Depot
+// "DIV ETF Depot" (ZIEL_PORTFOLIOS). Alle anderen Depots bleiben aussen vor.
+const SOLL={
+  stand:'15.09.2026', quelle:'ZC-K Einzelbericht · Excel-Projektion v15',
+  startkapital:13935.61,        // Annahmen-Blatt, Summe zum 11.09.2026
+  startkapitalBericht:13892.68, // Bericht, tagesaktueller Kurs
+  sparrate:1430, sparStart:2027, sparEnde:'09/2041', raten:177, einzahlung:253110,
+  zielReal:1345.87,             // 1.000 EUR Kaufkraft 2026, nominal ab 10/2041
+  zielJahr:2041,
+  szenarioA:{depot:415537.89,tagesgeld:92667.75,gesamt:508205.64,monat:1123.03,deckung:83},
+  szenarioW:{depot:551248.48,tagesgeld:0,gesamt:551248.48,monat:1492.66},
+  puffer:{konstant:1269.86,deckung:94,mindest:1644.17,anlauf:430.80,spitze:2190.07,schwaechster:788.09},
+  terGesamt:11208.15, renditeGew:4.47, terGew:0.41,
+  // Die vier Szenarien der Datei (Annahmen!B7)
+  szenarien:[
+    {n:1,lb:'historisch (Basis)',rend:'je ETF gemessen',depot:417109.02,monBrutto:1356.09,monNetto:1105.72,kum:94511.81},
+    {n:2,lb:'Basis 5,0 %',rend:'5,0 % für alle',depot:286502.73,monBrutto:920.64,monNetto:750.67,kum:73449.88},
+    {n:3,lb:'Vorsichtig 3,5 %',rend:'3,5 % für alle',depot:254858.48,monBrutto:815.82,monNetto:665.20,kum:67925.95},
+    {n:4,lb:'Optimistisch 7,0 %',rend:'7,0 % für alle',depot:336248.10,monBrutto:1085.94,monNetto:885.45,kum:81754.86}
+  ],
+  // Blatt Annahmen — Eingaben je ETF (Stueck/Kurs 11.09.2026)
+  etfs:[
+    {t:'DXSA',isin:'LU0292095535',stueck:19.7443,kurs:30.32,wert:598.65,ziel:20,cagr:5.33,tr:10.09,rend:4.34,ter:0.30,zahl:'Mär·Jun·Sep·Dez'},
+    {t:'ISPA',isin:'DE000A0F5UH1',stueck:14.1685,kurs:40.20,wert:569.57,ziel:18,cagr:4.33,tr:9.25,rend:3.79,ter:0.46,zahl:'Jan·Apr·Jul·Okt'},
+    {t:'ZPRG',isin:'IE00B9CQXS71',stueck:17.4781,kurs:34.86,wert:609.29,ziel:18,cagr:2.43,tr:6.71,rend:3.70,ter:0.45,zahl:'Feb·Mai·Aug·Nov'},
+    {t:'VGWD',isin:'IE00B8GKDB10',stueck:5.4845,kurs:81.61,wert:447.59,ziel:12,cagr:5.96,tr:9.48,rend:3.00,ter:0.29,zahl:'Jan·Apr·Jul·Okt'},
+    {t:'XGSD',isin:'LU0292096186',stueck:272.6378,kurs:38.92,wert:10611.06,ziel:12,cagr:3.77,tr:9.45,rend:3.79,ter:0.50,zahl:'Mär·Jun·Sep·Dez'},
+    {t:'TDIV',isin:'NL0011683594',stueck:10.0757,kurs:55.50,wert:559.20,ziel:10,cagr:8.00,tr:12.57,rend:3.00,ter:0.38,zahl:'Mär·Jun·Sep·Dez'},
+    {t:'QYLE',isin:'IE00BM8R0J59',stueck:37.3875,kurs:14.45,wert:540.25,ziel:10,cagr:-0.17,tr:11.96,rend:11.74,ter:0.45,zahl:'monatlich'}
+  ],
+  // Jahr fuer Jahr: [Jahr, Ausschuett. Ø/Mon brutto, Ø/Mon netto, Depotwert JE, Tagesgeld JE, Gesamt, TER]
+  jahre:[
+    [2027,85.88,85.88,32214.16,7358.64,39572.80,104.37],
+    [2028,154.95,152.50,51484.63,15728.66,67213.29,178.05],
+    [2029,226.47,207.12,71770.54,24994.15,96764.70,255.65],
+    [2030,300.45,263.36,93140.65,35199.65,128340.30,337.42],
+    [2031,377.13,321.40,115666.78,46392.95,162059.73,423.65],
+    [2032,456.18,380.96,139432.65,58619.73,198052.38,515.70],
+    [2033,537.08,441.57,164533.54,71921.29,236454.83,614.00],
+    [2034,621.16,506.48,191060.49,86342.18,277402.67,717.85],
+    [2035,708.67,577.83,219110.27,101920.24,321030.51,827.64],
+    [2036,799.88,652.20,248785.86,118715.44,367501.30,943.77],
+    [2037,895.06,729.81,280196.83,136791.73,416988.56,1066.65],
+    [2038,994.51,810.90,313459.90,156217.20,469677.10,1196.76],
+    [2039,1098.52,895.71,348699.32,177064.40,525763.72,1334.57],
+    [2040,1207.34,984.43,386049.24,199409.52,585458.76,1480.58],
+    [2041,1360.83,1109.58,415537.89,217718.15,633256.03,1211.48],
+    [2042,1377.32,1123.03,null,null,null,null]
+  ],
+  // Jeder einzelne Monat (netto, gerundet) — Jan..Dez + Summe
+  monate:[
+    [2027,18,17,124,27,30,145,76,56,246,72,54,166,1031],
+    [2028,81,63,168,76,80,206,174,122,398,141,104,219,1830],
+    [2029,136,104,202,118,123,252,255,179,516,198,147,256,2485],
+    [2030,191,147,238,160,169,300,337,239,636,256,192,297,3160],
+    [2031,246,191,276,203,217,348,419,303,758,316,240,340,3857],
+    [2032,302,238,318,246,265,402,499,366,883,372,286,395,4571],
+    [2033,354,282,370,286,313,462,576,429,1011,428,334,453,5299],
+    [2034,408,330,426,329,365,526,658,499,1147,488,386,514,6078],
+    [2035,468,384,488,376,423,595,748,577,1294,554,445,582,6934],
+    [2036,530,441,551,426,484,666,841,659,1446,622,507,652,7826],
+    [2037,595,501,618,477,550,740,938,747,1601,693,574,725,8758],
+    [2038,662,565,687,530,619,815,1038,841,1761,767,644,801,9731],
+    [2039,732,634,759,585,694,893,1142,941,1926,844,720,879,10749],
+    [2040,804,707,834,643,773,974,1249,1048,2096,924,799,961,11813],
+    [2041,880,784,912,704,856,1059,1361,1160,2271,1003,872,1034,12895],
+    [2042,941,838,968,741,898,1111,1422,1196,2365,1035,891,1071,13476]
+  ],
+  // Blatt Projektion — Depotwert je ETF zum Jahresende
+  depotJeEtf:[
+    [2027,4788,4310,4280,2893,11213,2464,2384,32331,17160,1236,4.0],
+    [2028,9075,8157,8085,5459,11852,4602,4450,51680,34320,3424,7.1],
+    [2029,13559,12189,12095,8152,12531,6856,6665,72048,51480,6632,10.1],
+    [2030,18271,16429,16340,10977,13253,9206,9028,93503,68640,10927,13.2],
+    [2031,23223,20891,20842,13941,14019,11649,11552,116117,85800,16382,16.4],
+    [2032,28016,25203,25146,16818,16803,14051,13939,139977,102960,23082,19.7],
+    [2033,33060,29741,29671,19846,19828,16582,16448,165177,120120,31121,23.2],
+    [2034,38392,34535,34453,23046,23025,19256,19100,191806,137280,40591,26.8],
+    [2035,44029,39605,39509,26430,26404,22083,21903,219964,154440,51588,30.6],
+    [2036,49993,44969,44857,30010,29980,25075,24868,249752,171600,64216,34.6],
+    [2037,56306,50646,50518,33799,33764,28241,28006,281280,188760,78584,38.8],
+    [2038,62991,56657,56511,37811,37771,31594,31330,314666,205920,94810,43.1],
+    [2039,70073,63026,62860,42062,42016,35146,34850,350033,223080,113017,47.7],
+    [2040,77564,69760,69560,46560,46505,39007,38560,387516,240240,133340,52.5],
+    [2041,84879,76176,75305,51017,50774,43321,41480,422951,253110,155906,58.4]
+  ],
+  // Blatt Ausschuettungen — je ETF und Jahr (brutto) + Σ Jahr, Ø Monat, Ø Monat netto
+  ausschJeEtf:[
+    [2027,108,86,85,46,411,41,160,936,78,64],
+    [2028,283,225,224,117,431,96,389,1765,147,120],
+    [2029,456,367,372,187,452,150,640,2624,219,178],
+    [2030,630,512,529,256,475,202,908,3512,293,239],
+    [2031,806,660,697,326,499,250,1194,4432,369,301],
+    [2032,976,807,870,392,555,295,1484,5378,448,365],
+    [2033,1138,951,1043,454,656,336,1770,6349,529,431],
+    [2034,1303,1099,1228,517,763,375,2072,7357,613,500],
+    [2035,1470,1252,1425,580,874,412,2392,8406,700,571],
+    [2036,1641,1411,1635,644,990,449,2729,9499,792,645],
+    [2037,1815,1575,1860,708,1111,484,3087,10640,887,723],
+    [2038,1993,1746,2099,772,1238,518,3465,11832,986,804],
+    [2039,2174,1923,2355,837,1371,552,3866,13078,1090,889],
+    [2040,2359,2107,2628,903,1510,584,4289,14382,1198,977],
+    [2041,2547,2296,2913,970,1654,619,4725,15723,1310,1068]
+  ],
+  // Blatt Kursentwicklung — Anteilspreis mit fortgeschriebener Kurs-CAGR
+  kurse:[
+    [2026,30.32,40.20,34.86,81.61,38.92,55.50,14.45],
+    [2027,31.94,41.94,35.71,86.47,40.39,59.94,14.43],
+    [2028,33.64,43.76,36.57,91.63,41.91,64.74,14.40],
+    [2029,35.43,45.65,37.46,97.09,43.49,69.91,14.38],
+    [2030,37.32,47.63,38.37,102.88,45.13,75.51,14.35],
+    [2031,39.31,49.69,39.31,109.01,46.83,81.55,14.33],
+    [2032,41.40,51.84,40.26,115.50,48.60,88.07,14.30],
+    [2033,43.61,54.09,41.24,122.39,50.43,95.12,14.28],
+    [2034,45.94,56.43,42.24,129.68,52.33,102.73,14.25],
+    [2035,48.38,58.87,43.27,137.41,54.30,110.94,14.23],
+    [2036,50.96,61.42,44.32,145.60,56.35,119.82,14.21],
+    [2037,53.68,64.08,45.40,154.28,58.47,129.41,14.18],
+    [2038,56.54,66.86,46.50,163.47,60.68,139.76,14.16],
+    [2039,59.55,69.75,47.63,173.22,62.97,150.94,14.13],
+    [2040,62.73,72.77,48.79,183.54,65.34,163.01,14.11],
+    [2041,66.07,75.92,49.97,194.48,67.80,176.06,14.09]
+  ]
+};
+const SOLL_T=['DXSA','ISPA','ZPRG','VGWD','XGSD','TDIV','QYLE'];
+
 const ZIELJAHR = 2040, ZIEL_NETTO = 1000, ZIEL_INCOME = 264000;
 // Geklärt am 15.09.2026: "DIV ETF Depot" ist das 7-ETF-"Moderat"-Portfolio (DXSA/ISPA/ZPRG/
 // VGWD/XGSD/TDIV/QYLE). Die Ziele werten ab jetzt ausschließlich dieses Depot aus.
