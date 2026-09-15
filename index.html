@@ -170,8 +170,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.9';
+const APP_VERSION='3.10';
 const APP_CHANGELOG=[
+  {v:'3.10',d:'2026-09-15',t:'Ziele-Dashboard: alle Tagesgeld-Werte und -Anzeigen entfernt (Ziel-Karten zeigen jetzt reine Depotwerte). Depot-Kennzahlen und monatliche Dividenden (Kalenderjahr) aus dem Reiter Depot ins Dashboard übernommen — exklusiv für DIV ETF Depot. Neue Box: monatliche Dividende je einzelnem ETF. Pausierte ETFs (active:false) werden im Ziele-Dashboard jetzt weiterhin mit ihren Werten angezeigt statt ausgeblendet.'},
   {v:'3.9',d:'2026-09-15',t:'Ziele-Dashboard: vollständiger Soll/Ist-Abgleich gegen den ZC-K-Bericht (Excel v15) — Gesamtkapital, Performance, Dividende aktuell/Ø, laufendes Jahr, Ziel 2041, Szenario A, Szenario-Einordnung 1–4, Monats- und Jahrestabellen 2027–2042, Annahmen/Depotwert/Ausschüttungen/Kursentwicklung je ETF, als Grafiken mit Prozentangabe. Ist-Werte stammen ausschließlich aus dem DIV ETF Depot. Zusätzlich dessen Stammdaten auf v15 korrigiert: echte Zahlmonate (v14 setzte alle Quartalszahler auf Mär/Jun/Sep/Dez), heutige Ausschüttungsrenditen und tatsächliche TER.'},
   {v:'3.8',d:'2026-09-15',t:'„DIV ETF Depot" (7-ETF „Moderat": DXSA/ISPA/ZPRG/VGWD/XGSD/TDIV/QYLE) aus Excel-Vorlage wiederhergestellt, nachdem ein Cloud-Sync-Fehler es gelöscht hatte. Ziele werten jetzt ausschließlich dieses Depot aus. Update-Banner ergänzt: informiert automatisch, wenn eine neuere Version auf GitHub Pages liegt.'},
   {v:'3.7',d:'2026-09-15',t:'Cloud-Sync-Fix: Ein Gerät kann seinen lokalen Stand nicht mehr vor dem ersten Cloud-Abgleich hochladen — verhindert, dass ein veralteter lokaler Stand neuere Daten eines anderen Geräts überschreibt.'},
@@ -497,7 +498,7 @@ loadState();
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
 function zielPf(){return state.portfolios.find(p=>p.enabled&&ZIEL_PORTFOLIOS.includes(p.name))||null;}
-function zPos(){const pf=zielPf();return pf?pf.positions.filter(p=>p.active!==false):[];}
+function zPos(){const pf=zielPf();return pf?pf.positions:[];} // zeigt auch pausierte (active:false) ETFs
 function zWert(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kurs||0),0);}
 function zKosten(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kaufkurs||p.kurs||0),0);}
 function zPerf(){const k=zKosten();return k>0?(zWert()-k)/k*100:0;}
@@ -603,6 +604,73 @@ function svgEtfBars(labels,sollArr,istArr,titel,einheit){
   <div class="hint" style="text-align:center">${titel} · <span style="color:var(--t3)">■ Soll</span> <span style="color:var(--cyan)">■ Ist</span>${einheit?' · '+einheit:''}</div>`;
 }
 
+function zTerCost(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kurs||0)*(p.ter||0)/100,0);}
+
+// Box 1: Depot-Kennzahlen (aus dem Reiter Depot übernommen, exklusiv DIV ETF Depot)
+function depotKennzahlenBlock(){
+  const t=zWert(),cb=zKosten(),g=t-cb,yp=zPerf();
+  const md=SOLL_T.map(()=>0); // Platzhalter, echte Summe unten über zDivJahr
+  const divSum=zDivJahr(state.divCalYear);
+  const terCost=zTerCost();
+  const divYield=t>0?divSum/t*100:0;
+  const kz=[
+    {lb:'Gesamtkapital',val:EUR0(t),cls:''},
+    {lb:'Kaufkostenbasis',val:EUR0(cb),cls:''},
+    {lb:'Gewinn/Verlust (unrealisiert)',val:EUR0(g),cls:g>=0?'g':'r'},
+    {lb:'Performance',val:yp.toFixed(2)+' %',cls:g>=0?'g':'r'},
+    {lb:'Geschätzte ETF-Kosten p.a.',val:EUR0(terCost),cls:''},
+    {lb:'Dividende pro Monat (Ø, EUR)',val:EUR0(divSum/12),cls:''},
+    {lb:'Gesamtdividende pro Jahr (EUR)',val:EUR0(divSum),cls:''},
+    {lb:'Dividende pro Jahr (geschätzt)',val:divYield.toFixed(2)+' %',cls:''}
+  ];
+  return`<div class="card card-c">
+    <div class="ctitle">DEPOT-KENNZAHLEN · DIV ETF DEPOT</div>
+    <div class="kz-grid">${kz.map(k=>`<div class="kz-tile"><div class="kz-lbl">${k.lb}</div><div class="kz-val ${k.cls}">${k.val}</div></div>`).join('')}</div>
+  </div>`;
+}
+
+// Box 2: Monatliche Dividenden nach Kalenderjahr (aus dem Reiter Depot übernommen, exklusiv DIV ETF Depot)
+function monatlicheDividendenBlock(){
+  const now=new Date().getMonth();
+  const md=Array(12).fill(0).map((_,i)=>zDivMonat(state.divCalYear,i));
+  const divSum=md.reduce((a,b)=>a+b,0);
+  return`<div class="card card-c">
+    <div class="ctitle">MONATLICHE DIVIDENDEN (KALENDERJAHR) · DIV ETF DEPOT</div>
+    <div class="yr-pick">
+      <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
+      <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
+      <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
+    </div>
+    <div class="mog">${md.map((v,i)=>`<div class="mob${i===now&&state.divCalYear===new Date().getFullYear()?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===now&&state.divCalYear===new Date().getFullYear()?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <div class="kz-tile"><div class="kz-lbl">Dieser Monat</div><div class="kz-val">${EUR0(md[state.divCalYear===new Date().getFullYear()?now:0])}</div></div>
+      <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
+    </div>
+  </div>`;
+}
+
+// Box 3 (neu): monatliche Dividende je ETF, exklusiv DIV ETF Depot — inkl. pausierter ETFs
+function dividendeJeEtfBlock(){
+  const now=new Date().getMonth();
+  const pos=zPos();
+  return`<div class="card card-c">
+    <div class="ctitle">MONATLICHE DIVIDENDE JE ETF · DIV ETF DEPOT</div>
+    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear} — auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots.</p>
+    ${pos.map(p=>{
+      const paused=p.active===false;
+      const md=((p.divs||{})[state.divCalYear]||Array(12).fill(0)).map(v=>(v||0)*(p.stueck||0));
+      const sum=md.reduce((a,b)=>a+b,0);
+      return`<div style="margin-bottom:12px;opacity:${paused?.5:1}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}</span>
+          <span style="font-size:12px;color:var(--t2)">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
+        </div>
+        <div class="mog">${md.map((v,i)=>`<div class="mob${i===now?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="font-size:11px;color:${i===now?N.cyan:'white'}">${v>0?EUR0(v):'–'}</div></div>`).join('')}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 // ===== ZIELE-BLOCK (wird in screenDashboard eingehaengt) =====
 function zieleBlock(){
   const pf=zielPf();
@@ -656,7 +724,7 @@ function zieleBlock(){
   // Jahrestabelle
   let jahrRows='';
   SOLL.jahre.forEach(r=>{
-    const[y,brutto,netto,depot,tg,ges]=r;
+    const[y,brutto,netto,depot]=r;
     const isNow=y===HEUTE_J;
     const iD=(y===HEUTE_J)?wert:null, iDiv=(y===HEUTE_J)?divIstAvg:null;
     jahrRows+=`<tr style="border-bottom:1px solid rgba(26,42,46,.5)${isNow?';background:rgba(0,240,255,.07)':''}">
@@ -664,8 +732,7 @@ function zieleBlock(){
       ${td(EUR0(netto))}${td(iDiv!=null?EUR0(iDiv):'–',iDiv!=null?'var(--cyan)':'var(--t3)')}
       ${td(iDiv!=null?pctBadge(iDiv,netto):'–')}
       ${td(depot!=null?EUR0(depot):'–')}${td(iD!=null?EUR0(iD):'–',iD!=null?'var(--cyan)':'var(--t3)')}
-      ${td(iD!=null&&depot!=null?pctBadge(iD,depot):'–')}
-      ${td(ges!=null?EUR0(ges):'–')}</tr>`;
+      ${td(iD!=null&&depot!=null?pctBadge(iD,depot):'–')}</tr>`;
   });
 
   // Monatstabelle
@@ -734,10 +801,14 @@ function zieleBlock(){
     </div>
   </div>
 
+  ${depotKennzahlenBlock()}
+  ${monatlicheDividendenBlock()}
+  ${dividendeJeEtfBlock()}
+
   <div class="card">
     <div class="ctitle">ZIEL ${SOLL.zielJahr} · SZENARIO A</div>
-    <p class="hint" style="margin-bottom:10px">Szenario A = Ausschüttungen fließen aufs Tagesgeld statt ins Depot. Der praktische Fall und Basis aller Zielzahlen.</p>
-    ${[['Depotwert Sparende',SOLL.szenarioA.depot],['Tagesgeld',SOLL.szenarioA.tagesgeld],['Gesamtvermögen',SOLL.szenarioA.gesamt]]
+    <p class="hint" style="margin-bottom:10px">Szenario A = Ausschüttungen fließen aus dem Depot ab. Der praktische Fall und Basis aller Zielzahlen.</p>
+    ${[['Depotwert Sparende',SOLL.szenarioA.depot]]
       .map(([lb,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b);font-size:13px">
         <span style="color:var(--t2)">${lb}</span><span style="font-weight:700;color:var(--t)">${EUR0(v)}</span></div>`).join('')}
     <div class="sep"></div>
@@ -749,7 +820,7 @@ function zieleBlock(){
           <span style="color:var(--t)">${lb}</span><span style="font-weight:700;color:${d>=90?'var(--green)':'var(--yellow)'}">${EUR0(v)} · ${d} %</span></div>
         <div style="height:9px;background:var(--b);border-radius:5px;overflow:hidden">
           <div style="width:${d}%;height:100%;background:${d>=90?'var(--green)':'var(--yellow)'}"></div></div></div>`).join('')}
-    <p class="hint" style="margin-top:8px">Vergleich Szenario W (volle Wiederanlage): ${EUR0(SOLL.szenarioW.gesamt)} Gesamtvermögen, ${EUR0(SOLL.szenarioW.monat)}/Monat. Differenz ${EUR0(SOLL.szenarioW.gesamt-SOLL.szenarioA.gesamt)}.</p>
+    <p class="hint" style="margin-top:8px">Vergleich Szenario W (volle Wiederanlage): ${EUR0(SOLL.szenarioW.depot)} Depotwert, ${EUR0(SOLL.szenarioW.monat)}/Monat. Differenz zu Szenario A ${EUR0(SOLL.szenarioW.depot-SOLL.szenarioA.depot)}.</p>
   </div>
 
   <div class="card">
@@ -772,7 +843,7 @@ function zieleBlock(){
     ${svgPfad(SOLL.jahre,2,HEUTE_J,divIstAvg,'Ø Dividende netto/Monat')}
     <div class="sep"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      ${kpi('ENDVERMÖGEN 2041',EUR0(SOLL.szenarioA.gesamt),'Depot + Tagesgeld','var(--green)')}
+      ${kpi('DEPOTWERT 2041',EUR0(SOLL.szenarioA.depot),'Szenario A, Sparende 09/2041','var(--green)')}
       ${kpi('Ø DIVIDENDE/MON 2042',EUR0(SOLL.szenarioA.monat),'netto, Szenario A','var(--green)')}
       ${kpi('Ø DIVIDENDE/JAHR 2042',EUR0(SOLL.jahre[SOLL.jahre.length-1][2]*12),'netto','var(--green)')}
     </div>
@@ -799,7 +870,7 @@ function zieleBlock(){
 
   <div class="card">
     <div class="ctitle">JAHR FÜR JAHR BIS 2042</div>
-    ${tblHead(600)}<thead><tr>${th('Jahr')}${th('Div Soll')}${th('Div Ist')}${th('Δ')}${th('Depot Soll')}${th('Depot Ist')}${th('Δ')}${th('Gesamt')}</tr></thead>
+    ${tblHead(560)}<thead><tr>${th('Jahr')}${th('Div Soll')}${th('Div Ist')}${th('Δ')}${th('Depot Soll')}${th('Depot Ist')}${th('Δ')}</tr></thead>
     <tbody>${jahrRows}</tbody></table></div>
     <p class="hint" style="margin-top:6px">Dividendenspalten sind Ø netto pro Monat. Ist-Werte erscheinen für das laufende Jahr; künftige Jahre füllen sich mit fortschreitender Zeit.</p>
   </div>
@@ -1094,8 +1165,8 @@ const SOLL={
   sparrate:1430, sparStart:2027, sparEnde:'09/2041', raten:177, einzahlung:253110,
   zielReal:1345.87,             // 1.000 EUR Kaufkraft 2026, nominal ab 10/2041
   zielJahr:2041,
-  szenarioA:{depot:415537.89,tagesgeld:92667.75,gesamt:508205.64,monat:1123.03,deckung:83},
-  szenarioW:{depot:551248.48,tagesgeld:0,gesamt:551248.48,monat:1492.66},
+  szenarioA:{depot:415537.89,monat:1123.03,deckung:83},
+  szenarioW:{depot:551248.48,monat:1492.66},
   puffer:{konstant:1269.86,deckung:94,mindest:1644.17,anlauf:430.80,spitze:2190.07,schwaechster:788.09},
   terGesamt:11208.15, renditeGew:4.47, terGew:0.41,
   // Die vier Szenarien der Datei (Annahmen!B7)
@@ -1115,24 +1186,24 @@ const SOLL={
     {t:'TDIV',isin:'NL0011683594',stueck:10.0757,kurs:55.50,wert:559.20,ziel:10,cagr:8.00,tr:12.57,rend:3.00,ter:0.38,zahl:'Mär·Jun·Sep·Dez'},
     {t:'QYLE',isin:'IE00BM8R0J59',stueck:37.3875,kurs:14.45,wert:540.25,ziel:10,cagr:-0.17,tr:11.96,rend:11.74,ter:0.45,zahl:'monatlich'}
   ],
-  // Jahr fuer Jahr: [Jahr, Ausschuett. Ø/Mon brutto, Ø/Mon netto, Depotwert JE, Tagesgeld JE, Gesamt, TER]
+  // Jahr fuer Jahr: [Jahr, Ausschuett. Ø/Mon brutto, Ø/Mon netto, Depotwert JE]
   jahre:[
-    [2027,85.88,85.88,32214.16,7358.64,39572.80,104.37],
-    [2028,154.95,152.50,51484.63,15728.66,67213.29,178.05],
-    [2029,226.47,207.12,71770.54,24994.15,96764.70,255.65],
-    [2030,300.45,263.36,93140.65,35199.65,128340.30,337.42],
-    [2031,377.13,321.40,115666.78,46392.95,162059.73,423.65],
-    [2032,456.18,380.96,139432.65,58619.73,198052.38,515.70],
-    [2033,537.08,441.57,164533.54,71921.29,236454.83,614.00],
-    [2034,621.16,506.48,191060.49,86342.18,277402.67,717.85],
-    [2035,708.67,577.83,219110.27,101920.24,321030.51,827.64],
-    [2036,799.88,652.20,248785.86,118715.44,367501.30,943.77],
-    [2037,895.06,729.81,280196.83,136791.73,416988.56,1066.65],
-    [2038,994.51,810.90,313459.90,156217.20,469677.10,1196.76],
-    [2039,1098.52,895.71,348699.32,177064.40,525763.72,1334.57],
-    [2040,1207.34,984.43,386049.24,199409.52,585458.76,1480.58],
-    [2041,1360.83,1109.58,415537.89,217718.15,633256.03,1211.48],
-    [2042,1377.32,1123.03,null,null,null,null]
+    [2027,85.88,85.88,32214.16],
+    [2028,154.95,152.50,51484.63],
+    [2029,226.47,207.12,71770.54],
+    [2030,300.45,263.36,93140.65],
+    [2031,377.13,321.40,115666.78],
+    [2032,456.18,380.96,139432.65],
+    [2033,537.08,441.57,164533.54],
+    [2034,621.16,506.48,191060.49],
+    [2035,708.67,577.83,219110.27],
+    [2036,799.88,652.20,248785.86],
+    [2037,895.06,729.81,280196.83],
+    [2038,994.51,810.90,313459.90],
+    [2039,1098.52,895.71,348699.32],
+    [2040,1207.34,984.43,386049.24],
+    [2041,1360.83,1109.58,415537.89],
+    [2042,1377.32,1123.03,null]
   ],
   // Jeder einzelne Monat (netto, gerundet) — Jan..Dez + Summe
   monate:[
