@@ -170,7 +170,11 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.5';
+const APP_VERSION='3.6';
+const APP_CHANGELOG=[
+  {v:'3.6',d:'2026-09-15',t:'Depots können in den Einstellungen einzeln ein-/ausgeschaltet werden. Deaktivierte Depots verschwinden aus dem Dashboard und fließen nicht mehr in die Zielberechnung ein (Bestand bleibt erhalten).'},
+  {v:'3.5',d:'2026-07-27',t:'Datenkorrekturen gegen Depotauszug (WSML, IEAC, VGWD, USDV, ZPRG, VDIV, JGPI) · ISIN-Deduplizierung bei Summen und TER.'}
+];
 
 // ===== HELPERS =====
 function b64dec(s){try{return JSON.parse(atob(s.replace(/-/g,'+').replace(/_/g,'/')));}catch{return null;}}
@@ -223,6 +227,7 @@ function uniquePositions(){
 function uniqueValueOf(pfNames){
   const seen=new Set();let sum=0;
   state.portfolios.forEach(pf=>{
+    if(!pf.enabled)return; // deaktivierte Depots fließen nicht in Ziele ein
     if(!pfNames.includes(pf.name))return;
     pf.positions.forEach(pos=>{
       const key=(pos.isin||'').trim();
@@ -507,7 +512,7 @@ function screenDashboard(){
     </div>
     ${(()=>{
       const jetzt=new Date().getFullYear(), p=planFor(jetzt);
-      const incVal=uniqueValueOf(['ReBal 1-ETF','ReBal 2-ETF']);
+      const incVal=uniqueValueOf(ZIEL_PORTFOLIOS);
       const diff=incVal-p.income, ok=diff>=-p.income*0.05;
       const jahreRest=Math.max(0,ZIELJAHR-jetzt);
       const pct=Math.min(100,incVal/ZIEL_INCOME*100);
@@ -534,7 +539,7 @@ function screenDashboard(){
       // FIX v3.5: uniqueValueOf() dedupliziert nach ISIN — Positionen, die in
       // ReBal 1 UND ReBal 2 liegen, wurden vorher doppelt gezählt.
       const MILESTONE=ZIEL_INCOME;
-      const incomeVal=uniqueValueOf(['ReBal 1-ETF','ReBal 2-ETF']);
+      const incomeVal=uniqueValueOf(ZIEL_PORTFOLIOS);
       const pct=Math.min(100,incomeVal/MILESTONE*100);
       return`<div class="card" style="border-color:rgba(57,255,106,.35)">
         <div class="ctitle" style="color:var(--green)">ZIEL · INCOME-KAPITAL 2040</div>
@@ -717,6 +722,10 @@ async function checkExport(){ await doExport(); checkDone(); }
 // Annahmen: Gesamtrendite Income 5,0 % · XGSD 5,5 % · Growth 6,5 % p.a.
 // Steuern: 26,375 % auf 70 % (Teilfreistellung), Pauschbetrag 2.000 € (Zusammenveranlagung)
 const ZIELJAHR = 2040, ZIEL_NETTO = 1000, ZIEL_INCOME = 264000;
+// TODO(Mike): Sollen die Ziele nur noch "DIV ETF Depot" berücksichtigen? Dieser Name existiert
+// aktuell in keinem Teil-Portfolio (siehe Übersicht in den Einstellungen). Bis zur Klärung
+// bleibt hier der bisherige Stand (ReBal 1-ETF + ReBal 2-ETF) aktiv — bitte Namen anpassen.
+const ZIEL_PORTFOLIOS = ['ReBal 1-ETF','ReBal 2-ETF'];
 const PLAN = [
   {y:2027,income:26965, total:28910, div:74},
   {y:2028,income:41187, total:44500, div:136},
@@ -1313,20 +1322,32 @@ function screenSettings(){
       <p><strong style="color:var(--yellow)">Ausschüttungsmonate:</strong> VDIV/VGWD/USDV Mär·Jun·Sep·Dez · ZPRG Feb·Mai·Aug·Nov · IEAC Jan·Jul · JGPI/SDIV monatlich · QYLE/SPCC monatlich · XGSD Mär·Jun·Sep·Dez.</p>
       <p><strong style="color:var(--yellow)">Drei-Topf-System:</strong> Topf 1 ~53% (inkl. AVD ab 01/2027) · Topf 2 ~33% · Topf 3 max. 13–15%.</p>
       <p><strong style="color:var(--yellow)">Ziel 2040:</strong> 264.000 € Income-Kapital → 1.000 €/Monat netto (ReBal 1 + ReBal 2, ISIN-dedupliziert). Zwischenziel 138.000 € = 500 €/Monat.</p>`},
-    {t:'Teil-Portfolios Übersicht',ic:'⊕',body:state.portfolios.map((pf,i)=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b)">
+    {t:'Teil-Portfolios Übersicht',ic:'⊕',body:`
+      <p class="hint" style="margin-bottom:10px">Deaktivierte Depots verschwinden aus dem Dashboard und fließen nicht mehr in die Ziel-Berechnung ein. Der Bestand bleibt erhalten und kann jederzeit wieder eingeschaltet werden.</p>
+      ${state.portfolios.map((pf,i)=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b);opacity:${pf.enabled?'1':'.5'}">
         <span style="font-weight:700;color:var(--cyan)">${pf.name}</span>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:10px;align-items:center">
           ${pf.activePortfolio?'<span class="badge b-aktiv">Aktiv</span>':''}
           ${ampelBadge(pfAmpel(pf))}
           <span style="font-size:13px;color:var(--t2)">${EUR0(pfTotal(pf))}</span>
+          <label style="display:inline-flex;align-items:center;cursor:pointer;gap:6px" title="${pf.enabled?'Depot deaktivieren':'Depot aktivieren'}">
+            <input type="checkbox" ${pf.enabled?'checked':''} onchange="togglePfEnabled(${i})" style="width:18px;height:18px;accent-color:var(--green);cursor:pointer"/>
+          </label>
         </div>
-      </div>`).join('')},
+      </div>`).join('')}`},
     {t:'Sonstiges',ic:'⋯',body:`
       <p>RebalGold Web v${APP_VERSION} · Zimmermann Capital</p>
       <p style="margin-top:6px">Daten werden automatisch im Browser gespeichert (localStorage).</p>
       <p class="hint" style="margin-top:4px">Wird beim Schließen/Reload beibehalten. Gespeichert: ${(()=>{try{const r=localStorage.getItem(STORAGE_KEY);return r?(new Blob([r]).size/1024).toFixed(1)+' KB':'–';}catch{return'–';}})()}</p>
       <p class="hint" style="margin-top:8px">Diese App stellt keine Anlageberatung dar. Ausschüttungswerte für zukünftige Monate sind Fortschreibungen, keine Zusagen.</p>
+      <div class="sep"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">CHANGELOG</div>
+      ${APP_CHANGELOG.map(c=>`
+        <div style="margin-bottom:8px">
+          <div style="font-size:13px"><strong style="color:var(--cyan)">v${c.v}</strong> <span style="color:var(--t3)">· ${c.d}</span></div>
+          <div class="hint" style="margin-top:2px">${c.t}</div>
+        </div>`).join('')}
       <div class="btnrow" style="margin-top:12px">
         <button class="btn btn-r" onclick="if(confirm('Wirklich ALLE Daten zurücksetzen? Dies kann nicht rückgängig gemacht werden.')){localStorage.removeItem(STORAGE_KEY);state=defaultState();render();showToast('✓ Zurückgesetzt')}">🗑 Alle Daten löschen</button>
       </div>`}
@@ -1424,6 +1445,17 @@ function removePf(i){if(state.portfolios.length<=1){showToast('Mindestens 1 Port
 function openPf(i){state.subIdx=i;state.view='detail';render();}
 function openETF(pi){state.posIdx=pi;state.view='etfDetail';render();}
 function setActive(i){state.portfolios.forEach((p,j)=>p.activePortfolio=(j===i&&!p.activePortfolio));render();}
+function togglePfEnabled(i){
+  const pf=state.portfolios[i];
+  if(!pf)return;
+  const willDisable=pf.enabled;
+  if(willDisable&&state.portfolios.filter(p=>p.enabled).length<=1){
+    showToast('Mindestens 1 aktives Depot erforderlich');render();return;
+  }
+  pf.enabled=!pf.enabled;
+  render();
+  showToast(pf.enabled?`✓ „${pf.name}" aktiviert`:`„${pf.name}" deaktiviert — Bestand bleibt erhalten`);
+}
 function togglePos(pfI,pI){state.portfolios[pfI].positions[pI].active=!state.portfolios[pfI].positions[pI].active;}
 function updPos(pfI,pI,f,v){
   if(isNaN(v))return;
