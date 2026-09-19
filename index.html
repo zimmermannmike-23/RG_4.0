@@ -170,8 +170,11 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.10';
+const APP_VERSION='3.13';
 const APP_CHANGELOG=[
+  {v:'3.13',d:'2026-09-18',t:'Kauflos-Tracking ab 01.09.2026: jede Position fuehrt jetzt datierte Kauflose statt nur einer Gesamtstueckzahl (Block KAEUFE (LOSE) im ETF-Detail, Erfassung per Datum, Stueckzahl oder Anlagebetrag). Stueckzahl und durchschnittlicher Kaufkurs leiten sich daraus ab. Der Dividendenkalender rechnet damit Ex-Datum-genau: nur Stuecke, die vor dem jeweiligen Ex-Tag im Depot lagen, zaehlen fuer eine Ausschuettung; Monate vor dem Erfassungsbeginn sind als Naeherung markiert (*). Ausserdem echte Ausschuettungsbetraege je Zahltermin 2026 fuer alle 7 ETF eingepflegt (statt geglaetteter Quartalsmittel) — dabei korrigiert: VGWD zahlte in der App faelschlich Jan/Apr/Jul/Okt statt tatsaechlich Apr/Jul/Sep/Dez.'},
+  {v:'3.12',d:'2026-09-18',t:'Dividenden-Monatsauswahl: ein Klick auf einen Monat markiert ihn in allen Dividenden-Ansichten (Dashboard-Box, Je-ETF-Box, Depot-Reiter) und blendet eine Aufstellung aller ausschuettenden ETFs dieses Monats mit Summe ein; nochmal klicken hebt die Auswahl auf. Neue Kachel: durchschnittlicher Zuwachs der monatlichen Dividende je Sparplan-Kauf (Buy-Only-Verteilung der Sparrate, inkl. Jahreswert und Ausschuettungsrendite auf den Kauf).'},
+  {v:'3.11',d:'2026-09-18',t:'Ex-Datum-Kipppunkt-Warnung im Dividenden-Screen (DIV ETF Depot): zeigt je ETF/Monat an, ob ein Sparplan-Kauf am 4. noch vor dem Ex-Tag liegt oder erst zur Folgeausschüttung zählt (⚠-Badge, Tooltip mit Quelle/Status). Betrifft v.a. TDIV (alle 4 Quartale), ZPRG (Februar), QYLE (Juni/Oktober/Dezember). Rein informativ, keine automatische Stückzahl-Korrektur, da keine datierte Kauflos-Historie geführt wird.'},
   {v:'3.10',d:'2026-09-15',t:'Ziele-Dashboard: alle Tagesgeld-Werte und -Anzeigen entfernt (Ziel-Karten zeigen jetzt reine Depotwerte). Depot-Kennzahlen und monatliche Dividenden (Kalenderjahr) aus dem Reiter Depot ins Dashboard übernommen — exklusiv für DIV ETF Depot. Neue Box: monatliche Dividende je einzelnem ETF. Pausierte ETFs (active:false) werden im Ziele-Dashboard jetzt weiterhin mit ihren Werten angezeigt statt ausgeblendet.'},
   {v:'3.9',d:'2026-09-15',t:'Ziele-Dashboard: vollständiger Soll/Ist-Abgleich gegen den ZC-K-Bericht (Excel v15) — Gesamtkapital, Performance, Dividende aktuell/Ø, laufendes Jahr, Ziel 2041, Szenario A, Szenario-Einordnung 1–4, Monats- und Jahrestabellen 2027–2042, Annahmen/Depotwert/Ausschüttungen/Kursentwicklung je ETF, als Grafiken mit Prozentangabe. Ist-Werte stammen ausschließlich aus dem DIV ETF Depot. Zusätzlich dessen Stammdaten auf v15 korrigiert: echte Zahlmonate (v14 setzte alle Quartalszahler auf Mär/Jun/Sep/Dez), heutige Ausschüttungsrenditen und tatsächliche TER.'},
   {v:'3.8',d:'2026-09-15',t:'„DIV ETF Depot" (7-ETF „Moderat": DXSA/ISPA/ZPRG/VGWD/XGSD/TDIV/QYLE) aus Excel-Vorlage wiederhergestellt, nachdem ein Cloud-Sync-Fehler es gelöscht hatte. Ziele werten jetzt ausschließlich dieses Depot aus. Update-Banner ergänzt: informiert automatisch, wenn eine neuere Version auf GitHub Pages liegt.'},
@@ -248,10 +251,136 @@ function allTerCost(){return uniquePositions().reduce((s,{pos})=>s+posVal(pos)*(
 function monthlyDivs(year){
   const d=Array(12).fill(0);
   uniquePositions().forEach(({pos})=>{
-    const yd=(pos.divs||{})[year]||[];
-    yd.forEach((v,i)=>d[i]+=(v||0)*(pos.stueck||0));
+    for(let i=0;i<12;i++)d[i]+=posDivMonat(pos,year,i);
   });
   return d;
+}
+
+// ===== AUSSCHUETTUNGS-STAMMDATEN 2026 (Recherche 09/2026, Quellen im Feld `quelle`) =====
+// Ein Eintrag je tatsaechlicher Ausschuettung: Ex-Tag (wer vorher im Depot war, bekommt sie),
+// Zahltag (wann das Geld ankommt -> bestimmt den Monat im Dividendenkalender) und Betrag je Anteil.
+// status: 'bestaetigt' = aus Emittenten-/Datenanbieter-Meldung, 'prognose' = fortgeschrieben.
+// Mike kauft seine Sparraten zwischen dem 2. und 4. eines Monats; gerechnet wird pauschal mit dem 4.
+const KAUFTAG=4;
+const AUSSCHUETTUNGEN_2026={
+  DXSA:{quelle:'divvydiary / DWS (LU0292095535, EUR)',items:[
+    {ex:'2026-02-18',pay:'2026-03-05',betrag:0.1537,status:'bestaetigt'},
+    {ex:'2026-05-20',pay:'2026-06-03',betrag:0.0709,status:'bestaetigt'},
+    {ex:'2026-08-19',pay:'2026-09-03',betrag:0.9015,status:'bestaetigt'},
+    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.2067,status:'prognose'}]},
+  ISPA:{quelle:'stockanalysis / divvydiary (DE000A0F5UH1, EUR)',items:[
+    {ex:'2026-01-15',pay:'2026-01-15',betrag:0.2515,status:'bestaetigt'},
+    {ex:'2026-04-15',pay:'2026-04-15',betrag:0.1870,status:'bestaetigt'},
+    {ex:'2026-07-15',pay:'2026-07-15',betrag:0.6749,status:'bestaetigt'},
+    {ex:'2026-10-15',pay:'2026-10-15',betrag:0.4100,status:'prognose'}]},
+  ZPRG:{quelle:'divvydiary (IE00B9CQXS71, USD -> EUR auf Jahressumme 1,29 skaliert)',items:[
+    {ex:'2026-02-02',pay:'2026-02-17',betrag:0.2218,status:'bestaetigt'},
+    {ex:'2026-05-06',pay:'2026-05-20',betrag:0.2984,status:'bestaetigt'},
+    {ex:'2026-08-03',pay:'2026-08-17',betrag:0.4747,status:'bestaetigt'},
+    {ex:'2026-11-02',pay:'2026-11-17',betrag:0.2951,status:'prognose'}]},
+  VGWD:{quelle:'Vanguard / dividenden.com (IE00B8GKDB10, EUR)',items:[
+    {ex:'2026-03-19',pay:'2026-04-01',betrag:0.3730,status:'bestaetigt'},
+    {ex:'2026-06-18',pay:'2026-07-01',betrag:0.8060,status:'bestaetigt'},
+    {ex:'2026-09-17',pay:'2026-09-30',betrag:0.4470,status:'bestaetigt'},
+    {ex:'2026-12-17',pay:'2026-12-31',betrag:0.3920,status:'prognose'}]},
+  XGSD:{quelle:'DWS / divvydiary (LU0292096186, EUR)',items:[
+    {ex:'2026-02-18',pay:'2026-03-05',betrag:0.3918,status:'bestaetigt'},
+    {ex:'2026-05-20',pay:'2026-06-03',betrag:0.3301,status:'bestaetigt'},
+    {ex:'2026-08-19',pay:'2026-09-03',betrag:0.4129,status:'bestaetigt'},
+    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.3967,status:'prognose'}]},
+  TDIV:{quelle:'stockanalysis / divvydiary (NL0011683594, EUR)',items:[
+    {ex:'2026-03-04',pay:'2026-03-11',betrag:0.2100,status:'bestaetigt'},
+    {ex:'2026-06-03',pay:'2026-06-10',betrag:0.8100,status:'bestaetigt'},
+    {ex:'2026-09-02',pay:'2026-09-09',betrag:0.4000,status:'bestaetigt'},
+    {ex:'2026-12-03',pay:'2026-12-10',betrag:0.2700,status:'prognose'}]},
+  QYLE:{quelle:'stockanalysis ETR:QYLE / stockevents (IE00BM8R0J59, EUR)',items:[
+    {ex:'2026-01-08',pay:'2026-01-16',betrag:0.1428,status:'bestaetigt'},
+    {ex:'2026-01-29',pay:'2026-02-06',betrag:0.1398,status:'bestaetigt'},
+    {ex:'2026-03-05',pay:'2026-03-13',betrag:0.1421,status:'bestaetigt'},
+    {ex:'2026-04-09',pay:'2026-04-17',betrag:0.1372,status:'bestaetigt'},
+    {ex:'2026-05-07',pay:'2026-05-15',betrag:0.1404,status:'bestaetigt'},
+    {ex:'2026-06-04',pay:'2026-06-12',betrag:0.1438,status:'bestaetigt'},
+    {ex:'2026-07-09',pay:'2026-07-17',betrag:0.1710,status:'bestaetigt'},
+    {ex:'2026-07-30',pay:'2026-08-07',betrag:0.1400,status:'bestaetigt'},
+    {ex:'2026-09-10',pay:'2026-09-18',betrag:0.1400,status:'bestaetigt'},
+    {ex:'2026-10-02',pay:'2026-10-16',betrag:0.1400,status:'prognose'},
+    {ex:'2026-11-05',pay:'2026-11-13',betrag:0.1400,status:'prognose'},
+    {ex:'2026-12-03',pay:'2026-12-11',betrag:0.1400,status:'prognose'}]}
+};
+// Alle Ausschuettungen, deren Geld in Monat m (1-12) ankommt.
+function ausschuettungenZahlmonat(ticker,m){
+  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return[];
+  return c.items.filter(x=>+x.pay.slice(5,7)===m);
+}
+// Faellt ein Sparplan-Kauf am KAUFTAG des Ex-Monats noch vor den Ex-Tag?
+function exDatumKipp(ticker,monat){
+  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return[];
+  return c.items.filter(x=>+x.pay.slice(5,7)===monat).map(x=>{
+    const exTag=+x.ex.slice(8,10);
+    return{...x,d:exTag,m:+x.ex.slice(5,7),ergebnis:KAUFTAG<exTag?'treffer':'verschoben'};
+  });
+}
+function exDatumHatKipppunkt(ticker){
+  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return false;
+  return c.items.some(x=>KAUFTAG>=+x.ex.slice(8,10));
+}
+
+// ===== KAUFLOS-TRACKING (ab 01.09.2026) =====
+// Jede Position fuehrt eine Liste datierter Lose statt nur einer Gesamtstueckzahl:
+//   lots:[{d:'2026-09-01',stueck:14.1685,kurs:40.20,typ:'anfang'},{d:'2026-10-04',...,typ:'kauf'}]
+// Das Los 'anfang' buendelt den gesamten Bestand zum Erfassungsbeginn — fuer die Zeit davor
+// existiert keine Kaufhistorie, das ist so gewollt und wird in der Anzeige gekennzeichnet.
+const TRACKING_START='2026-09-01';
+function posLots(pos){return Array.isArray(pos.lots)?pos.lots:[];}
+function lotsSortiert(pos){return posLots(pos).slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);}
+function lotsStueck(pos){return posLots(pos).reduce((s,l)=>s+(l.stueck||0),0);}
+// Stuecke, die VOR dem Stichtag (Ex-Tag) bereits im Depot lagen — nur die sind dividendenberechtigt.
+function lotsStueckVor(pos,datum){return posLots(pos).filter(l=>l.d<datum).reduce((s,l)=>s+(l.stueck||0),0);}
+function lotsAnfangsbestand(pos){const l=posLots(pos).find(x=>x.typ==='anfang');return l?(l.stueck||0):(pos.stueck||0);}
+function lotsKaufkurs(pos){
+  const st=lotsStueck(pos);if(st<=0)return pos.kaufkurs||0;
+  return posLots(pos).reduce((s,l)=>s+(l.stueck||0)*(l.kurs||0),0)/st;
+}
+// Stueckzahl und Durchschnittskaufkurs aus den Losen zurueckschreiben (Lose sind die Wahrheit).
+function syncAusLosen(pos){
+  if(!posLots(pos).length)return;
+  pos.stueck=lotsStueck(pos);
+  pos.kaufkurs=lotsKaufkurs(pos);
+}
+function syncAlleLose(){state.portfolios.forEach(pf=>(pf.positions||[]).forEach(syncAusLosen));}
+// Legt fehlende Lose an: gesamter Bestand als Anfangs-Los zum Erfassungsbeginn.
+function initLose(){
+  let n=0;
+  state.portfolios.forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    if(!Array.isArray(pos.lots)||!pos.lots.length){
+      pos.lots=[{d:TRACKING_START,stueck:pos.stueck||0,kurs:pos.kaufkurs||pos.kurs||0,typ:'anfang'}];
+      n++;
+    }
+  }));
+  return n;
+}
+
+// Dividendenbetrag einer Position fuer einen Zahlmonat — Ex-Datum-genau.
+// Vor dem Erfassungsbeginn ist die Kaufhistorie unbekannt: dann wird mit dem Anfangsbestand
+// gerechnet (nicht mit dem heutigen Bestand), damit spaetere Zukaeufe die Vergangenheit nicht aufblaehen.
+function posDivMonat(pos,jahr,mIdx){
+  const jeStk=((pos.divs||{})[jahr]||[])[mIdx]||0;
+  if(!jeStk)return 0;
+  const items=(jahr===2026)?ausschuettungenZahlmonat(pos.ticker,mIdx+1):[];
+  if(!items.length||!posLots(pos).length)return jeStk*(pos.stueck||0);
+  // Mehrere Ausschuettungen im selben Zahlmonat (QYLE): je Ex-Tag getrennt bewerten
+  const summeBetrag=items.reduce((a,x)=>a+x.betrag,0);
+  if(summeBetrag<=0)return jeStk*(pos.stueck||0);
+  return items.reduce((sum,x)=>{
+    const anteil=jeStk*(x.betrag/summeBetrag);          // hinterlegten Monatsbetrag auf die Termine verteilen
+    const stk=(x.ex<TRACKING_START)?lotsAnfangsbestand(pos):lotsStueckVor(pos,x.ex);
+    return sum+anteil*stk;
+  },0);
+}
+// Liegt der Monat ganz vor dem Erfassungsbeginn? Dann ist der Wert nur eine Naeherung.
+function monatVorErfassung(jahr,mIdx){
+  const ende=new Date(jahr,mIdx+1,0).toISOString().slice(0,10);
+  return ende<TRACKING_START;
 }
 // BUY-ONLY: buy_i = max(0, effTarget_i/100 × (T+sp) − val_i), dann auf sp skalieren
 function buyOnlyOrders(pf){
@@ -333,7 +462,7 @@ function svgRing({progress=0,color=N.cyan,size=100,lw=6,label='',sub=''}={}){
 function defaultState(){
   const Z=()=>Array(12).fill(0);
   return{
-    tab:0,view:'list',subIdx:0,posIdx:-1,divCalYear:2026,selectedSparIdx:4,
+    tab:0,view:'list',subIdx:0,posIdx:-1,divCalYear:2026,divSelMonth:null,selectedSparIdx:4,
     strategyV:3,
     sparrate:110,
     portfolios:[
@@ -396,19 +525,19 @@ function defaultState(){
        // und die tatsächlichen TER. kaufkurs unbekannt (nicht in der Vorlage) — vorläufig = Kurs.
        positions:[
          {name:'Xtrackers EURO STOXX Select Dividend 30 UCITS ETF 1D',isin:'LU0292095535',wkn:'DBX1DV',ticker:'DXSA',stueck:19.7443,kurs:30.32,kaufkurs:30.32,target:20,ter:0.30,active:true,klasse:0,
-          divs:{2025:Z(),2026:[0,0,0.329,0,0,0.329,0,0,0.329,0,0,0.329],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0.1537,0,0,0.0709,0,0,0.9015,0,0,0.2067],2027:Z()}},
          {name:'iShares STOXX Global Select Dividend 100 UCITS ETF (DE)',isin:'DE000A0F5UH1',wkn:'263528',ticker:'ISPA',stueck:14.1685,kurs:40.20,kaufkurs:40.20,target:18,ter:0.46,active:true,klasse:1,
-          divs:{2025:Z(),2026:[0.3809,0,0,0.3809,0,0,0.3809,0,0,0.3809,0,0],2027:Z()}},
+          divs:{2025:Z(),2026:[0.2515,0,0,0.1870,0,0,0.6749,0,0,0.4100,0,0],2027:Z()}},
          {name:'SPDR S&P Global Dividend Aristocrats UCITS ETF',isin:'IE00B9CQXS71',wkn:'A1T8GD',ticker:'ZPRG',stueck:17.4781,kurs:34.86,kaufkurs:34.86,target:18,ter:0.45,active:true,klasse:2,
-          divs:{2025:Z(),2026:[0,0.3225,0,0,0.3225,0,0,0.3225,0,0,0.3225,0],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0.2218,0,0,0.2984,0,0,0.4747,0,0,0.2951,0],2027:Z()}},
          {name:'Vanguard FTSE All-World High Dividend Yield UCITS ETF',isin:'IE00B8GKDB10',wkn:'A1T8FV',ticker:'VGWD',stueck:5.4845,kurs:81.61,kaufkurs:81.61,target:12,ter:0.29,active:true,klasse:3,
-          divs:{2025:Z(),2026:[0.6121,0,0,0.6121,0,0,0.6121,0,0,0.6121,0,0],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0,0.3730,0,0,0.8060,0,0.4470,0,0,0.3920],2027:Z()}},
          {name:'Xtrackers STOXX Global Select Dividend 100 Swap UCITS ETF 1D',isin:'LU0292096186',wkn:'DBX1DG',ticker:'XGSD',stueck:272.6378,kurs:38.92,kaufkurs:38.92,target:12,ter:0.50,active:true,klasse:4,
-          divs:{2025:Z(),2026:[0,0,0.3688,0,0,0.3688,0,0,0.3688,0,0,0.3688],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0.3918,0,0,0.3301,0,0,0.4129,0,0,0.3967],2027:Z()}},
          {name:'VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF',isin:'NL0011683594',wkn:'A2JAHJ',ticker:'TDIV',stueck:10.0757,kurs:55.50,kaufkurs:55.50,target:10,ter:0.38,active:true,klasse:5,
-          divs:{2025:Z(),2026:[0,0,0.4163,0,0,0.4163,0,0,0.4163,0,0,0.4163],2027:Z()}},
+          divs:{2025:Z(),2026:[0,0,0.2100,0,0,0.8100,0,0,0.4000,0,0,0.2700],2027:Z()}},
          {name:'Global X Nasdaq 100 Covered Call UCITS ETF',isin:'IE00BM8R0J59',wkn:'A2QR39',ticker:'QYLE',stueck:37.3875,kurs:14.45,kaufkurs:14.45,target:10,ter:0.45,active:true,klasse:6,
-          divs:{2025:Z(),2026:[0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414,0.1414],2027:Z()}}
+          divs:{2025:Z(),2026:[0.1428,0.1398,0.1421,0.1372,0.1404,0.1438,0.1710,0.1400,0.1400,0.1400,0.1400,0.1400],2027:Z()}}
        ]}
     ]
   };
@@ -432,7 +561,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -486,6 +615,15 @@ function loadState(){
       console.log('✓ Migration v3: '+n+' Datenfelder korrigiert (Stückzahlen & Ausschüttungen)');
     }
 
+    // ===== MIGRATION v4 (18.09.2026): Kauflos-Tracking ab 01.09.2026 =====
+    // Bestehende Bestaende werden zu einem Anfangs-Los zum Erfassungsbeginn gebuendelt.
+    if((state.strategyV||1)<4){
+      const n4=initLose();
+      state.strategyV=4;
+      console.log('✓ Migration v4: Kauflos-Tracking aktiviert, '+n4+' Anfangs-Lose angelegt');
+    }
+    syncAlleLose();
+
     console.log('✓ State geladen:',state.portfolios.length,'Portfolios');
   }catch(e){
     console.warn('Laden fehlgeschlagen, nutze Standardwerte:',e);
@@ -494,6 +632,9 @@ function loadState(){
 
 // State beim Start laden
 loadState();
+// Sicherstellen, dass auch ein frischer Standard-State Lose besitzt
+initLose();syncAlleLose();
+if(!state.strategyV||state.strategyV<4)state.strategyV=4;
 
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
@@ -502,8 +643,8 @@ function zPos(){const pf=zielPf();return pf?pf.positions:[];} // zeigt auch paus
 function zWert(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kurs||0),0);}
 function zKosten(){return zPos().reduce((s,p)=>s+(p.stueck||0)*(p.kaufkurs||p.kurs||0),0);}
 function zPerf(){const k=zKosten();return k>0?(zWert()-k)/k*100:0;}
-function zDivJahr(y){return zPos().reduce((s,p)=>s+((p.divs||{})[y]||[]).reduce((a,v)=>a+(v||0),0)*(p.stueck||0),0);}
-function zDivMonat(y,m){return zPos().reduce((s,p)=>s+(((p.divs||{})[y]||[])[m]||0)*(p.stueck||0),0);}
+function zDivJahr(y){return zPos().reduce((s,p)=>{let t=0;for(let i=0;i<12;i++)t+=posDivMonat(p,y,i);return s+t;},0);}
+function zDivMonat(y,m){return zPos().reduce((s,p)=>s+posDivMonat(p,y,m),0);}
 function zByTicker(t){return zPos().find(p=>p.ticker===t)||null;}
 function zTerGew(){const w=zWert();if(w<=0)return 0;return zPos().reduce((s,p)=>s+(p.stueck*p.kurs/w)*(p.ter||0),0);}
 function zRendGew(){const w=zWert();if(w<=0)return 0;
@@ -629,11 +770,36 @@ function depotKennzahlenBlock(){
   </div>`;
 }
 
+// Aktiv markierter Monat (0-11). Ohne Auswahl: laufender Monat, wenn das Kalenderjahr das aktuelle ist, sonst Januar.
+function divAktiverMonat(){
+  if(state.divSelMonth!==null&&state.divSelMonth>=0&&state.divSelMonth<12)return state.divSelMonth;
+  return state.divCalYear===new Date().getFullYear()?new Date().getMonth():0;
+}
+// Monat anklicken: gleicher Monat erneut = Auswahl aufheben (zurueck auf Standard)
+function divSetMonth(m){state.divSelMonth=(state.divSelMonth===m)?null:m;render();}
+
+// Durchschnittliche Erhoehung der MONATLICHEN Dividende durch einen neuen Sparplan-Kauf.
+// Basis: Buy-Only-Aufteilung der Sparrate des DIV-ETF-Depots auf die unterallokierten ETFs
+// (identisch zur Sparplan-Empfehlung), je ETF gekaufte Stuecke × Jahresdividende/Stueck → /12.
+function divZuwachsProKauf(){
+  const pf=zielPf();if(!pf)return null;
+  const sp=pf.sparAmount||state.sparrate;
+  if(!(sp>0))return null;
+  const orders=buyOnlyOrders(pf);
+  let jahr=0;
+  orders.forEach(o=>{
+    const divStk=((o.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    jahr+=(o.buyShares||0)*divStk;
+  });
+  return{sp,jahr,monat:jahr/12,rendite:sp>0?jahr/sp*100:0};
+}
+
 // Box 2: Monatliche Dividenden nach Kalenderjahr (aus dem Reiter Depot übernommen, exklusiv DIV ETF Depot)
 function monatlicheDividendenBlock(){
-  const now=new Date().getMonth();
+  const sel=divAktiverMonat();
   const md=Array(12).fill(0).map((_,i)=>zDivMonat(state.divCalYear,i));
   const divSum=md.reduce((a,b)=>a+b,0);
+  const zw=divZuwachsProKauf();
   return`<div class="card card-c">
     <div class="ctitle">MONATLICHE DIVIDENDEN (KALENDERJAHR) · DIV ETF DEPOT</div>
     <div class="yr-pick">
@@ -641,33 +807,62 @@ function monatlicheDividendenBlock(){
       <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
       <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
     </div>
-    <div class="mog">${md.map((v,i)=>`<div class="mob${i===now&&state.divCalYear===new Date().getFullYear()?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===now&&state.divCalYear===new Date().getFullYear()?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+    <div class="mog">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-      <div class="kz-tile"><div class="kz-lbl">Dieser Monat</div><div class="kz-val">${EUR0(md[state.divCalYear===new Date().getFullYear()?now:0])}</div></div>
+      <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div></div>
       <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
     </div>
+    ${zw?`<div class="kz-tile" style="margin-top:10px">
+      <div class="kz-lbl">Ø Zuwachs mtl. Dividende je Sparplan-Kauf</div>
+      <div class="kz-val" style="color:${N.green}">+ ${EUR0(zw.monat)}<span style="font-size:13px;color:var(--t3)"> /Monat</span></div>
+      <div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(zw.sp)} Sparrate → + ${EUR0(zw.jahr)} Dividende p.a. · ${zw.rendite.toFixed(2)} % Ausschüttungsrendite auf den Kauf</div>
+    </div>
+    <p class="hint" style="margin-top:6px">Rechenweg: Sparrate nach Buy-Only-Logik auf die unterallokierten ETFs verteilt (wie in der Sparplan-Empfehlung), je ETF gekaufte Stücke × Jahresausschüttung/Stück ${state.divCalYear}, geteilt durch 12. Durchschnitt über alle Monate — die tatsächliche Gutschrift fällt nur in den Zahlmonaten an und beim ersten Zyklus je nach Ex-Datum ggf. später (siehe ⚠ unten).</p>`:''}
   </div>`;
 }
 
 // Box 3 (neu): monatliche Dividende je ETF, exklusiv DIV ETF Depot — inkl. pausierter ETFs
 function dividendeJeEtfBlock(){
-  const now=new Date().getMonth();
+  const sel=divAktiverMonat();
   const pos=zPos();
+  // Aufstellung des gewaehlten Monats ueber alle ETFs
+  const detail=pos.map(p=>({
+    ticker:p.ticker||p.name,
+    paused:p.active===false,
+    betrag:posDivMonat(p,state.divCalYear,sel)
+  })).filter(x=>x.betrag>0).sort((a,b)=>b.betrag-a.betrag);
+  const detailSum=detail.reduce((s,x)=>s+x.betrag,0);
   return`<div class="card card-c">
     <div class="ctitle">MONATLICHE DIVIDENDE JE ETF · DIV ETF DEPOT</div>
-    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear} — auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots.</p>
+    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear} — auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots. Monat anklicken markiert ihn in allen Dividenden-Ansichten; nochmal klicken hebt die Auswahl auf.</p>
+    <div class="kz-tile" style="margin-bottom:12px">
+      <div class="kz-lbl">Aufstellung ${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div>
+      ${detail.length?detail.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;opacity:${x.paused?.5:1}">
+        <span style="color:var(--cyan)">${x.ticker}${x.paused?' · pausiert':''}</span><span>${EUR0(x.betrag)}</span></div>`).join('')
+        :`<div style="font-size:13px;color:var(--t3);padding:3px 0">Keine Ausschüttung in diesem Monat.</div>`}
+      <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--line,#2a3a5a);margin-top:6px;padding-top:6px">
+        <span>Summe</span><span style="color:${N.green}">${EUR0(detailSum)}</span></div>
+    </div>
     ${pos.map(p=>{
       const paused=p.active===false;
-      const md=((p.divs||{})[state.divCalYear]||Array(12).fill(0)).map(v=>(v||0)*(p.stueck||0));
+      const md=Array(12).fill(0).map((_,i)=>posDivMonat(p,state.divCalYear,i));
       const sum=md.reduce((a,b)=>a+b,0);
+      const kipp=state.divCalYear===2026&&exDatumHatKipppunkt(p.ticker);
       return`<div style="margin-bottom:12px;opacity:${paused?.5:1}">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-          <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}</span>
+          <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}${kipp?` <span title="Sparplan-Kauf am ${KAUFTAG}. fällt in mind. einem Monat auf/nach den Ex-Tag — Zukauf zählt dann erst zur Folgeausschüttung." style="color:${N.orange};font-weight:400;font-size:11px">⚠ Ex-Datum-Kipppunkt</span>`:''}</span>
           <span style="font-size:12px;color:var(--t2)">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
         </div>
-        <div class="mog">${md.map((v,i)=>`<div class="mob${i===now?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="font-size:11px;color:${i===now?N.cyan:'white'}">${v>0?EUR0(v):'–'}</div></div>`).join('')}</div>
+        <div class="mog">${md.map((v,i)=>{
+          const k=state.divCalYear===2026?exDatumKipp(p.ticker,i+1):[];
+          const verschoben=k.some(x=>x.ergebnis==='verschoben');
+          const titel=k.map(x=>`Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}) · Zahltag ${x.pay.split('-').reverse().join('.')}: Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
+          const vorErf=monatVorErfassung(state.divCalYear,i);
+          return`<div class="mob${i===sel?' hi':''}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'white')}">${v>0?EUR0(v):'–'}</div></div>`;
+        }).join('')}</div>
       </div>`;
     }).join('')}
+    ${state.divCalYear===2026?`<p class="hint" style="margin-top:10px;border-top:1px solid var(--line,#2a3a5a);padding-top:8px">⚠ = Ex-Datum-Kipppunkt: dein Sparplan-Kauf am ${KAUFTAG}. liegt bei diesem ETF/Monat auf oder nach dem Ex-Tag → der Zukauf zählt erst zur nächsten Ausschüttung. <b>Die Beträge sind Ex-Datum-genau gerechnet</b>: es zählen nur Stücke, die vor dem jeweiligen Ex-Tag im Depot lagen.<br>* = Monat vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')} — dafür existiert keine Kaufhistorie, gerechnet wird näherungsweise mit dem Anfangsbestand. Beträge je Anteil: Recherchestand 09/2026, Q4 teils Prognose.</p>`:''}
   </div>`;
 }
 
@@ -1307,6 +1502,7 @@ function planFor(y){ return PLAN.find(p=>p.y===y) || (y<2027?PLAN[0]:PLAN[PLAN.l
 function screenDepot(){
   const t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0,now=new Date().getMonth();
   const md=monthlyDivs(state.divCalYear),divSum=md.reduce((a,b)=>a+b,0);
+  const selM=divAktiverMonat();
   // FIX v3.5: TER nur über aktivierte Portfolios und ISIN-dedupliziert
   const terCost=allTerCost();
   const divYield=t>0?divSum/t*100:0;
@@ -1333,9 +1529,9 @@ function screenDepot(){
         <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
         <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
       </div>
-      <div class="mog">${md.map((v,i)=>`<div class="mob${i===now?' hi':''}"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===now?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+      <div class="mog">${md.map((v,i)=>`<div class="mob${i===selM?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===selM?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-        <div class="kz-tile"><div class="kz-lbl">Dieser Monat</div><div class="kz-val">${EUR0(md[now])}</div></div>
+        <div class="kz-tile"><div class="kz-lbl">${MNF[selM]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[selM])}</div></div>
         <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
       </div>
     </div>
@@ -1565,9 +1761,9 @@ function screenETFDetail(){
     <div class="card" style="border-color:rgba(0,240,255,.35)">
       <div class="ctitle">Kursdaten</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="edf"><label>Stückzahl</label><input type="text" inputmode="decimal" value="${pos.stueck.toFixed(6)}" onchange="updPos(${state.subIdx},${state.posIdx},'stueck',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>Stückzahl (aus Käufen)</label><input type="text" inputmode="decimal" value="${pos.stueck.toFixed(6)}" readonly style="opacity:.6" title="Ergibt sich aus den erfassten Käufen — unten im Block KÄUFE (LOSE) bearbeiten"/></div>
         <div class="edf"><label>Akt. Kurs €</label><input type="text" inputmode="decimal" value="${pos.kurs}" onchange="updPos(${state.subIdx},${state.posIdx},'kurs',+this.value.replace(',','.'))"/></div>
-        <div class="edf"><label>Kaufkurs €</label><input type="text" inputmode="decimal" value="${pos.kaufkurs}" onchange="updPos(${state.subIdx},${state.posIdx},'kaufkurs',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>Ø Kaufkurs € (aus Käufen)</label><input type="text" inputmode="decimal" value="${(pos.kaufkurs||0).toFixed(4)}" readonly style="opacity:.6" title="Gewichteter Durchschnitt der erfassten Käufe"/></div>
         <div class="edf"><label>TER % p.a.</label><input type="text" inputmode="decimal" value="${pos.ter}" onchange="updPos(${state.subIdx},${state.posIdx},'ter',+this.value.replace(',','.'))"/></div>
       </div>
       <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">
@@ -1575,6 +1771,30 @@ function screenETFDetail(){
       <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-top:1px solid var(--b)">
         <span style="color:var(--t2)">G/V</span><span style="font-weight:700;color:${gvpct>=0?N.green:N.red}">${gvpct>=0?'+':''}${gvpct.toFixed(2)}%</span></div>
       <button class="btn btn-c" style="width:100%;margin-top:8px" onclick="loadYahoo(${state.subIdx},${state.posIdx})">↓ Kurs von Yahoo laden</button>
+    </div>
+
+    <div class="card card-c">
+      <div class="ctitle">KÄUFE (LOSE) · ERFASSUNG AB ${TRACKING_START.split('-').reverse().join('.')}</div>
+      <p class="hint" style="margin-bottom:10px">Jeder Kauf mit Datum. Das Los „Anfangsbestand" bündelt alles, was vor dem Erfassungsbeginn im Depot lag — dafür gibt es keine Einzelhistorie. Nur Stücke, die <b>vor</b> dem Ex-Tag einer Ausschüttung im Depot lagen, zählen für diese Ausschüttung.</p>
+      ${lotsSortiert(pos).length?`<div style="overflow-x:auto">
+        <table class="tbl" style="min-width:420px">
+          <thead><tr><th>Datum</th><th>Art</th><th>Stück</th><th>Kurs €</th><th>Betrag</th><th></th></tr></thead>
+          <tbody>${lotsSortiert(pos).map(l=>{
+            const idx=pos.lots.indexOf(l);
+            return `<tr>
+              <td style="white-space:nowrap">${l.d.split('-').reverse().join('.')}</td>
+              <td style="color:${l.typ==='anfang'?'var(--t3)':'var(--cyan)'}">${l.typ==='anfang'?'Anfangsbestand':'Kauf'}</td>
+              <td>${(l.stueck||0).toFixed(6)}</td>
+              <td>${(l.kurs||0).toFixed(4)}</td>
+              <td style="font-weight:700">${EUR0((l.stueck||0)*(l.kurs||0))}</td>
+              <td>${l.typ==='anfang'?'':`<button class="yp-btn" title="Los löschen" onclick="deleteLot(${state.subIdx},${state.posIdx},${idx})">×</button>`}</td>
+            </tr>`;}).join('')}</tbody>
+        </table></div>`:`<p class="hint">Noch keine Lose erfasst.</p>`}
+      <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,#2a3a5a)">
+        <span>Gesamt</span><span>${lotsStueck(pos).toFixed(6)} Stk · Ø ${lotsKaufkurs(pos).toFixed(4)} €</span>
+      </div>
+      <button class="btn btn-g" style="width:100%;margin-top:10px" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
+      ${state.divCalYear===2026&&exDatumHatKipppunkt(pos.ticker)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
       <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
     </div>
     <div class="card" style="border-color:rgba(0,240,255,.3)">
@@ -1987,6 +2207,58 @@ function openAddModal(){
   m.onclick=e=>{if(e.target===m)closeModal();};
 }
 function closeModal(){const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML='';}
+
+// ===== KAUFLOS ERFASSEN =====
+function openLotModal(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos)return;
+  const heute=new Date().toISOString().slice(0,10);
+  // Vorschlag: naechster Kauftag im laufenden Monat, sonst heute
+  const d=new Date();const vorschlag=new Date(d.getFullYear(),d.getMonth(),KAUFTAG).toISOString().slice(0,10);
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">+ Kauf erfassen · ${pos.ticker||pos.name}</div>
+    <div class="field"><label>Kaufdatum</label><input type="date" id="l_d" value="${vorschlag<=heute?vorschlag:heute}"/></div>
+    <div class="field"><label>Stückzahl</label><input type="text" inputmode="decimal" id="l_s" placeholder="z.B. 2,4695"/></div>
+    <div class="field"><label>Kaufkurs €</label><input type="text" inputmode="decimal" id="l_k" value="${(pos.kurs||0).toFixed(4)}"/></div>
+    <p class="hint" style="margin-bottom:10px">Alternativ nur den Anlagebetrag eingeben — die Stückzahl wird dann aus Betrag ÷ Kaufkurs berechnet.</p>
+    <div class="field"><label>oder Anlagebetrag €</label><input type="text" inputmode="decimal" id="l_b" placeholder="z.B. 137,06"/></div>
+    <div class="btnrow">
+      <button class="btn btn-g" onclick="confirmLot(${pfI},${posI})" style="flex:1">Speichern</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function confirmLot(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos)return;
+  const d=gs('l_d');
+  if(!d){showToast('Bitte ein Kaufdatum angeben');return;}
+  const kurs=gv('l_k');
+  if(!(kurs>0)){showToast('Bitte einen Kaufkurs > 0 angeben');return;}
+  let stk=gv('l_s');
+  const betrag=gv('l_b');
+  if(!(stk>0)&&betrag>0)stk=betrag/kurs;
+  if(!(stk>0)){showToast('Bitte Stückzahl oder Anlagebetrag angeben');return;}
+  if(d<TRACKING_START){showToast('Erfassung beginnt am '+TRACKING_START.split('-').reverse().join('.'));return;}
+  if(!Array.isArray(pos.lots))pos.lots=[];
+  pos.lots.push({d,stueck:stk,kurs,typ:'kauf'});
+  syncAusLosen(pos);
+  closeModal();render();
+  // Hinweis, falls im selben Monat ein Ex-Tag auf/nach dem Kaufdatum liegt
+  const kipp=(AUSSCHUETTUNGEN_2026[pos.ticker]?.items||[])
+    .filter(x=>x.ex.slice(0,7)===d.slice(0,7)&&x.ex<=d);
+  showToast(kipp.length
+    ?'Kauf erfasst — Ex-Tag '+kipp[0].ex.split('-').reverse().join('.')+' lag bereits: zählt erst zur Folgeausschüttung'
+    :'Kauf erfasst');
+}
+function deleteLot(pfI,posI,idx){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos||!Array.isArray(pos.lots))return;
+  const l=pos.lots[idx];if(!l||l.typ==='anfang')return;
+  pos.lots.splice(idx,1);
+  syncAusLosen(pos);
+  render();showToast('Los gelöscht');
+}
 function gv(id){const el=document.getElementById(id);if(!el)return 0;const v=el.value.replace(',','.');return parseFloat(v)||0;}
 function gs(id){return document.getElementById(id)?.value?.trim()||'';}
 function confirmAdd(){
@@ -1994,6 +2266,7 @@ function confirmAdd(){
     stueck:gv('m_s'),kurs:gv('m_k'),kaufkurs:gv('m_kk')||gv('m_k'),
     target:gv('m_tg')||100,ter:gv('m_ter')||0.20,active:true,klasse:0,
     divs:{2024:Array(12).fill(0),2025:Array(12).fill(0),2026:Array(12).fill(0),2027:Array(12).fill(0)}};
+  pos.lots=[{d:TRACKING_START,stueck:pos.stueck,kurs:pos.kaufkurs,typ:'anfang'}];
   state.portfolios[state.subIdx].positions.push(pos);
   closeModal();render();showToast('Position hinzugefügt');
 }
