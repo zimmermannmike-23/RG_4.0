@@ -170,8 +170,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.15';
+const APP_VERSION='3.16';
 const APP_CHANGELOG=[
+  {v:'3.16',d:'2026-09-18',t:'Fehler behoben: das bei der Migration erzeugte Anfangs-Los trug zwar das Datum 01.09.2026, enthielt aber die heutige Stueckzahl — Kaeufe nach dem 01.09. steckten also bereits darin und qualifizierten faelschlich fuer frueher liegende Ex-Tage (z.B. DXSA/XGSD Zahltag 03.09. aus Ex-Tag 19.08.). Kaeufe lassen sich jetzt mit dem Haken „steckt bereits im Anfangsbestand" erfassen, wodurch der Anfangsbestand entsprechend reduziert statt aufgestockt wird; zusaetzlich ist der Anfangsbestand direkt editierbar. Die Naeherungs-Markierung (*) richtet sich jetzt nach dem Ex-Tag statt nach dem Zahlmonat, sodass auch September als Naeherung erkennbar ist.'},
   {v:'3.15',d:'2026-09-18',t:'Anzeige eindeutig auf den Zahltag bezogen: Betraege stehen im Monat, in dem das Geld ankommt, waehrend die Berechtigung weiterhin am Ex-Tag haengt. Die Aufstellung des gewaehlten Monats nennt je ETF den konkreten Zahltag (und den Ex-Tag), Prognosetermine sind als solche markiert, Tooltips fuehren jetzt mit dem Zahltag. Kartentitel umbenannt in „Monatliche Dividenden nach Zahltag".'},
   {v:'3.14',d:'2026-09-18',t:'Kachel „Zuwachs mtl. Dividende je Sparplan-Kauf" rechnet jetzt ausschliesslich mit der Sparrate des DIV ETF Depots. Zuvor wurde ersatzweise die Gesamtsparrate aller Depots herangezogen, wenn fuer das Depot selbst keine Rate hinterlegt war — das ueberzeichnete den Zuwachs deutlich. Ist keine Depot-Sparrate gesetzt, weist die Kachel darauf hin statt zu rechnen.'},
   {v:'3.13',d:'2026-09-18',t:'Kauflos-Tracking ab 01.09.2026: jede Position fuehrt jetzt datierte Kauflose statt nur einer Gesamtstueckzahl (Block KAEUFE (LOSE) im ETF-Detail, Erfassung per Datum, Stueckzahl oder Anlagebetrag). Stueckzahl und durchschnittlicher Kaufkurs leiten sich daraus ab. Der Dividendenkalender rechnet damit Ex-Datum-genau: nur Stuecke, die vor dem jeweiligen Ex-Tag im Depot lagen, zaehlen fuer eine Ausschuettung; Monate vor dem Erfassungsbeginn sind als Naeherung markiert (*). Ausserdem echte Ausschuettungsbetraege je Zahltermin 2026 fuer alle 7 ETF eingepflegt (statt geglaetteter Quartalsmittel) — dabei korrigiert: VGWD zahlte in der App faelschlich Jan/Apr/Jul/Okt statt tatsaechlich Apr/Jul/Sep/Dez.'},
@@ -339,6 +340,14 @@ function lotsStueck(pos){return posLots(pos).reduce((s,l)=>s+(l.stueck||0),0);}
 // Stuecke, die VOR dem Stichtag (Ex-Tag) bereits im Depot lagen — nur die sind dividendenberechtigt.
 function lotsStueckVor(pos,datum){return posLots(pos).filter(l=>l.d<datum).reduce((s,l)=>s+(l.stueck||0),0);}
 function lotsAnfangsbestand(pos){const l=posLots(pos).find(x=>x.typ==='anfang');return l?(l.stueck||0):(pos.stueck||0);}
+// Anfangsbestand direkt setzen (z.B. nach Abgleich mit dem Depotauszug vom Erfassungsstichtag)
+function setzeAnfangsbestand(pfI,posI,stk){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos)return;
+  let l=posLots(pos).find(x=>x.typ==='anfang');
+  if(!l){l={d:TRACKING_START,stueck:0,kurs:pos.kaufkurs||pos.kurs||0,typ:'anfang'};pos.lots=[l,...posLots(pos)];}
+  l.stueck=Math.max(0,stk||0);
+  syncAusLosen(pos);render();showToast('Anfangsbestand gesetzt');
+}
 function lotsKaufkurs(pos){
   const st=lotsStueck(pos);if(st<=0)return pos.kaufkurs||0;
   return posLots(pos).reduce((s,l)=>s+(l.stueck||0)*(l.kurs||0),0)/st;
@@ -379,10 +388,20 @@ function posDivMonat(pos,jahr,mIdx){
     return sum+anteil*stk;
   },0);
 }
-// Liegt der Monat ganz vor dem Erfassungsbeginn? Dann ist der Wert nur eine Naeherung.
-function monatVorErfassung(jahr,mIdx){
-  const ende=new Date(jahr,mIdx+1,0).toISOString().slice(0,10);
-  return ende<TRACKING_START;
+// Beruht der Monatswert auf einem Ex-Tag VOR dem Erfassungsbeginn? Dann ist er nur eine Naeherung —
+// unabhaengig davon, ob der Zahltag selbst schon im Erfassungszeitraum liegt.
+function monatVorErfassung(jahr,mIdx,ticker){
+  if(jahr!==2026){
+    const ende=new Date(jahr,mIdx+1,0).toISOString().slice(0,10);
+    return ende<TRACKING_START;
+  }
+  if(ticker){
+    const items=ausschuettungenZahlmonat(ticker,mIdx+1);
+    return items.length?items.some(x=>x.ex<TRACKING_START):false;
+  }
+  // Depotweit: Naeherung, sobald irgendein ETF in diesem Zahlmonat aus einem alten Ex-Tag zahlt
+  return Object.keys(AUSSCHUETTUNGEN_2026).some(t=>
+    ausschuettungenZahlmonat(t,mIdx+1).some(x=>x.ex<TRACKING_START));
 }
 // BUY-ONLY: buy_i = max(0, effTarget_i/100 × (T+sp) − val_i), dann auf sp skalieren
 function buyOnlyOrders(pf){
@@ -888,7 +907,7 @@ function dividendeJeEtfBlock(){
           const k=state.divCalYear===2026?exDatumKipp(p.ticker,i+1):[];
           const verschoben=k.some(x=>x.ergebnis==='verschoben');
           const titel=k.map(x=>`Zahltag ${x.pay.split('-').reverse().join('.')} — Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}): Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
-          const vorErf=monatVorErfassung(state.divCalYear,i);
+          const vorErf=monatVorErfassung(state.divCalYear,i,p.ticker);
           return`<div class="mob${i===sel?' hi':''}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'white')}">${v>0?EUR0(v):'–'}</div></div>`;
         }).join('')}</div>
       </div>`;
@@ -1824,6 +1843,11 @@ function screenETFDetail(){
       <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,#2a3a5a)">
         <span>Gesamt</span><span>${lotsStueck(pos).toFixed(6)} Stk · Ø ${lotsKaufkurs(pos).toFixed(4)} €</span>
       </div>
+      <div class="edf" style="margin-top:10px"><label>Anfangsbestand per ${TRACKING_START.split('-').reverse().join('.')} korrigieren</label>
+        <input type="text" inputmode="decimal" value="${lotsAnfangsbestand(pos).toFixed(6)}"
+          onchange="setzeAnfangsbestand(${state.subIdx},${state.posIdx},+this.value.replace(',','.'))"/></div>
+      ${(()=>{const alt=(AUSSCHUETTUNGEN_2026[pos.ticker]?.items||[]).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
+        return alt.length?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Zahltag ${alt.map(x=>x.pay.split('-').reverse().join('.')).join(', ')} beruht auf dem Ex-Tag ${alt.map(x=>x.ex.split('-').reverse().join('.')).join(', ')} — also <b>vor</b> dem Erfassungsbeginn. Gerechnet wird dort mit dem Anfangsbestand. Falls darin Stücke stecken, die du erst nach diesem Ex-Tag gekauft hast, trage sie oben als Kauf ein (Haken „steckt bereits im Anfangsbestand" gesetzt lassen) — dann fällt der Wert korrekt niedriger aus.</p>`:'';})()}
       <button class="btn btn-g" style="width:100%;margin-top:10px" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
       ${state.divCalYear===2026&&exDatumHatKipppunkt(pos.ticker)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
       <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
@@ -2253,6 +2277,10 @@ function openLotModal(pfI,posI){
     <div class="field"><label>Kaufkurs €</label><input type="text" inputmode="decimal" id="l_k" value="${(pos.kurs||0).toFixed(4)}"/></div>
     <p class="hint" style="margin-bottom:10px">Alternativ nur den Anlagebetrag eingeben — die Stückzahl wird dann aus Betrag ÷ Kaufkurs berechnet.</p>
     <div class="field"><label>oder Anlagebetrag €</label><input type="text" inputmode="decimal" id="l_b" placeholder="z.B. 137,06"/></div>
+    <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--t2);margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="l_imBestand" checked style="margin-top:2px"/>
+      <span>Dieser Kauf steckt bereits im Anfangsbestand (Stückzahl stammt aus dem Depotauszug von <b>nach</b> dem ${TRACKING_START.split('-').reverse().join('.')}). Dann wird der Anfangsbestand um diese Stücke reduziert, statt sie obendrauf zu legen — sonst zählen sie doppelt und bekommen fälschlich ältere Ausschüttungen.</span>
+    </label>
     <div class="btnrow">
       <button class="btn btn-g" onclick="confirmLot(${pfI},${posI})" style="flex:1">Speichern</button>
       <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
@@ -2273,6 +2301,14 @@ function confirmLot(pfI,posI){
   if(!(stk>0)){showToast('Bitte Stückzahl oder Anlagebetrag angeben');return;}
   if(d<TRACKING_START){showToast('Erfassung beginnt am '+TRACKING_START.split('-').reverse().join('.'));return;}
   if(!Array.isArray(pos.lots))pos.lots=[];
+  // Steckt der Kauf schon im Anfangsbestand? Dann dort abziehen statt aufaddieren.
+  const imBestand=document.getElementById('l_imBestand')?.checked;
+  if(imBestand){
+    const anf=pos.lots.find(x=>x.typ==='anfang');
+    if(!anf){showToast('Kein Anfangsbestand vorhanden — Haken entfernen');return;}
+    if(anf.stueck+1e-9<stk){showToast('Anfangsbestand ('+anf.stueck.toFixed(4)+' Stk) ist kleiner als der Kauf — bitte prüfen');return;}
+    anf.stueck-=stk;
+  }
   pos.lots.push({d,stueck:stk,kurs,typ:'kauf'});
   syncAusLosen(pos);
   closeModal();render();
