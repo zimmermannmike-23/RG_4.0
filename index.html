@@ -170,8 +170,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.13';
+const APP_VERSION='3.14';
 const APP_CHANGELOG=[
+  {v:'3.14',d:'2026-09-18',t:'Kachel „Zuwachs mtl. Dividende je Sparplan-Kauf" rechnet jetzt ausschliesslich mit der Sparrate des DIV ETF Depots. Zuvor wurde ersatzweise die Gesamtsparrate aller Depots herangezogen, wenn fuer das Depot selbst keine Rate hinterlegt war — das ueberzeichnete den Zuwachs deutlich. Ist keine Depot-Sparrate gesetzt, weist die Kachel darauf hin statt zu rechnen.'},
   {v:'3.13',d:'2026-09-18',t:'Kauflos-Tracking ab 01.09.2026: jede Position fuehrt jetzt datierte Kauflose statt nur einer Gesamtstueckzahl (Block KAEUFE (LOSE) im ETF-Detail, Erfassung per Datum, Stueckzahl oder Anlagebetrag). Stueckzahl und durchschnittlicher Kaufkurs leiten sich daraus ab. Der Dividendenkalender rechnet damit Ex-Datum-genau: nur Stuecke, die vor dem jeweiligen Ex-Tag im Depot lagen, zaehlen fuer eine Ausschuettung; Monate vor dem Erfassungsbeginn sind als Naeherung markiert (*). Ausserdem echte Ausschuettungsbetraege je Zahltermin 2026 fuer alle 7 ETF eingepflegt (statt geglaetteter Quartalsmittel) — dabei korrigiert: VGWD zahlte in der App faelschlich Jan/Apr/Jul/Okt statt tatsaechlich Apr/Jul/Sep/Dez.'},
   {v:'3.12',d:'2026-09-18',t:'Dividenden-Monatsauswahl: ein Klick auf einen Monat markiert ihn in allen Dividenden-Ansichten (Dashboard-Box, Je-ETF-Box, Depot-Reiter) und blendet eine Aufstellung aller ausschuettenden ETFs dieses Monats mit Summe ein; nochmal klicken hebt die Auswahl auf. Neue Kachel: durchschnittlicher Zuwachs der monatlichen Dividende je Sparplan-Kauf (Buy-Only-Verteilung der Sparrate, inkl. Jahreswert und Ausschuettungsrendite auf den Kauf).'},
   {v:'3.11',d:'2026-09-18',t:'Ex-Datum-Kipppunkt-Warnung im Dividenden-Screen (DIV ETF Depot): zeigt je ETF/Monat an, ob ein Sparplan-Kauf am 4. noch vor dem Ex-Tag liegt oder erst zur Folgeausschüttung zählt (⚠-Badge, Tooltip mit Quelle/Status). Betrifft v.a. TDIV (alle 4 Quartale), ZPRG (Februar), QYLE (Juni/Oktober/Dezember). Rein informativ, keine automatische Stückzahl-Korrektur, da keine datierte Kauflos-Historie geführt wird.'},
@@ -781,17 +782,33 @@ function divSetMonth(m){state.divSelMonth=(state.divSelMonth===m)?null:m;render(
 // Durchschnittliche Erhoehung der MONATLICHEN Dividende durch einen neuen Sparplan-Kauf.
 // Basis: Buy-Only-Aufteilung der Sparrate des DIV-ETF-Depots auf die unterallokierten ETFs
 // (identisch zur Sparplan-Empfehlung), je ETF gekaufte Stuecke × Jahresdividende/Stueck → /12.
+// Buy-Only-Verteilung mit ausdruecklich uebergebener Rate — kein Rueckgriff auf die
+// globale Gesamtsparrate state.sparrate, damit hier wirklich nur das DIV ETF Depot zaehlt.
+function buyOnlyOrdersMitRate(pf,sp){
+  const t=pfTotal(pf),tNew=t+sp;
+  const raw=pfAP(pf).map(p=>{
+    const eff=effTarget(p,pf);
+    const buy=Math.max(0,(eff/100)*tNew-posVal(p));
+    return{...p,buy,buyShares:p.kurs>0?buy/p.kurs:0};
+  });
+  const sum=raw.reduce((s,r)=>s+r.buy,0);
+  const scale=(sum>sp&&sum>0)?sp/sum:1;
+  raw.forEach(r=>{r.buy*=scale;r.buyShares=r.kurs>0?r.buy/r.kurs:0;});
+  return raw;
+}
+// Zuwachs der monatlichen Dividende je Sparplan-Kauf — ausschliesslich DIV ETF Depot,
+// ausschliesslich dessen eigene Sparrate (pf.sparAmount).
 function divZuwachsProKauf(){
   const pf=zielPf();if(!pf)return null;
-  const sp=pf.sparAmount||state.sparrate;
-  if(!(sp>0))return null;
-  const orders=buyOnlyOrders(pf);
+  const sp=pf.sparAmount||0;
+  if(!(sp>0))return{pfName:pf.name,fehlendeRate:true};
+  const orders=buyOnlyOrdersMitRate(pf,sp);
   let jahr=0;
   orders.forEach(o=>{
     const divStk=((o.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
     jahr+=(o.buyShares||0)*divStk;
   });
-  return{sp,jahr,monat:jahr/12,rendite:sp>0?jahr/sp*100:0};
+  return{pfName:pf.name,sp,jahr,monat:jahr/12,rendite:jahr/sp*100};
 }
 
 // Box 2: Monatliche Dividenden nach Kalenderjahr (aus dem Reiter Depot übernommen, exklusiv DIV ETF Depot)
@@ -812,12 +829,17 @@ function monatlicheDividendenBlock(){
       <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div></div>
       <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
     </div>
-    ${zw?`<div class="kz-tile" style="margin-top:10px">
+    ${zw&&zw.fehlendeRate?`<div class="kz-tile" style="margin-top:10px">
       <div class="kz-lbl">Ø Zuwachs mtl. Dividende je Sparplan-Kauf</div>
+      <div class="kz-val" style="color:${N.orange};font-size:16px">Sparrate für „${zw.pfName}" nicht gesetzt</div>
+      <div style="font-size:12px;color:var(--t3);margin-top:4px">Unter Sparplan die Rate für dieses Depot eintragen. Die Gesamtsparrate aller Depots wird hier bewusst <b>nicht</b> herangezogen.</div>
+    </div>`:''}
+    ${zw&&!zw.fehlendeRate?`<div class="kz-tile" style="margin-top:10px">
+      <div class="kz-lbl">Ø Zuwachs mtl. Dividende je Sparplan-Kauf · nur ${zw.pfName}</div>
       <div class="kz-val" style="color:${N.green}">+ ${EUR0(zw.monat)}<span style="font-size:13px;color:var(--t3)"> /Monat</span></div>
-      <div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(zw.sp)} Sparrate → + ${EUR0(zw.jahr)} Dividende p.a. · ${zw.rendite.toFixed(2)} % Ausschüttungsrendite auf den Kauf</div>
+      <div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(zw.sp)} Sparrate dieses Depots → + ${EUR0(zw.jahr)} Dividende p.a. · ${zw.rendite.toFixed(2)} % Ausschüttungsrendite auf den Kauf</div>
     </div>
-    <p class="hint" style="margin-top:6px">Rechenweg: Sparrate nach Buy-Only-Logik auf die unterallokierten ETFs verteilt (wie in der Sparplan-Empfehlung), je ETF gekaufte Stücke × Jahresausschüttung/Stück ${state.divCalYear}, geteilt durch 12. Durchschnitt über alle Monate — die tatsächliche Gutschrift fällt nur in den Zahlmonaten an und beim ersten Zyklus je nach Ex-Datum ggf. später (siehe ⚠ unten).</p>`:''}
+    <p class="hint" style="margin-top:6px">Rechenweg: <b>nur die Sparrate des ${zw.pfName}</b> (${EUR0(zw.sp)}) nach Buy-Only-Logik auf dessen unterallokierte ETFs verteilt, je ETF gekaufte Stücke × Jahresausschüttung/Stück ${state.divCalYear}, geteilt durch 12. Die Gesamtsparrate aller Depots bleibt außen vor. Durchschnitt über alle Monate — die tatsächliche Gutschrift fällt nur in den Zahlmonaten an und beim ersten Zyklus je nach Ex-Datum ggf. später (siehe ⚠ unten).</p>`:''}
   </div>`;
 }
 
