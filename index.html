@@ -22,6 +22,7 @@ html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui
 .tb.on{color:var(--tc,var(--cyan));text-shadow:0 0 12px var(--tg,rgba(0,240,255,.5))}
 .card{background:var(--bg1);border:1px solid var(--b);border-radius:var(--rr);padding:16px;margin-bottom:12px}
 .card-c{border-color:rgba(0,240,255,.4);box-shadow:0 0 18px rgba(0,240,255,.07),inset 0 0 18px rgba(0,240,255,.03)}
+.card-y{border-color:rgba(255,230,0,.45);box-shadow:0 0 18px rgba(255,230,0,.08),inset 0 0 18px rgba(255,230,0,.03)}
 .ctitle{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);font-weight:700;margin-bottom:12px}
 /* KZ TILES */
 .kz-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -170,8 +171,12 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.16';
+const APP_VERSION='3.20';
 const APP_CHANGELOG=[
+  {v:'3.20',d:'2026-09-18',t:'Jahrespruefungs-Prompt identifiziert die Fonds jetzt ausschliesslich ueber die ISIN. Die im Tool gespeicherten Fondsnamen und Kuerzel werden nicht mehr mitgegeben, weil sie fehlerhaft sein koennen (Beispiel: LU0292095535 ist als „Select Dividend 30" hinterlegt, gehoert aber zum Quality Dividend). Der Prompt fordert Claude ausdruecklich auf, jede ISIN nachzuschlagen, den amtlichen Namen samt Index, Replikation, Domizil, Waehrung und Volumen zu nennen und Abweichungen zu meinen Tabellenwerten zu melden; Alternativvorschlaege muessen ebenfalls eine ISIN tragen.'},
+  {v:'3.19',d:'2026-09-18',t:'Sparrate wird jetzt unter den AKTIVEN ETF verteilt (Ziele untereinander normiert), waehrend Ampel, Score und Warnhinweise weiter ueber das gesamte Depot inkl. pausierter Positionen rechnen. Zuvor liefen beide ueber das Gesamtdepot, wodurch auch der unter den Aktiven bereits uebergewichtete ETF noch Geld bekam und die Angleichung statt einem Monat viele Monate gedauert haette. Neu ausserdem: Jahrespruefung — ab dem 1. Dezember erscheint ein Hinweis, die Gewichtung der einzelnen ETF zu pruefen und nach Alternativen zu suchen, samt fertigem Claude-Prompt mit Depotwert, Sparrate, Gewichten, TER, Ausschuettungen und Rendite je ETF. Einmal je Jahr quittierbar.'},
+  {v:'3.18',d:'2026-09-18',t:'Pausierte ETF mit Bestand zaehlen jetzt durchgaengig zur Rechenbasis: pfTotal, effTarget, Abweichung, Ampel und Score beziehen sich auf das gesamte Depot, und Zielgewichte werden nicht mehr auf die aktiven Positionen hochnormiert. Zuvor verschwand ein ausgeschalteter ETF komplett aus der Rechnung — bei ausgeschaltetem XGSD meldete das Tool Score 84 und ein nahezu ausgeglichenes Depot, obwohl 76 % des Werts in dieser einen Position lagen. Die Sparrate fliesst weiterhin nur in aktive Positionen. Neue Zweitkennzahl „nur steuerbare ETF" zeigt den Fortschritt der monatlichen Sparraten, waehrend die Hauptampel den echten Depotzustand meldet. Pausierte Positionen ohne Bestand werden wie bisher herausnormiert.'},
+  {v:'3.17',d:'2026-09-18',t:'Warnhinweis zur Wiederaufnahme pausierter ETF: die App berechnet jetzt fuer jede pausierte Position, nach wie vielen Sparraten ihr Anteil am GESAMTEN Depot wieder auf ihr Zielgewicht faellt, und meldet z.B. „LU0292096186 kann ab naechsten Monat wieder bespart werden". Dafuer neue Kennzahlen pfTotalAlle/posIstGesamt, die pausierte Positionen ausdruecklich mitzaehlen — die bisherigen pfTotal/posIst klammern sie aus und normieren auf die aktiven Positionen. Der Hinweis erscheint im Sparplan-Reiter, im Dashboard und direkt an der pausierten Position im Portfolio-Reiter.'},
   {v:'3.16',d:'2026-09-18',t:'Fehler behoben: das bei der Migration erzeugte Anfangs-Los trug zwar das Datum 01.09.2026, enthielt aber die heutige Stueckzahl — Kaeufe nach dem 01.09. steckten also bereits darin und qualifizierten faelschlich fuer frueher liegende Ex-Tage (z.B. DXSA/XGSD Zahltag 03.09. aus Ex-Tag 19.08.). Kaeufe lassen sich jetzt mit dem Haken „steckt bereits im Anfangsbestand" erfassen, wodurch der Anfangsbestand entsprechend reduziert statt aufgestockt wird; zusaetzlich ist der Anfangsbestand direkt editierbar. Die Naeherungs-Markierung (*) richtet sich jetzt nach dem Ex-Tag statt nach dem Zahlmonat, sodass auch September als Naeherung erkennbar ist.'},
   {v:'3.15',d:'2026-09-18',t:'Anzeige eindeutig auf den Zahltag bezogen: Betraege stehen im Monat, in dem das Geld ankommt, waehrend die Berechtigung weiterhin am Ex-Tag haengt. Die Aufstellung des gewaehlten Monats nennt je ETF den konkreten Zahltag (und den Ex-Tag), Prognosetermine sind als solche markiert, Tooltips fuehren jetzt mit dem Zahltag. Kartentitel umbenannt in „Monatliche Dividenden nach Zahltag".'},
   {v:'3.14',d:'2026-09-18',t:'Kachel „Zuwachs mtl. Dividende je Sparplan-Kauf" rechnet jetzt ausschliesslich mit der Sparrate des DIV ETF Depots. Zuvor wurde ersatzweise die Gesamtsparrate aller Depots herangezogen, wenn fuer das Depot selbst keine Rate hinterlegt war — das ueberzeichnete den Zuwachs deutlich. Ist keine Depot-Sparrate gesetzt, weist die Kachel darauf hin statt zu rechnen.'},
@@ -191,20 +196,76 @@ function b64dec(s){try{return JSON.parse(atob(s.replace(/-/g,'+').replace(/_/g,'
 function posVal(p){return(p.stueck||0)*(p.kurs||0);}
 function posCost(p){return(p.stueck||0)*(p.kaufkurs||0);}
 function pfAP(pf){return(pf.positions||[]).filter(p=>p.active);}
-function pfTotal(pf){return pfAP(pf).reduce((s,p)=>s+posVal(p),0);}
+// Positionen, die zur Rechenbasis zaehlen: alle aktiven PLUS pausierte, in denen noch Geld steckt.
+// Ein pausierter ETF verschwindet nicht aus dem Depot, nur weil er keine Sparrate mehr bekommt —
+// sein Wert gehoert weiter zum Depotwert und sein Zielgewicht bleibt bestehen.
+// Nur eine pausierte Position OHNE Bestand (reiner Platzhalter) wird herausgerechnet.
+function pfZaehlend(pf){return(pf.positions||[]).filter(p=>p.active||posVal(p)>0);}
+function pfTotal(pf){return pfZaehlend(pf).reduce((s,p)=>s+posVal(p),0);}
 
-// Normalisiertes Zielgewicht für eine aktive Position.
-// Wenn inaktive Positionen Gewicht haben, wird der Rest auf 100% hochskaliert.
+// Zielgewicht einer Position. Herausgerechnet werden nur pausierte Positionen ohne Bestand;
+// deren Gewicht wird auf die verbleibenden hochskaliert. Pausierte Positionen MIT Bestand
+// behalten ihr urspruengliches Ziel, damit die Uebergewichtung sichtbar bleibt.
 function effTarget(p,pf){
-  const ap=pfAP(pf);
-  const sumRaw=ap.reduce((s,x)=>s+x.target,0);
+  const z=pfZaehlend(pf);
+  const sumRaw=z.reduce((s,x)=>s+x.target,0);
   if(sumRaw<=0)return p.target;
   return p.target/sumRaw*100;
 }
 
 function posIst(p,pf){const t=pfTotal(pf);return t>0?posVal(p)/t*100:0;}
+
+// ===== GESAMTDEPOT-SICHT =====
+// pfTotal()/posIst() klammern pausierte Positionen aus — fuer die Frage, wann ein pausierter
+// ETF wieder besparbar ist, muss aber IMMER das gesamte Depot gerechnet werden, unabhaengig
+// davon, ob die Position ein- oder ausgeschaltet ist.
+function pfTotalAlle(pf){return(pf.positions||[]).reduce((s,p)=>s+posVal(p),0);}
+function posIstGesamt(p,pf){const t=pfTotalAlle(pf);return t>0?posVal(p)/t*100:0;}
+function posDevGesamt(p,pf){return posIstGesamt(p,pf)-(p.target||0);}
+
+// Ab wann ist ein pausierter ETF wieder besparbar?
+// Solange er pausiert ist, bleibt sein Wert stehen, waehrend das Depot um die Sparrate waechst.
+// Sein Anteil am GESAMTdepot sinkt dadurch Monat fuer Monat. Gesucht ist die kleinste Zahl
+// an Sparraten n, nach der sein Anteil wieder auf/unter sein urspruengliches Ziel faellt.
+// Kursveraenderungen bleiben bewusst aussen vor — gerechnet wird mit den aktuellen Kursen.
+function wiederBesparbarNach(p,pf){
+  const ziel=p.target||0;
+  if(ziel<=0)return null;
+  const wert=posVal(p);
+  const gesamt=pfTotalAlle(pf);
+  if(gesamt<=0)return null;
+  const ist=wert/gesamt*100;
+  if(ist<=ziel)return{monate:0,ist,ziel,wert,gesamt};
+  const sp=pf.sparAmount||0;
+  if(!(sp>0))return{monate:null,ist,ziel,wert,gesamt,keineRate:true};
+  // wert/(gesamt+n*sp)*100 <= ziel  ->  n >= (wert*100/ziel - gesamt)/sp
+  const n=Math.ceil((wert*100/ziel-gesamt)/sp-1e-9);
+  return{monate:Math.max(1,n),ist,ziel,wert,gesamt,sp,
+         istDanach:wert/(gesamt+Math.max(1,n)*sp)*100};
+}
+// Alle pausierten Positionen eines Depots mit ihrer Wiederaufnahme-Prognose
+function pausierteHinweise(pf){
+  return(pf.positions||[]).filter(p=>p.active===false).map(p=>({pos:p,info:wiederBesparbarNach(p,pf)}))
+    .filter(x=>x.info);
+}
+function monatsNameVersetzt(n){
+  const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+n);
+  return MNF[d.getMonth()]+' '+d.getFullYear();
+}
 function posDev(p,pf){return posIst(p,pf)-effTarget(p,pf);}
-function pfMaxDev(pf){const ap=pfAP(pf);return ap.length?Math.max(...ap.map(p=>Math.abs(posDev(p,pf)))):0;}
+function pfMaxDev(pf){const z=pfZaehlend(pf);return z.length?Math.max(...z.map(p=>Math.abs(posDev(p,pf)))):0;}
+// Zweite Kennzahl: Abweichung nur unter den ETF, die aktuell tatsaechlich bespart werden koennen.
+// Sie zeigt den Fortschritt der monatlichen Sparraten, waehrend pfMaxDev den echten Depotzustand meldet.
+function pfMaxDevSteuerbar(pf){
+  const ap=pfAP(pf);
+  if(!ap.length)return 0;
+  const t=ap.reduce((s,p)=>s+posVal(p),0);
+  const sumRaw=ap.reduce((s,x)=>s+x.target,0);
+  if(t<=0||sumRaw<=0)return 0;
+  return Math.max(...ap.map(p=>Math.abs(posVal(p)/t*100-p.target/sumRaw*100)));
+}
+function pfAmpelSteuerbar(pf){const d=pfMaxDevSteuerbar(pf);return d<2?'ok':d<5?'pruefen':'sofort';}
+function pfScoreSteuerbar(pf){return Math.max(0,Math.min(100,Math.round(100-pfMaxDevSteuerbar(pf)*3)));}
 function pfScore(pf){return Math.max(0,Math.min(100,Math.round(100-pfMaxDev(pf)*3)));}
 function totalScore(){const s=state.portfolios.filter(p=>p.enabled).map(pfScore);return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):100;}
 function pfAmpel(pf){const d=pfMaxDev(pf);return d<2?'ok':d<5?'pruefen':'sofort';}
@@ -404,19 +465,44 @@ function monatVorErfassung(jahr,mIdx,ticker){
     ausschuettungenZahlmonat(t,mIdx+1).some(x=>x.ex<TRACKING_START));
 }
 // BUY-ONLY: buy_i = max(0, effTarget_i/100 × (T+sp) − val_i), dann auf sp skalieren
-function buyOnlyOrders(pf){
-  const t=pfTotal(pf),sp=pf.sparAmount||state.sparrate;
+// ===== VERTEILUNG DER SPARRATE =====
+// Bewertung (Ampel, Score, Warnhinweise) rechnet ueber das GESAMTE Depot inkl. pausierter
+// Positionen — siehe pfTotal/effTarget. Die Sparrate wird dagegen unter den AKTIVEN Positionen
+// verteilt, mit auf 100 % normierten Zielen untereinander. Grund: solange ein pausierter ETF
+// stark uebergewichtet ist, sind alle aktiven gegenueber dem Gesamtdepot untergewichtet. Ihre
+// Luecken unterscheiden sich dann kaum, und auch der unter den Aktiven bereits uebergewichtete
+// ETF bekaeme noch Geld — die Angleichung der Aktiven untereinander dauert dadurch ein
+// Vielfaches laenger. Bezogen auf die Aktiven greift die Buy-Only-Logik dagegen sofort.
+function aktivBasis(pf){
+  const ap=pfAP(pf);
+  const t=ap.reduce((s,p)=>s+posVal(p),0);
+  const sumRaw=ap.reduce((s,x)=>s+x.target,0);
+  return{ap,t,sumRaw};
+}
+// Zielgewicht einer aktiven Position INNERHALB der aktiven Positionen (Summe = 100 %)
+function aktivTarget(p,pf){
+  const{sumRaw}=aktivBasis(pf);
+  return sumRaw>0?p.target/sumRaw*100:p.target;
+}
+function aktivIst(p,pf){
+  const{t}=aktivBasis(pf);
+  return t>0?posVal(p)/t*100:0;
+}
+function buyOnlyOrdersMitRate(pf,sp){
+  const{ap,t}=aktivBasis(pf);
   const tNew=t+sp;
-  const raw=pfAP(pf).map(p=>{
-    const ist=posIst(p,pf),eff=effTarget(p,pf),dev=eff-ist;
-    const buy=Math.max(0,(eff/100)*tNew - posVal(p));
-    const buyShares=p.kurs>0?buy/p.kurs:0;
-    return{...p,ist,dev,effTgt:eff,buy,buyShares};
+  const raw=ap.map(p=>{
+    const ist=aktivIst(p,pf),eff=aktivTarget(p,pf),dev=eff-ist;
+    const buy=Math.max(0,(eff/100)*tNew-posVal(p));
+    return{...p,ist,dev,effTgt:eff,buy,buyShares:p.kurs>0?buy/p.kurs:0};
   });
   const sum=raw.reduce((s,r)=>s+r.buy,0);
   const scale=(sum>sp&&sum>0)?sp/sum:1;
   raw.forEach(r=>{r.buy*=scale;r.buyShares=r.kurs>0?r.buy/r.kurs:0;});
   return raw;
+}
+function buyOnlyOrders(pf){
+  return buyOnlyOrdersMitRate(pf,pf.sparAmount||state.sparrate);
 }
 
 // REBALANCING (mit Verkäufen): diff_i = effTarget_i/100 × T − val_i
@@ -582,7 +668,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -804,18 +890,6 @@ function divSetMonth(m){state.divSelMonth=(state.divSelMonth===m)?null:m;render(
 // (identisch zur Sparplan-Empfehlung), je ETF gekaufte Stuecke × Jahresdividende/Stueck → /12.
 // Buy-Only-Verteilung mit ausdruecklich uebergebener Rate — kein Rueckgriff auf die
 // globale Gesamtsparrate state.sparrate, damit hier wirklich nur das DIV ETF Depot zaehlt.
-function buyOnlyOrdersMitRate(pf,sp){
-  const t=pfTotal(pf),tNew=t+sp;
-  const raw=pfAP(pf).map(p=>{
-    const eff=effTarget(p,pf);
-    const buy=Math.max(0,(eff/100)*tNew-posVal(p));
-    return{...p,buy,buyShares:p.kurs>0?buy/p.kurs:0};
-  });
-  const sum=raw.reduce((s,r)=>s+r.buy,0);
-  const scale=(sum>sp&&sum>0)?sp/sum:1;
-  raw.forEach(r=>{r.buy*=scale;r.buyShares=r.kurs>0?r.buy/r.kurs:0;});
-  return raw;
-}
 // Zuwachs der monatlichen Dividende je Sparplan-Kauf — ausschliesslich DIV ETF Depot,
 // ausschliesslich dessen eigene Sparrate (pf.sparAmount).
 function divZuwachsProKauf(){
@@ -1047,6 +1121,8 @@ function zieleBlock(){
   </div>
 
   ${depotKennzahlenBlock()}
+  ${jahresCheckBlock()}
+  ${(()=>{const z=zielPf();return z?wiederaufnahmeBlock(z):'';})()}
   ${monatlicheDividendenBlock()}
   ${dividendeJeEtfBlock()}
 
@@ -1733,6 +1809,19 @@ function screenPfDetail(){
     <div class="card card-c">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <span class="ctitle" style="margin:0">REBALANCING</span>${ampelBadge(pfAmpel(pf))}</div>
+      ${(()=>{const pausMitWert=(pf.positions||[]).filter(x=>x.active===false&&posVal(x)>0);
+        if(!pausMitWert.length)return'';
+        return`<div class="kz-tile" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <span style="font-size:12px;color:var(--t2)">Gesamtdepot (inkl. pausierter ETF)</span>
+            <span style="font-weight:700;color:${scoreColor(pfScore(pf))}">Score ${pfScore(pf)} · max. Abw. ${pfMaxDev(pf).toFixed(2)} %</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-size:12px;color:var(--t2)">Nur steuerbare ETF (Fortschritt der Sparraten)</span>
+            <span style="font-weight:700;color:${scoreColor(pfScoreSteuerbar(pf))}">Score ${pfScoreSteuerbar(pf)} · max. Abw. ${pfMaxDevSteuerbar(pf).toFixed(2)} %</span>
+          </div>
+          <p class="hint" style="margin-top:8px">Die Sparrate wird unter den <b>aktiven</b> ETF verteilt, damit diese sich zügig untereinander angleichen — bezogen auf das Gesamtdepot blieben sie sonst jahrelang untergewichtet und das Geld verteilte sich fast gleichmäßig.<br>${pausMitWert.map(x=>x.ticker).join(', ')} ist pausiert, zählt aber weiter zum Depotwert — die obere Zeile zeigt deshalb den echten Depotzustand und bleibt rot, solange die Übergewichtung besteht. Die untere Zeile misst nur die ETF, in die aktuell Geld fließt, und bewegt sich Monat für Monat.</p>
+        </div>`;})()}
       <div class="ctitle">STRATEGIE</div>
       <div class="pills">${['konservativ','moderat','gewinnorientiert'].map(s=>`
         <button class="pill${pf.strategy===s?' on':''}" onclick="state.portfolios[${state.subIdx}].strategy='${s}';render()">${s==='gewinnorientiert'?'Gewinnorientiert':s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('')}
@@ -1752,6 +1841,9 @@ function screenPfDetail(){
               <button class="tog${pos.active?' on':' off'}" onclick="event.stopPropagation();togglePos(${state.subIdx},${pi});render()"></button>
             </div>
             <div style="font-size:11px;color:var(--t2);margin-bottom:4px;margin-left:18px">${pos.isin} · Ist: ${ist.toFixed(2)} % · Ziel: ${eff.toFixed(2)} %</div>
+            ${!pos.active?(()=>{const w=wiederBesparbarNach(pos,pf);if(!w)return'';
+              const txt=w.keineRate?'Sparrate für dieses Depot fehlt':w.monate===0?'kann ab sofort wieder bespart werden':w.monate===1?'kann ab nächsten Monat wieder bespart werden':`kann ab ${monatsNameVersetzt(w.monate)} wieder bespart werden (${w.monate} Sparraten)`;
+              return`<div style="font-size:11px;margin-bottom:4px;margin-left:18px;color:${w.monate===0||w.monate===1?N.green:N.orange}">⏸ pausiert · ${txt} · Anteil am Gesamtdepot ${w.ist.toFixed(2)} % / Ziel ${w.ziel.toFixed(2)} %</div>`;})():''}
             <div class="pos-bar">
               <div class="pos-bar-fill" style="width:${Math.min(100,ist).toFixed(1)}%;background:${ac};box-shadow:0 0 6px ${ac}50"></div>
               <div class="pos-bar-tgt" style="left:${Math.min(100,eff)}%"></div>
@@ -1882,12 +1974,153 @@ function screenETFDetail(){
   </div>`;
 }
 
+// ===== JAHRESEND-PRUEFUNG =====
+// Erscheint ab dem 1. Dezember und erinnert daran, Gewichtung und ETF-Auswahl zu ueberpruefen.
+// Einmal je Kalenderjahr quittierbar (state.jahresCheckQuittiert speichert das Jahr).
+function jahresCheckFaellig(){
+  const d=new Date();
+  if(d.getMonth()!==11)return false;                 // nur Dezember
+  return(state.jahresCheckQuittiert||0)!==d.getFullYear();
+}
+function quittiereJahresCheck(){
+  state.jahresCheckQuittiert=new Date().getFullYear();
+  render();showToast('Bis Dezember '+(new Date().getFullYear()+1)+' ausgeblendet');
+}
+
+// Baut aus dem echten Depotbestand einen vollstaendigen Prompt fuer Claude.
+function jahresCheckPrompt(){
+  const pf=zielPf();
+  if(!pf)return'Kein DIV ETF Depot gefunden.';
+  const jahr=new Date().getFullYear();
+  const gesamt=pfTotal(pf);
+  const sp=pf.sparAmount||0;
+  const md=Array(12).fill(0).map((_,i)=>zDivMonat(state.divCalYear,i));
+  const divJahr=md.reduce((a,b)=>a+b,0);
+  const zw=divZuwachsProKauf();
+  const z=state.ziele||{};
+  const zeilen=(pf.positions||[]).map(p=>{
+    const wert=posVal(p);
+    const ist=gesamt>0?wert/gesamt*100:0;
+    const divStk=((p.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    const rend=p.kurs>0?divStk/p.kurs*100:0;
+    return`| ${p.isin||'KEINE ISIN HINTERLEGT'} | ${wert.toFixed(2)} € | ${ist.toFixed(2)} % | ${(p.target||0).toFixed(2)} % | ${(ist-(p.target||0)).toFixed(2)} % | ${(p.ter??'?')} % | ${divStk.toFixed(4)} € | ${rend.toFixed(2)} % | ${p.active===false?'pausiert':'aktiv'} |`;
+  }).join('\n');
+
+  return`Du bist mein Anlage-Sparringspartner für mein privates Dividenden-ETF-Depot. Bitte prüfe kritisch — ich will Widerspruch, keine Bestätigung.
+
+## Identifikation der Fonds — bitte zuerst lesen
+Alle Positionen sind ausschließlich über die **ISIN** angegeben. Verwende nur die ISIN, um den jeweiligen Fonds zu bestimmen; verlasse dich nicht auf Namen oder Kürzel, die ich sonst irgendwo verwende, und rate keinen Namen aus der ISIN. Schlage jede ISIN nach und nenne mir zu Beginn deiner Antwort je ISIN den vollständigen amtlichen Fondsnamen, den Emittenten, den abgebildeten Index, die Replikationsmethode, das Fondsdomizil, die Fondswährung und das Fondsvolumen. Stimmt etwas davon nicht mit den Zahlen in meiner Tabelle überein (z. B. die TER), sage es mir ausdrücklich.
+Ebenso gilt für alle Alternativvorschläge: nenne immer die ISIN, nicht nur den Namen.
+
+## Aufgabe
+1. Prüfe die Gewichtung der ETF untereinander: Ist die Aufteilung für ein Dividenden-Depot sinnvoll, oder gibt es Klumpenrisiken (Regionen, Sektoren, Einzeltitel-Überschneidungen zwischen den ETF)?
+2. Prüfe Überschneidungen: Welche ETF halten weitgehend dieselben Titel? Wo zahle ich doppelt TER für dasselbe Exposure?
+3. Suche nach besseren Alternativen zu den einzelnen ETF: niedrigere TER, größeres Fondsvolumen, bessere Replikationsqualität, sinnvollere Index-Methodik, steuerlich günstigere Domizilierung. Nenne konkrete ISINs und begründe jeden Vorschlag.
+4. Bewerte kritisch, ob Covered-Call-Produkte (in meinem Depot: IE00BM8R0J59) in dieser Gewichtung sinnvoll sind — insbesondere das Verhältnis von Ausschüttungshöhe zu Substanzverzehr und Kursentwicklung.
+5. Sage mir klar, wenn du etwas für einen Fehler hältst. Wenn du etwas nicht weißt, sag es, statt zu schätzen.
+
+## Mein Depot (Stand ${new Date().toLocaleDateString('de-DE')})
+Depotwert: ${gesamt.toFixed(2)} €
+Monatliche Sparrate: ${sp.toFixed(2)} €
+${zw&&!zw.fehlendeRate?`Zuwachs monatliche Ausschüttung je Sparplan-Kauf: ${zw.monat.toFixed(2)} € (${zw.rendite.toFixed(2)} % Ausschüttungsrendite auf den Kauf)`:''}
+Ausschüttungen ${state.divCalYear}: ${divJahr.toFixed(2)} € gesamt, im Schnitt ${(divJahr/12).toFixed(2)} € pro Monat
+Ausschüttungsrendite des Depots: ${gesamt>0?(divJahr/gesamt*100).toFixed(2):'-'} %
+${z.zielSumme?`Zielsumme: ${(+z.zielSumme).toFixed(0)} €`:''}${z.zielJahr?` bis ${z.zielJahr}`:''}
+Anlagehorizont: Ruhestand 2041
+
+| ISIN | Wert | Ist-% | Ziel-% | Abw. | TER | Aussch./Anteil ${state.divCalYear} | Rendite | Status |
+|---|---|---|---|---|---|---|---|---|
+${zeilen}
+
+## Rahmenbedingungen
+- Privatanleger in Deutschland, Broker Trade Republic, Abgeltungsteuer nach FIFO
+- Sparplan-Käufe monatlich zwischen dem 2. und 4.
+- Ziel ist ein wachsender, planbarer Ausschüttungsstrom bis zum Ruhestand; Kurssteigerung ist zweitrangig, aber Substanzverzehr soll vermieden werden
+- Ein Umschichten bestehender Positionen löst Abgeltungsteuer auf Buchgewinne aus — berücksichtige das bei Empfehlungen und unterscheide zwischen "künftige Sparraten umlenken" und "bestehende Position verkaufen"
+- Du bist kein Anlageberater und ich erwarte keine Anlageberatung, sondern eine fachliche Einschätzung, die ich selbst prüfe
+
+## Format
+Antworte strukturiert: erst die aus deiner Sicht gravierendsten Befunde, dann die Detailanalyse je ETF, zum Schluss eine priorisierte Liste konkreter Handlungsoptionen mit jeweiliger Begründung und Gegenargument. Recherchiere aktuelle Daten (TER, Fondsvolumen, Ausschüttungshistorie), statt dich auf dein Gedächtnis zu verlassen.`;
+}
+
+function kopierePrompt(){
+  const txt=jahresCheckPrompt();
+  const fertig=()=>showToast('Prompt kopiert — in Claude einfügen');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(fertig).catch(()=>zeigePromptFallback(txt));
+  }else zeigePromptFallback(txt);
+}
+function zeigePromptFallback(txt){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Prompt für Claude</div>
+    <p class="hint" style="margin-bottom:8px">Text markieren und kopieren:</p>
+    <textarea readonly style="width:100%;height:300px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace">${txt.replace(/</g,'&lt;')}</textarea>
+    <div class="btnrow"><button class="btn btn-gh" onclick="closeModal()" style="flex:1">Schließen</button></div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function zeigeJahresPrompt(){zeigePromptFallback(jahresCheckPrompt());}
+
+// Warnhinweis-Karte fuer die jaehrliche Depotpruefung
+function jahresCheckBlock(){
+  if(!jahresCheckFaellig())return'';
+  const jahr=new Date().getFullYear();
+  return`<div class="card card-y">
+    <div class="ctitle">JAHRESPRÜFUNG ${jahr} FÄLLIG</div>
+    <div style="font-weight:700;color:${N.orange};margin-bottom:6px">📅 Zeit für den Jahrescheck: Gewichtung der einzelnen ETF im Depot überprüfen und nach besseren ETF-Alternativen suchen.</div>
+    <p class="hint">Einmal im Jahr lohnt der Blick von außen: Haben sich die Gewichte verschoben? Überschneiden sich ETF inhaltlich? Gibt es inzwischen günstigere oder besser konstruierte Produkte? Das Tool hat dafür einen Prompt mit deinen aktuellen Depotdaten vorbereitet.</p>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn btn-g" style="flex:1" onclick="kopierePrompt()">Prompt kopieren</button>
+      <button class="btn btn-c" onclick="zeigeJahresPrompt()">Ansehen</button>
+      <button class="btn btn-gh" onclick="quittiereJahresCheck()">Erledigt</button>
+    </div>
+  </div>`;
+}
+
+// Warnhinweis-Karte fuer pausierte ETF eines Depots
+function wiederaufnahmeBlock(pf){
+  const hins=pausierteHinweise(pf);
+  if(!hins.length)return '';
+  return`<div class="card card-y">
+    <div class="ctitle">PAUSIERTE ETF · WIEDERAUFNAHME</div>
+    ${hins.map(({pos,info})=>{
+      const isin=pos.isin||pos.ticker;
+      let text,farbe;
+      if(info.keineRate){
+        farbe=N.orange;
+        text=`${isin} ist pausiert. Ohne hinterlegte Sparrate für „${pf.name}" lässt sich nicht berechnen, ab wann wieder bespart werden kann.`;
+      }else if(info.monate===0){
+        farbe=N.green;
+        text=`${isin} kann ab sofort wieder bespart werden.`;
+      }else if(info.monate===1){
+        farbe=N.green;
+        text=`${isin} kann ab nächsten Monat wieder bespart werden.`;
+      }else{
+        farbe=N.orange;
+        text=`${isin} kann ab ${monatsNameVersetzt(info.monate)} wieder bespart werden — das sind noch ${info.monate} Sparraten.`;
+      }
+      return`<div style="margin-bottom:10px">
+        <div style="font-weight:700;color:${farbe};margin-bottom:4px">${info.monate===0||info.monate===1?'✓':'⏳'} ${text}</div>
+        <div style="font-size:12px;color:var(--t3)">
+          ${pos.ticker||pos.name} · Anteil am <b>gesamten</b> ${pf.name}: ${info.ist.toFixed(2)} % · Ziel ${info.ziel.toFixed(2)} %${info.istDanach!==undefined?` · nach ${info.monate} Sparrate${info.monate===1?'':'n'}: ${info.istDanach.toFixed(2)} %`:''}
+        </div>
+      </div>`;
+    }).join('')}
+    <p class="hint">Gerechnet wird stets über das vollständige Depot — pausierte Positionen zählen zum Depotwert, auch wenn sie keine Sparrate erhalten. Der pausierte ETF behält seinen Wert, während das Depot um die Sparrate wächst; sein Anteil sinkt dadurch Monat für Monat. Kursveränderungen sind nicht eingerechnet.</p>
+  </div>`;
+}
+
 function screenSparplan(){
   if(state.selectedSparIdx>=state.portfolios.length)state.selectedSparIdx=0;
   const apf=state.portfolios[state.selectedSparIdx]||state.portfolios[0];
   const sp=apf.sparAmount||state.sparrate;
   return`<div class="screen">
     <h1 class="stitle gg" style="font-size:50px;margin-top:16px">Sparplan</h1>
+
+    ${jahresCheckBlock()}
+    ${wiederaufnahmeBlock(apf)}
 
     <!-- MERKER: klickbare Tiles -->
     <div class="card card-c">
