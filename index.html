@@ -170,8 +170,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.14';
+const APP_VERSION='3.15';
 const APP_CHANGELOG=[
+  {v:'3.15',d:'2026-09-18',t:'Anzeige eindeutig auf den Zahltag bezogen: Betraege stehen im Monat, in dem das Geld ankommt, waehrend die Berechtigung weiterhin am Ex-Tag haengt. Die Aufstellung des gewaehlten Monats nennt je ETF den konkreten Zahltag (und den Ex-Tag), Prognosetermine sind als solche markiert, Tooltips fuehren jetzt mit dem Zahltag. Kartentitel umbenannt in „Monatliche Dividenden nach Zahltag".'},
   {v:'3.14',d:'2026-09-18',t:'Kachel „Zuwachs mtl. Dividende je Sparplan-Kauf" rechnet jetzt ausschliesslich mit der Sparrate des DIV ETF Depots. Zuvor wurde ersatzweise die Gesamtsparrate aller Depots herangezogen, wenn fuer das Depot selbst keine Rate hinterlegt war — das ueberzeichnete den Zuwachs deutlich. Ist keine Depot-Sparrate gesetzt, weist die Kachel darauf hin statt zu rechnen.'},
   {v:'3.13',d:'2026-09-18',t:'Kauflos-Tracking ab 01.09.2026: jede Position fuehrt jetzt datierte Kauflose statt nur einer Gesamtstueckzahl (Block KAEUFE (LOSE) im ETF-Detail, Erfassung per Datum, Stueckzahl oder Anlagebetrag). Stueckzahl und durchschnittlicher Kaufkurs leiten sich daraus ab. Der Dividendenkalender rechnet damit Ex-Datum-genau: nur Stuecke, die vor dem jeweiligen Ex-Tag im Depot lagen, zaehlen fuer eine Ausschuettung; Monate vor dem Erfassungsbeginn sind als Naeherung markiert (*). Ausserdem echte Ausschuettungsbetraege je Zahltermin 2026 fuer alle 7 ETF eingepflegt (statt geglaetteter Quartalsmittel) — dabei korrigiert: VGWD zahlte in der App faelschlich Jan/Apr/Jul/Okt statt tatsaechlich Apr/Jul/Sep/Dez.'},
   {v:'3.12',d:'2026-09-18',t:'Dividenden-Monatsauswahl: ein Klick auf einen Monat markiert ihn in allen Dividenden-Ansichten (Dashboard-Box, Je-ETF-Box, Depot-Reiter) und blendet eine Aufstellung aller ausschuettenden ETFs dieses Monats mit Summe ein; nochmal klicken hebt die Auswahl auf. Neue Kachel: durchschnittlicher Zuwachs der monatlichen Dividende je Sparplan-Kauf (Buy-Only-Verteilung der Sparrate, inkl. Jahreswert und Ausschuettungsrendite auf den Kauf).'},
@@ -818,7 +819,8 @@ function monatlicheDividendenBlock(){
   const divSum=md.reduce((a,b)=>a+b,0);
   const zw=divZuwachsProKauf();
   return`<div class="card card-c">
-    <div class="ctitle">MONATLICHE DIVIDENDEN (KALENDERJAHR) · DIV ETF DEPOT</div>
+    <div class="ctitle">MONATLICHE DIVIDENDEN NACH ZAHLTAG · DIV ETF DEPOT</div>
+    <p class="hint" style="margin-bottom:8px">Die Monate zeigen, wann das Geld <b>ankommt</b> (Zahltag). Wer eine Ausschüttung bekommt, entscheidet dagegen der Ex-Tag — beides steht je ETF in der Aufstellung unten und in den Tooltips.</p>
     <div class="yr-pick">
       <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
       <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
@@ -848,19 +850,26 @@ function dividendeJeEtfBlock(){
   const sel=divAktiverMonat();
   const pos=zPos();
   // Aufstellung des gewaehlten Monats ueber alle ETFs
-  const detail=pos.map(p=>({
-    ticker:p.ticker||p.name,
-    paused:p.active===false,
-    betrag:posDivMonat(p,state.divCalYear,sel)
-  })).filter(x=>x.betrag>0).sort((a,b)=>b.betrag-a.betrag);
+  const detail=pos.map(p=>{
+    const items=(state.divCalYear===2026)?ausschuettungenZahlmonat(p.ticker,sel+1):[];
+    return{
+      ticker:p.ticker||p.name,
+      paused:p.active===false,
+      betrag:posDivMonat(p,state.divCalYear,sel),
+      // Zahltag(e) dieses Monats — das ist der Tag, an dem das Geld auf dem Konto ist
+      zahltage:items.map(x=>x.pay.split('-').reverse().join('.')).join(' · '),
+      extage:items.map(x=>x.ex.split('-').reverse().join('.')).join(' · '),
+      prognose:items.some(x=>x.status==='prognose')
+    };
+  }).filter(x=>x.betrag>0).sort((a,b)=>b.betrag-a.betrag);
   const detailSum=detail.reduce((s,x)=>s+x.betrag,0);
   return`<div class="card card-c">
-    <div class="ctitle">MONATLICHE DIVIDENDE JE ETF · DIV ETF DEPOT</div>
-    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear} — auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots. Monat anklicken markiert ihn in allen Dividenden-Ansichten; nochmal klicken hebt die Auswahl auf.</p>
+    <div class="ctitle">MONATLICHE DIVIDENDE JE ETF · NACH ZAHLTAG · DIV ETF DEPOT</div>
+    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear}, Beträge im Monat des <b>Zahltags</b> — berechtigt sind die Stücke, die vor dem jeweiligen <b>Ex-Tag</b> im Depot lagen. Auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots. Monat anklicken markiert ihn in allen Dividenden-Ansichten; nochmal klicken hebt die Auswahl auf.</p>
     <div class="kz-tile" style="margin-bottom:12px">
       <div class="kz-lbl">Aufstellung ${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div>
-      ${detail.length?detail.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;opacity:${x.paused?.5:1}">
-        <span style="color:var(--cyan)">${x.ticker}${x.paused?' · pausiert':''}</span><span>${EUR0(x.betrag)}</span></div>`).join('')
+      ${detail.length?detail.map(x=>`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:4px 0;opacity:${x.paused?.5:1}">
+        <span><span style="color:var(--cyan)">${x.ticker}</span>${x.paused?' · pausiert':''}${x.zahltage?`<span style="color:var(--t3);font-size:11px"> · Zahltag ${x.zahltage}${x.prognose?' (Prognose)':''}</span>`:''}${x.extage?`<span style="color:var(--t3);font-size:11px;opacity:.7"> · Ex ${x.extage}</span>`:''}</span><span style="white-space:nowrap">${EUR0(x.betrag)}</span></div>`).join('')
         :`<div style="font-size:13px;color:var(--t3);padding:3px 0">Keine Ausschüttung in diesem Monat.</div>`}
       <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--line,#2a3a5a);margin-top:6px;padding-top:6px">
         <span>Summe</span><span style="color:${N.green}">${EUR0(detailSum)}</span></div>
@@ -878,7 +887,7 @@ function dividendeJeEtfBlock(){
         <div class="mog">${md.map((v,i)=>{
           const k=state.divCalYear===2026?exDatumKipp(p.ticker,i+1):[];
           const verschoben=k.some(x=>x.ergebnis==='verschoben');
-          const titel=k.map(x=>`Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}) · Zahltag ${x.pay.split('-').reverse().join('.')}: Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
+          const titel=k.map(x=>`Zahltag ${x.pay.split('-').reverse().join('.')} — Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}): Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
           const vorErf=monatVorErfassung(state.divCalYear,i);
           return`<div class="mob${i===sel?' hi':''}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'white')}">${v>0?EUR0(v):'–'}</div></div>`;
         }).join('')}</div>
@@ -1545,7 +1554,7 @@ function screenDepot(){
       <div class="kz-grid">${kz.map(k=>`<div class="kz-tile"><div class="kz-lbl">${k.lb}</div><div class="kz-val ${k.cls}">${k.val}</div></div>`).join('')}</div>
     </div>
     <div class="card card-c">
-      <div class="ctitle">MONATLICHE DIVIDENDEN (KALENDERJAHR)</div>
+      <div class="ctitle">MONATLICHE DIVIDENDEN NACH ZAHLTAG</div>
       <div class="yr-pick">
         <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
         <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
