@@ -171,8 +171,9 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.20';
+const APP_VERSION='3.21';
 const APP_CHANGELOG=[
+  {v:'3.21',d:'2026-09-18',t:'Ausschuettungsdaten fuer 2027 bis 2041: Ex-Tage, Zahltage und Betraege werden aus 2026 fortgeschrieben (gleicher Tag/Monat, Jahr hochgezaehlt), sodass Dividendenkalender und Ex-Datum-Logik auch fuer kuenftige Jahre rechnen. Solche Jahre sind im Dividenden-Screen ausdruecklich als Schaetzung gekennzeichnet. Ab dem 1. Januar jedes Jahres (ab 2027) erinnert eine Karte daran, die echten Daten zu beschaffen — mit fertigem Rechercheprompt, der die Fonds nur ueber ISIN anspricht, jede einzelne Ausschuettung statt je Kalendermonat eine abfragt und zusaetzlich TER, Fondsvolumen, Verschmelzungen, Index-/Domizilwechsel und steuerliche Aenderungen erhebt. Die Antwort kommt als JSON zurueck und laesst sich direkt einlesen; nachgetragene Daten haben Vorrang vor der Fortschreibung.'},
   {v:'3.20',d:'2026-09-18',t:'Jahrespruefungs-Prompt identifiziert die Fonds jetzt ausschliesslich ueber die ISIN. Die im Tool gespeicherten Fondsnamen und Kuerzel werden nicht mehr mitgegeben, weil sie fehlerhaft sein koennen (Beispiel: LU0292095535 ist als „Select Dividend 30" hinterlegt, gehoert aber zum Quality Dividend). Der Prompt fordert Claude ausdruecklich auf, jede ISIN nachzuschlagen, den amtlichen Namen samt Index, Replikation, Domizil, Waehrung und Volumen zu nennen und Abweichungen zu meinen Tabellenwerten zu melden; Alternativvorschlaege muessen ebenfalls eine ISIN tragen.'},
   {v:'3.19',d:'2026-09-18',t:'Sparrate wird jetzt unter den AKTIVEN ETF verteilt (Ziele untereinander normiert), waehrend Ampel, Score und Warnhinweise weiter ueber das gesamte Depot inkl. pausierter Positionen rechnen. Zuvor liefen beide ueber das Gesamtdepot, wodurch auch der unter den Aktiven bereits uebergewichtete ETF noch Geld bekam und die Angleichung statt einem Monat viele Monate gedauert haette. Neu ausserdem: Jahrespruefung — ab dem 1. Dezember erscheint ein Hinweis, die Gewichtung der einzelnen ETF zu pruefen und nach Alternativen zu suchen, samt fertigem Claude-Prompt mit Depotwert, Sparrate, Gewichten, TER, Ausschuettungen und Rendite je ETF. Einmal je Jahr quittierbar.'},
   {v:'3.18',d:'2026-09-18',t:'Pausierte ETF mit Bestand zaehlen jetzt durchgaengig zur Rechenbasis: pfTotal, effTarget, Abweichung, Ampel und Score beziehen sich auf das gesamte Depot, und Zielgewichte werden nicht mehr auf die aktiven Positionen hochnormiert. Zuvor verschwand ein ausgeschalteter ETF komplett aus der Rechnung — bei ausgeschaltetem XGSD meldete das Tool Score 84 und ein nahezu ausgeglichenes Depot, obwohl 76 % des Werts in dieser einen Position lagen. Die Sparrate fliesst weiterhin nur in aktive Positionen. Neue Zweitkennzahl „nur steuerbare ETF" zeigt den Fortschritt der monatlichen Sparraten, waehrend die Hauptampel den echten Depotzustand meldet. Pausierte Positionen ohne Bestand werden wie bisher herausnormiert.'},
@@ -371,22 +372,68 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-11-05',pay:'2026-11-13',betrag:0.1400,status:'prognose'},
     {ex:'2026-12-03',pay:'2026-12-11',betrag:0.1400,status:'prognose'}]}
 };
-// Alle Ausschuettungen, deren Geld in Monat m (1-12) ankommt.
-function ausschuettungenZahlmonat(ticker,m){
-  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return[];
-  return c.items.filter(x=>+x.pay.slice(5,7)===m);
+// ===== FORTSCHREIBUNG 2027-2041 =====
+// Fuer kuenftige Jahre liegen noch keine echten Termine vor. Bis die tatsaechlichen Daten
+// nachgetragen sind, werden die 2026er Termine und Betraege jahrweise fortgeschrieben:
+// gleicher Tag und Monat, Jahr hochgezaehlt, Betrag unveraendert. Solche Eintraege tragen
+// den status 'fortgeschrieben' und sind in der Anzeige als Schaetzung erkennbar.
+const PROGNOSE_BIS=2041;
+const ISIN_TICKER={
+  'LU0292095535':'DXSA','DE000A0F5UH1':'ISPA','IE00B9CQXS71':'ZPRG',
+  'IE00B8GKDB10':'VGWD','LU0292096186':'XGSD','NL0011683594':'TDIV','IE00BM8R0J59':'QYLE'
+};
+const TICKER_ISIN=Object.fromEntries(Object.entries(ISIN_TICKER).map(([i,t])=>[t,i]));
+
+// Nachgetragene Echtdaten je Jahr: state.ausschuettungen = {2027:{'<ISIN>':[{ex,pay,betrag}]}}
+function ausschuettungenOverride(ticker,jahr){
+  const isin=TICKER_ISIN[ticker];
+  const j=(state.ausschuettungen||{})[jahr];
+  if(!j||!isin)return null;
+  const arr=j[isin];
+  return Array.isArray(arr)&&arr.length?arr:null;
+}
+// Alle Ausschuettungen eines Tickers fuer ein Jahr — echte Daten, sonst Fortschreibung aus 2026.
+function ausschuettungenJahr(ticker,jahr){
+  const ov=ausschuettungenOverride(ticker,jahr);
+  if(ov)return ov.map(x=>({...x,status:x.status||'nachgetragen'}));
+  const c=AUSSCHUETTUNGEN_2026[ticker];
+  if(!c)return[];
+  if(jahr===2026)return c.items;
+  if(jahr<2026||jahr>PROGNOSE_BIS)return[];
+  const d=jahr-2026;
+  return c.items.map(x=>({
+    ex:(+x.ex.slice(0,4)+d)+x.ex.slice(4),
+    pay:(+x.pay.slice(0,4)+d)+x.pay.slice(4),
+    betrag:x.betrag,
+    status:'fortgeschrieben'
+  }));
+}
+// Alle Ausschuettungen, deren Geld in Monat m (1-12) des Jahres ankommt.
+function ausschuettungenZahlmonat(ticker,m,jahr){
+  return ausschuettungenJahr(ticker,jahr??2026).filter(x=>+x.pay.slice(5,7)===m);
+}
+// Ausschuettung je Anteil fuer einen Zahlmonat: manuell gepflegte divs haben Vorrang,
+// sonst wird aus den Stammdaten abgeleitet (so muessen nicht 15 Jahre im State liegen).
+function divJeAnteil(pos,jahr,mIdx){
+  const arr=(pos.divs||{})[jahr];
+  if(Array.isArray(arr)&&arr.some(v=>v>0))return arr[mIdx]||0;
+  return ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr).reduce((a,x)=>a+x.betrag,0);
+}
+// Beruht ein Jahr ausschliesslich auf Fortschreibung?
+function jahrIstFortgeschrieben(jahr){
+  if(jahr<=2026)return false;
+  return Object.keys(AUSSCHUETTUNGEN_2026).every(t=>
+    ausschuettungenJahr(t,jahr).every(x=>x.status==='fortgeschrieben'));
 }
 // Faellt ein Sparplan-Kauf am KAUFTAG des Ex-Monats noch vor den Ex-Tag?
-function exDatumKipp(ticker,monat){
-  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return[];
-  return c.items.filter(x=>+x.pay.slice(5,7)===monat).map(x=>{
+function exDatumKipp(ticker,monat,jahr){
+  return ausschuettungenZahlmonat(ticker,monat,jahr??state.divCalYear).map(x=>{
     const exTag=+x.ex.slice(8,10);
     return{...x,d:exTag,m:+x.ex.slice(5,7),ergebnis:KAUFTAG<exTag?'treffer':'verschoben'};
   });
 }
-function exDatumHatKipppunkt(ticker){
-  const c=AUSSCHUETTUNGEN_2026[ticker];if(!c)return false;
-  return c.items.some(x=>KAUFTAG>=+x.ex.slice(8,10));
+function exDatumHatKipppunkt(ticker,jahr){
+  return ausschuettungenJahr(ticker,jahr??state.divCalYear).some(x=>KAUFTAG>=+x.ex.slice(8,10));
 }
 
 // ===== KAUFLOS-TRACKING (ab 01.09.2026) =====
@@ -436,9 +483,9 @@ function initLose(){
 // Vor dem Erfassungsbeginn ist die Kaufhistorie unbekannt: dann wird mit dem Anfangsbestand
 // gerechnet (nicht mit dem heutigen Bestand), damit spaetere Zukaeufe die Vergangenheit nicht aufblaehen.
 function posDivMonat(pos,jahr,mIdx){
-  const jeStk=((pos.divs||{})[jahr]||[])[mIdx]||0;
+  const jeStk=divJeAnteil(pos,jahr,mIdx);
   if(!jeStk)return 0;
-  const items=(jahr===2026)?ausschuettungenZahlmonat(pos.ticker,mIdx+1):[];
+  const items=ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr);
   if(!items.length||!posLots(pos).length)return jeStk*(pos.stueck||0);
   // Mehrere Ausschuettungen im selben Zahlmonat (QYLE): je Ex-Tag getrennt bewerten
   const summeBetrag=items.reduce((a,x)=>a+x.betrag,0);
@@ -452,17 +499,16 @@ function posDivMonat(pos,jahr,mIdx){
 // Beruht der Monatswert auf einem Ex-Tag VOR dem Erfassungsbeginn? Dann ist er nur eine Naeherung —
 // unabhaengig davon, ob der Zahltag selbst schon im Erfassungszeitraum liegt.
 function monatVorErfassung(jahr,mIdx,ticker){
-  if(jahr!==2026){
+  if(jahr<2026){
     const ende=new Date(jahr,mIdx+1,0).toISOString().slice(0,10);
     return ende<TRACKING_START;
   }
   if(ticker){
-    const items=ausschuettungenZahlmonat(ticker,mIdx+1);
+    const items=ausschuettungenZahlmonat(ticker,mIdx+1,jahr);
     return items.length?items.some(x=>x.ex<TRACKING_START):false;
   }
-  // Depotweit: Naeherung, sobald irgendein ETF in diesem Zahlmonat aus einem alten Ex-Tag zahlt
   return Object.keys(AUSSCHUETTUNGEN_2026).some(t=>
-    ausschuettungenZahlmonat(t,mIdx+1).some(x=>x.ex<TRACKING_START));
+    ausschuettungenZahlmonat(t,mIdx+1,jahr).some(x=>x.ex<TRACKING_START));
 }
 // BUY-ONLY: buy_i = max(0, effTarget_i/100 × (T+sp) − val_i), dann auf sp skalieren
 // ===== VERTEILUNG DER SPARRATE =====
@@ -668,7 +714,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -944,7 +990,7 @@ function dividendeJeEtfBlock(){
   const pos=zPos();
   // Aufstellung des gewaehlten Monats ueber alle ETFs
   const detail=pos.map(p=>{
-    const items=(state.divCalYear===2026)?ausschuettungenZahlmonat(p.ticker,sel+1):[];
+    const items=ausschuettungenZahlmonat(p.ticker,sel+1,state.divCalYear);
     return{
       ticker:p.ticker||p.name,
       paused:p.active===false,
@@ -971,14 +1017,14 @@ function dividendeJeEtfBlock(){
       const paused=p.active===false;
       const md=Array(12).fill(0).map((_,i)=>posDivMonat(p,state.divCalYear,i));
       const sum=md.reduce((a,b)=>a+b,0);
-      const kipp=state.divCalYear===2026&&exDatumHatKipppunkt(p.ticker);
+      const kipp=exDatumHatKipppunkt(p.ticker,state.divCalYear);
       return`<div style="margin-bottom:12px;opacity:${paused?.5:1}">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
           <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}${kipp?` <span title="Sparplan-Kauf am ${KAUFTAG}. fällt in mind. einem Monat auf/nach den Ex-Tag — Zukauf zählt dann erst zur Folgeausschüttung." style="color:${N.orange};font-weight:400;font-size:11px">⚠ Ex-Datum-Kipppunkt</span>`:''}</span>
           <span style="font-size:12px;color:var(--t2)">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
         </div>
         <div class="mog">${md.map((v,i)=>{
-          const k=state.divCalYear===2026?exDatumKipp(p.ticker,i+1):[];
+          const k=exDatumKipp(p.ticker,i+1,state.divCalYear);
           const verschoben=k.some(x=>x.ergebnis==='verschoben');
           const titel=k.map(x=>`Zahltag ${x.pay.split('-').reverse().join('.')} — Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}): Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
           const vorErf=monatVorErfassung(state.divCalYear,i,p.ticker);
@@ -986,7 +1032,7 @@ function dividendeJeEtfBlock(){
         }).join('')}</div>
       </div>`;
     }).join('')}
-    ${state.divCalYear===2026?`<p class="hint" style="margin-top:10px;border-top:1px solid var(--line,#2a3a5a);padding-top:8px">⚠ = Ex-Datum-Kipppunkt: dein Sparplan-Kauf am ${KAUFTAG}. liegt bei diesem ETF/Monat auf oder nach dem Ex-Tag → der Zukauf zählt erst zur nächsten Ausschüttung. <b>Die Beträge sind Ex-Datum-genau gerechnet</b>: es zählen nur Stücke, die vor dem jeweiligen Ex-Tag im Depot lagen.<br>* = Monat vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')} — dafür existiert keine Kaufhistorie, gerechnet wird näherungsweise mit dem Anfangsbestand. Beträge je Anteil: Recherchestand 09/2026, Q4 teils Prognose.</p>`:''}
+    ${`<p class="hint" style="margin-top:10px;border-top:1px solid var(--line,#2a3a5a);padding-top:8px">${jahrIstFortgeschrieben(state.divCalYear)?`<b style="color:${N.orange}">Hinweis: Für ${state.divCalYear} liegen noch keine echten Termine vor — Ex-Tage, Zahltage und Beträge sind aus 2026 fortgeschrieben.</b><br>`:''}⚠ = Ex-Datum-Kipppunkt: dein Sparplan-Kauf am ${KAUFTAG}. liegt bei diesem ETF/Monat auf oder nach dem Ex-Tag → der Zukauf zählt erst zur nächsten Ausschüttung. <b>Die Beträge sind Ex-Datum-genau gerechnet</b>: es zählen nur Stücke, die vor dem jeweiligen Ex-Tag im Depot lagen.<br>* = Monat vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')} — dafür existiert keine Kaufhistorie, gerechnet wird näherungsweise mit dem Anfangsbestand. Beträge je Anteil: Recherchestand 09/2026, Q4 teils Prognose.</p>`}
   </div>`;
 }
 
@@ -1121,6 +1167,7 @@ function zieleBlock(){
   </div>
 
   ${depotKennzahlenBlock()}
+  ${datenCheckBlock()}
   ${jahresCheckBlock()}
   ${(()=>{const z=zielPf();return z?wiederaufnahmeBlock(z):'';})()}
   ${monatlicheDividendenBlock()}
@@ -1938,10 +1985,10 @@ function screenETFDetail(){
       <div class="edf" style="margin-top:10px"><label>Anfangsbestand per ${TRACKING_START.split('-').reverse().join('.')} korrigieren</label>
         <input type="text" inputmode="decimal" value="${lotsAnfangsbestand(pos).toFixed(6)}"
           onchange="setzeAnfangsbestand(${state.subIdx},${state.posIdx},+this.value.replace(',','.'))"/></div>
-      ${(()=>{const alt=(AUSSCHUETTUNGEN_2026[pos.ticker]?.items||[]).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
+      ${(()=>{const alt=ausschuettungenJahr(pos.ticker,state.divCalYear).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
         return alt.length?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Zahltag ${alt.map(x=>x.pay.split('-').reverse().join('.')).join(', ')} beruht auf dem Ex-Tag ${alt.map(x=>x.ex.split('-').reverse().join('.')).join(', ')} — also <b>vor</b> dem Erfassungsbeginn. Gerechnet wird dort mit dem Anfangsbestand. Falls darin Stücke stecken, die du erst nach diesem Ex-Tag gekauft hast, trage sie oben als Kauf ein (Haken „steckt bereits im Anfangsbestand" gesetzt lassen) — dann fällt der Wert korrekt niedriger aus.</p>`:'';})()}
       <button class="btn btn-g" style="width:100%;margin-top:10px" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
-      ${state.divCalYear===2026&&exDatumHatKipppunkt(pos.ticker)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
+      ${exDatumHatKipppunkt(pos.ticker,state.divCalYear)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
       <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
     </div>
     <div class="card" style="border-color:rgba(0,240,255,.3)">
@@ -1970,6 +2017,137 @@ function screenETFDetail(){
     <div class="btnrow">
       <button class="btn btn-c" onclick="state.view='detail';render()">← Zurück</button>
       <button class="btn btn-r" onclick="deletePos(${state.subIdx},${state.posIdx})">Position löschen</button>
+    </div>
+  </div>`;
+}
+
+// ===== JAHRESANFANG: AUSSCHUETTUNGSDATEN AKTUALISIEREN =====
+// Erscheint ab dem 1. Januar jedes Jahres ab 2027 und erinnert daran, die tatsaechlichen
+// Ex-Tage, Zahltage und Betraege nachzutragen — bis dahin rechnet die App mit den aus 2026
+// fortgeschriebenen Werten. Einmal je Jahr quittierbar.
+function datenCheckFaellig(){
+  const d=new Date();
+  if(d.getFullYear()<2027||d.getMonth()!==0)return false;
+  if((state.datenCheckQuittiert||0)===d.getFullYear())return false;
+  return jahrIstFortgeschrieben(d.getFullYear());
+}
+function quittiereDatenCheck(){
+  state.datenCheckQuittiert=new Date().getFullYear();
+  render();showToast('Bis Januar '+(new Date().getFullYear()+1)+' ausgeblendet');
+}
+
+// Prompt, mit dem sich die echten Jahresdaten beschaffen lassen — Rueckgabe direkt
+// im JSON-Format, das die App unten wieder einlesen kann.
+function datenCheckPrompt(jahr){
+  const j=jahr||new Date().getFullYear();
+  const isins=Object.keys(ISIN_TICKER);
+  const beispiel=isins[0];
+  const alt=ausschuettungenJahr(ISIN_TICKER[beispiel],2026)[0];
+  return`Ich pflege ein eigenes Tool für mein Dividenden-ETF-Depot und brauche die tatsächlichen Ausschüttungsdaten für das Jahr ${j}. Bitte recherchiere sie aktuell bei den Emittenten bzw. verlässlichen Datenanbietern — verlasse dich nicht auf dein Gedächtnis.
+
+## Fonds (ausschließlich über ISIN identifizieren)
+${isins.map(i=>'- '+i).join('\n')}
+
+Verwende nur die ISIN zur Identifikation, rate keinen Namen und nutze keine Kürzel. Nenne mir vorab je ISIN kurz den amtlichen Fondsnamen und die Ausschüttungsfrequenz, damit ich prüfen kann, dass wir vom selben Fonds sprechen.
+
+## Was ich je Ausschüttung brauche
+Für JEDE einzelne Ausschüttung des Jahres ${j}:
+- Ex-Tag (entscheidet, wer die Ausschüttung bekommt)
+- Zahltag (wann das Geld auf dem Konto ist)
+- Betrag je Anteil, in EUR; bei Fonds, die in Fremdwährung ausschütten, zusätzlich Originalwährung und Betrag
+- Status: ob der Termin bereits offiziell angekündigt/gezahlt ist oder eine Schätzung
+
+Wichtig: Monatlich ausschüttende Fonds haben nicht zwingend genau einen Termin pro Kalendermonat — es kann Monate mit zwei oder ohne Termin geben. Bitte liste wirklich jede einzelne Ausschüttung, nicht je Kalendermonat eine.
+
+## Weitere Angaben, die mein Tool aktuell halten muss
+- Aktuelle TER je ISIN (und ob sie sich geändert hat)
+- Fondsvolumen und ob der Fonds geschlossen, verschmolzen oder umbenannt wurde
+- Ob sich Index, Replikationsmethode, Domizil oder Ausschüttungsfrequenz geändert haben
+- Ob eine ISIN nicht mehr existiert oder durch eine Nachfolge-ISIN ersetzt wurde
+- Für deutsche Anleger relevante Änderungen: Teilfreistellungssatz, steuerliche Einstufung (Aktienfonds/Mischfonds), Quellensteuer-Themen
+
+## Ausgabeformat
+Gib mir zuerst die Fondsbestätigung und die Zusatzangaben als normalen Text. Danach die Ausschüttungen als reines JSON in einem Codeblock, genau in dieser Struktur (Beispiel aus meinen 2026er Daten):
+
+\`\`\`json
+{
+  "${beispiel}": [
+    {"ex": "${alt?alt.ex:'2026-02-18'}", "pay": "${alt?alt.pay:'2026-03-05'}", "betrag": ${alt?alt.betrag:0.1537}, "status": "bestaetigt"}
+  ]
+}
+\`\`\`
+
+Regeln für das JSON: Datumsformat immer JJJJ-MM-TT, "betrag" als Zahl in EUR mit Punkt als Dezimaltrennzeichen, "status" entweder "bestaetigt" oder "prognose". Alle ${isins.length} ISIN als Schlüssel, jeweils mit der vollständigen Liste der Ausschüttungen des Jahres ${j}. Keine Kommentare im JSON, keine zusätzlichen Felder.
+
+Wenn du für eine ISIN keine belastbaren Daten findest, gib sie mit einer leeren Liste zurück und sage es mir ausdrücklich im Text — rate keine Termine.`;
+}
+
+function kopiereDatenPrompt(){
+  const txt=datenCheckPrompt();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(txt));
+  }else zeigePromptFallback(txt);
+}
+function zeigeDatenPrompt(){zeigePromptFallback(datenCheckPrompt());}
+
+// JSON aus der Recherche einlesen
+function openDatenImport(){
+  const j=new Date().getFullYear();
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Ausschüttungsdaten ${j} einlesen</div>
+    <p class="hint" style="margin-bottom:8px">JSON aus der Recherche hier einfügen. Bestehende Daten für ${j} werden ersetzt, andere Jahre bleiben unberührt.</p>
+    <textarea id="imp_json" style="width:100%;height:220px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder='{"LU0292095535":[{"ex":"2027-02-17","pay":"2027-03-04","betrag":0.16,"status":"bestaetigt"}]}'></textarea>
+    <div class="field" style="margin-top:8px"><label>Jahr</label><input type="text" inputmode="numeric" id="imp_jahr" value="${j}"/></div>
+    <div class="btnrow">
+      <button class="btn btn-g" style="flex:1" onclick="importDaten()">Einlesen</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function importDaten(){
+  const jahr=parseInt(gs('imp_jahr'),10);
+  if(!(jahr>=2026&&jahr<=PROGNOSE_BIS)){showToast('Jahr muss zwischen 2026 und '+PROGNOSE_BIS+' liegen');return;}
+  let roh;
+  try{
+    roh=JSON.parse((gs('imp_json')||'').replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim());
+  }catch(e){showToast('Kein gültiges JSON: '+e.message);return;}
+  if(!roh||typeof roh!=='object'){showToast('JSON muss ein Objekt mit ISIN als Schlüssel sein');return;}
+  const sauber={};let n=0,unbekannt=[];
+  Object.entries(roh).forEach(([isin,arr])=>{
+    if(!ISIN_TICKER[isin]){unbekannt.push(isin);return;}
+    if(!Array.isArray(arr))return;
+    const items=arr.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.ex||'')&&/^\d{4}-\d{2}-\d{2}$/.test(x.pay||'')&&typeof x.betrag==='number'&&x.betrag>=0)
+      .map(x=>({ex:x.ex,pay:x.pay,betrag:x.betrag,status:x.status==='prognose'?'prognose':'nachgetragen'}));
+    const falschesJahr=items.filter(x=>+x.pay.slice(0,4)!==jahr).length;
+    if(falschesJahr){showToast(isin+': '+falschesJahr+' Zahltag(e) nicht im Jahr '+jahr);}
+    if(items.length){sauber[isin]=items;n+=items.length;}
+  });
+  if(!n){showToast('Keine gültigen Einträge gefunden');return;}
+  if(!state.ausschuettungen)state.ausschuettungen={};
+  state.ausschuettungen[jahr]=sauber;
+  state.datenCheckQuittiert=jahr;
+  closeModal();render();
+  showToast(n+' Ausschüttungen für '+jahr+' übernommen'+(unbekannt.length?' · unbekannte ISIN übersprungen: '+unbekannt.join(', '):''));
+}
+
+// Warnhinweis-Karte fuer die jaehrliche Datenaktualisierung
+function datenCheckBlock(){
+  if(!datenCheckFaellig())return'';
+  const j=new Date().getFullYear();
+  return`<div class="card card-y">
+    <div class="ctitle">AUSSCHÜTTUNGSDATEN ${j} FEHLEN</div>
+    <div style="font-weight:700;color:${N.orange};margin-bottom:6px">🔄 Für ${j} liegen noch keine echten Ausschüttungsdaten vor. Die App rechnet aktuell mit den aus 2026 fortgeschriebenen Ex-Tagen, Zahltagen und Beträgen.</div>
+    <p class="hint">Das ist eine Schätzung: Ex-Tage verschieben sich jedes Jahr um einige Tage, und die Beträge schwanken teils erheblich. Hol dir die echten Daten und lies sie hier ein — der Prompt fragt sie im passenden Format ab.</p>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn btn-g" style="flex:1" onclick="kopiereDatenPrompt()">Prompt kopieren</button>
+      <button class="btn btn-c" onclick="zeigeDatenPrompt()">Ansehen</button>
+    </div>
+    <div class="btnrow" style="margin-top:6px">
+      <button class="btn btn-c" style="flex:1" onclick="openDatenImport()">Daten einlesen</button>
+      <button class="btn btn-gh" onclick="quittiereDatenCheck()">Später</button>
     </div>
   </div>`;
 }
@@ -2119,6 +2297,7 @@ function screenSparplan(){
   return`<div class="screen">
     <h1 class="stitle gg" style="font-size:50px;margin-top:16px">Sparplan</h1>
 
+    ${datenCheckBlock()}
     ${jahresCheckBlock()}
     ${wiederaufnahmeBlock(apf)}
 
@@ -2546,7 +2725,7 @@ function confirmLot(pfI,posI){
   syncAusLosen(pos);
   closeModal();render();
   // Hinweis, falls im selben Monat ein Ex-Tag auf/nach dem Kaufdatum liegt
-  const kipp=(AUSSCHUETTUNGEN_2026[pos.ticker]?.items||[])
+  const kipp=ausschuettungenJahr(pos.ticker,+d.slice(0,4))
     .filter(x=>x.ex.slice(0,7)===d.slice(0,7)&&x.ex<=d);
   showToast(kipp.length
     ?'Kauf erfasst — Ex-Tag '+kipp[0].ex.split('-').reverse().join('.')+' lag bereits: zählt erst zur Folgeausschüttung'
