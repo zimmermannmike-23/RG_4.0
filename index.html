@@ -31,6 +31,22 @@ body.theme-yield{--bg0:#0c0a09;--bg1:#1c1917;--bg2:#292524;--b:#44403c;
   --t:#fafaf9;--t2:#a8a29e;--t3:#78716c;
   --cyan:#f59e0b;--green:#10b981;--red:#ef4444;--yellow:#facc15;--orange:#ea580c;
   --rr:12px;--card-bg:var(--bg1);--glass-filter:none}
+body.theme-neumorphic{--bg0:#1e222b;--bg1:#1e222b;--bg2:#1e222b;--b:transparent;
+  --t:#f1f5f9;--t2:#94a3b8;--t3:#64748b;
+  --cyan:#00F0FF;--green:#39FF6A;--red:#FF1744;--yellow:#FFE600;--orange:#FF8A00;
+  --rr:20px;--card-bg:#1e222b;--glass-filter:none;
+  --neu-dark:#15181e;--neu-light:#272c38}
+body.theme-neumorphic{background-color:var(--bg0)}
+body.theme-neumorphic .card,body.theme-neumorphic .kz-tile,body.theme-neumorphic .mob,
+body.theme-neumorphic .order-card,body.theme-neumorphic .merker-tile{
+  background:var(--bg0);border:none;border-radius:20px;
+  box-shadow:6px 6px 14px var(--neu-dark),-6px -6px 14px var(--neu-light)}
+body.theme-neumorphic .edf input,body.theme-neumorphic .field input{
+  background:var(--bg0);border:none;border-radius:12px;
+  box-shadow:inset 4px 4px 8px var(--neu-dark),inset -4px -4px 8px var(--neu-light);color:var(--t)}
+body.theme-neumorphic .btn{background:var(--bg0);border:none;border-radius:12px;
+  box-shadow:4px 4px 10px var(--neu-dark),-4px -4px 10px var(--neu-light);color:var(--cyan)}
+body.theme-neumorphic .btn:active{box-shadow:inset 3px 3px 6px var(--neu-dark),inset -3px -3px 6px var(--neu-light)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 #backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background .4s}
@@ -199,7 +215,8 @@ const THEMES={
   terminal: {label:'Terminal',           farben:{cyan:'#ffffff',green:'#22c55e',red:'#ef4444',yellow:'#eab308',orange:'#f97316'}},
   apple:    {label:'Apple Clean',        farben:{cyan:'#38bdf8',green:'#4ade80',red:'#f87171',yellow:'#facc15',orange:'#fb923c'}},
   analytics:{label:'Analytics',          farben:{cyan:'#6366f1',green:'#10b981',red:'#f43f5e',yellow:'#f59e0b',orange:'#ed8936'}},
-  yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}}
+  yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}},
+  neumorphic:{label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}}
 };
 function applyTheme(themeName){
   const t=themeName||state.currentTheme||'theme-neon';
@@ -214,8 +231,9 @@ function applyTheme(themeName){
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.36';
+const APP_VERSION='3.37';
 const APP_CHANGELOG=[
+  {v:'3.37',d:'2026-09-20',t:'Neumorphic Soft UI als sechstes Theme (weiche, gepresste Karten mit Doppel-Schatten statt Rahmen). Bewusst NUR die Optik uebernommen: die mitgelieferten Ersatzfunktionen fuer das Ziele-Dashboard (Ring-Gauges) und den Dividendenkalender (horizontaler Timeline-Slider) wurden nicht eingebaut, weil sie die seit v3.13 gewachsenen Funktionen dieser beiden Bloecke unter den Tisch fallen liessen — Netto-Werte, Ex-Datum-Kipppunkt-Warnungen, Szenario-Einordnung, synchronisierte Monatsauswahl ueber alle Dividenden-Ansichten. Ein Wechsel auf die vereinfachten Varianten waere ein Funktionsverlust gewesen, kein Fortschritt.'},
   {v:'3.36',d:'2026-09-20',t:'Design-Karte durch die von Mike vorgegebene Button-Liste ersetzt („Design / Vorlagen", Emoji-Beschriftung, ein Knopf je Theme statt Kachel-Raster mit Farbpunkten). Ergaenzt um eine aktiv-Markierung (gruener Knopf plus Haekchen), da sonst nicht erkennbar waere, welches Theme gerade eingestellt ist.'},
   {v:'3.35',d:'2026-09-20',t:'Theme-Verwaltung auf das von Mike vorgegebene Muster umgestellt: applyTheme(name) mit state.currentTheme (traegt den vollen Klassennamen, z.B. \'theme-apple\') statt state.theme mit Kurz-ID, plus explizitem saveState()-Aufruf bei jedem Wechsel. Alte Speicherstaende mit der Kurzform werden beim Laden automatisch migriert. Dabei einen Absturz beim Programmstart gefunden und behoben: ein render()-Aufruf innerhalb von applyTheme griff beim initialen Laden auf die Konstante TABS zu, bevor diese im Skript deklariert ist (Temporal Dead Zone) — die App waere beim Start mit \'Cannot access TABS before initialization\' abgestuerzt. render() erfolgt jetzt nur noch dort, wo tatsaechlich neu gezeichnet werden muss (der Auswahl-Knopf in den Einstellungen), nicht beim Start.'},
   {v:'3.34',d:'2026-09-20',t:'Fuenf Design-Themes: Neon (Standard), Terminal (schlicht, eckig), Apple Clean (Glaseffekt), Analytics und Yield Engine — je mit eigener Akzentfarbe statt Cyan. Umschaltbar unter Einstellungen -> Design, wirkt sofort. Die per JS gezeichneten SVG-Diagramme (Balken, Ist/Ziel, Vermoegensverlauf, Prognose) ziehen die Themenfarbe mit, da das Farbobjekt N beim Wechsel aktualisiert wird statt nur die CSS-Variablen.'},
@@ -3253,7 +3271,9 @@ function screenSettings(){
         <button class="btn ${state.currentTheme==='theme-terminal'?'btn-g':'btn-c'}" onclick="applyTheme('theme-terminal');render()">💻 Terminal Minimalist${state.currentTheme==='theme-terminal'?' ✓':''}</button>
         <button class="btn ${state.currentTheme==='theme-analytics'?'btn-g':'btn-c'}" onclick="applyTheme('theme-analytics');render()">📊 Analytics Executive${state.currentTheme==='theme-analytics'?' ✓':''}</button>
         <button class="btn ${state.currentTheme==='theme-yield'?'btn-g':'btn-c'}" onclick="applyTheme('theme-yield');render()">💰 Yield & Cashflow Engine${state.currentTheme==='theme-yield'?' ✓':''}</button>
-      </div>`},
+        <button class="btn ${state.currentTheme==='theme-neumorphic'?'btn-g':'btn-c'}" onclick="applyTheme('theme-neumorphic');render()">🌗 Neumorphic Soft UI${state.currentTheme==='theme-neumorphic'?' ✓':''}</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Neumorphic ändert nur Farben und Schattenwurf (weiche, „gepresste" Karten) — die Ring-Anzeige und der horizontale Monats-Slider aus der Vorlage sind nicht übernommen, s. Hinweis im Chat.</p>`},
     {t:'Cloud-Sync',ic:'☁',body:(window.buildCloudSyncSettingsBody?window.buildCloudSyncSettingsBody():'<p class="hint">Lädt…</p>')},
     {t:'Persönlicher Check',ic:'👤',body:`
       <div class="field"><label>Sparrate / Monat €</label><input type="text" inputmode="decimal" id="ss_sr" value="${state.sparrate}"/></div>
