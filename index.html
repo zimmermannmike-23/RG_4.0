@@ -6,8 +6,31 @@
 <title>Zimmermann Capital · RebalGold</title>
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
 <style>
-:root{--bg0:#000;--bg1:#0A0A0F;--bg2:#0d1a1f;--b:#1a2a2e;--t:#fff;--t2:#9CA3AF;--t3:#6B7280;
-  --cyan:#00F0FF;--green:#39FF6A;--red:#FF1744;--yellow:#FFE600;--orange:#FF8A00;--rr:14px;--tab:64px}
+:root{--bg0:#000000;--bg1:#0A0A0F;--bg2:#0d1a1f;--b:#1a2a2e;
+  --t:#ffffff;--t2:#9CA3AF;--t3:#6B7280;
+  --cyan:#00F0FF;--green:#39FF6A;--red:#FF1744;--yellow:#FFE600;--orange:#FF8A00;
+  --rr:14px;--tab:64px;--card-bg:var(--bg1);--glass-filter:none}
+body.theme-neon{--bg0:#000000;--bg1:#0A0A0F;--bg2:#0d1a1f;--b:#1a2a2e;
+  --t:#ffffff;--t2:#9CA3AF;--t3:#6B7280;
+  --cyan:#00F0FF;--green:#39FF6A;--red:#FF1744;--yellow:#FFE600;--orange:#FF8A00;
+  --rr:14px;--tab:64px;--card-bg:var(--bg1);--glass-filter:none}
+body.theme-terminal{--bg0:#050505;--bg1:#0d0d0d;--bg2:#141414;--b:#222222;
+  --t:#e5e5e5;--t2:#a3a3a3;--t3:#525252;
+  --cyan:#ffffff;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316;
+  --rr:4px;--card-bg:#0a0a0a;--glass-filter:none}
+body.theme-apple{--bg0:#0f172a;--bg1:rgba(30,41,59,.7);--bg2:rgba(51,65,85,.5);--b:rgba(255,255,255,.1);
+  --t:#f8fafc;--t2:#cbd5e1;--t3:#64748b;
+  --cyan:#38bdf8;--green:#4ade80;--red:#f87171;--yellow:#facc15;--orange:#fb923c;
+  --rr:20px;--card-bg:rgba(30,41,59,.6);--glass-filter:blur(16px)}
+body.theme-apple .card{backdrop-filter:var(--glass-filter);-webkit-backdrop-filter:var(--glass-filter);box-shadow:0 8px 32px 0 rgba(0,0,0,.37)}
+body.theme-analytics{--bg0:#0b0e14;--bg1:#121824;--bg2:#1b2436;--b:#2a364f;
+  --t:#edf2f7;--t2:#a0aec0;--t3:#4a5568;
+  --cyan:#6366f1;--green:#10b981;--red:#f43f5e;--yellow:#f59e0b;--orange:#ed8936;
+  --rr:8px;--card-bg:var(--bg1);--glass-filter:none}
+body.theme-yield{--bg0:#0c0a09;--bg1:#1c1917;--bg2:#292524;--b:#44403c;
+  --t:#fafaf9;--t2:#a8a29e;--t3:#78716c;
+  --cyan:#f59e0b;--green:#10b981;--red:#ef4444;--yellow:#facc15;--orange:#ea580c;
+  --rr:12px;--card-bg:var(--bg1);--glass-filter:none}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 #backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background .4s}
@@ -167,12 +190,35 @@ html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui
 
 <script>
 // ===== COLORS =====
+// N bleibt derselbe Objekt-Verweis (const), seine Eigenschaften werden beim Themenwechsel
+// überschrieben — so ziehen auch die per JS gezeichneten SVG-Diagramme mit, die feste Hex-Werte
+// brauchen und nicht einfach CSS-Variablen referenzieren können.
 const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'};
+const THEMES={
+  neon:     {label:'Neon (Standard)',    farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
+  terminal: {label:'Terminal',           farben:{cyan:'#ffffff',green:'#22c55e',red:'#ef4444',yellow:'#eab308',orange:'#f97316'}},
+  apple:    {label:'Apple Clean',        farben:{cyan:'#38bdf8',green:'#4ade80',red:'#f87171',yellow:'#facc15',orange:'#fb923c'}},
+  analytics:{label:'Analytics',          farben:{cyan:'#6366f1',green:'#10b981',red:'#f43f5e',yellow:'#f59e0b',orange:'#ed8936'}},
+  yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}}
+};
+function applyTheme(themeName){
+  const t=themeName||state.currentTheme||'theme-neon';
+  const id=t.replace(/^theme-/,'');
+  const gueltig=THEMES[id]?id:'neon';
+  document.body.className='';
+  document.body.classList.add('theme-'+gueltig);
+  Object.assign(N,THEMES[gueltig].farben);
+  state.currentTheme='theme-'+gueltig;
+  saveState();
+}
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.33';
+const APP_VERSION='3.36';
 const APP_CHANGELOG=[
+  {v:'3.36',d:'2026-09-20',t:'Design-Karte durch die von Mike vorgegebene Button-Liste ersetzt („Design / Vorlagen", Emoji-Beschriftung, ein Knopf je Theme statt Kachel-Raster mit Farbpunkten). Ergaenzt um eine aktiv-Markierung (gruener Knopf plus Haekchen), da sonst nicht erkennbar waere, welches Theme gerade eingestellt ist.'},
+  {v:'3.35',d:'2026-09-20',t:'Theme-Verwaltung auf das von Mike vorgegebene Muster umgestellt: applyTheme(name) mit state.currentTheme (traegt den vollen Klassennamen, z.B. \'theme-apple\') statt state.theme mit Kurz-ID, plus explizitem saveState()-Aufruf bei jedem Wechsel. Alte Speicherstaende mit der Kurzform werden beim Laden automatisch migriert. Dabei einen Absturz beim Programmstart gefunden und behoben: ein render()-Aufruf innerhalb von applyTheme griff beim initialen Laden auf die Konstante TABS zu, bevor diese im Skript deklariert ist (Temporal Dead Zone) — die App waere beim Start mit \'Cannot access TABS before initialization\' abgestuerzt. render() erfolgt jetzt nur noch dort, wo tatsaechlich neu gezeichnet werden muss (der Auswahl-Knopf in den Einstellungen), nicht beim Start.'},
+  {v:'3.34',d:'2026-09-20',t:'Fuenf Design-Themes: Neon (Standard), Terminal (schlicht, eckig), Apple Clean (Glaseffekt), Analytics und Yield Engine — je mit eigener Akzentfarbe statt Cyan. Umschaltbar unter Einstellungen -> Design, wirkt sofort. Die per JS gezeichneten SVG-Diagramme (Balken, Ist/Ziel, Vermoegensverlauf, Prognose) ziehen die Themenfarbe mit, da das Farbobjekt N beim Wechsel aktualisiert wird statt nur die CSS-Variablen.'},
   {v:'3.33',d:'2026-09-20',t:'Nacharbeit zur Aufraeumrunde. Beim Zusammenlegen der Warnkarten waren drei Bedienmoeglichkeiten ohne Knopf geblieben: das Einlesen nachrecherchierter Ausschuettungsdaten sowie das Ausblenden von Jahrespruefung und Datenhinweis bis zum Folgejahr. Sie haengen jetzt als Zweitknopf und „×" am jeweiligen Eintrag im Block „Handlungsbedarf". Ausserdem sieben Funktionen entfernt, die von keiner Stelle mehr aufgerufen wurden.'},
   {v:'3.32',d:'2026-09-20',t:'Abschluss der Aufraeumrunde. Der Sparplan-Reiter zeigte die Hinweise noch als drei Einzelkarten, waehrend das Dashboard bereits den gebuendelten Block „Handlungsbedarf" nutzte — beide liefen parallel und konnten sich widersprechen. Jetzt gilt ueberall derselbe Block. Damit entfallen datenCheckBlock, jahresCheckBlock und wiederaufnahmeBlock sowie der seit 3.24 stillgelegte Kontoauszug-Kaufparser, der zwar noch im Code stand, aber von niemandem mehr aufgerufen wurde.'},
   {v:'3.31',d:'2026-09-18',t:'Aufraeumrunde. (1) Eine Datenquelle statt zweier: die Ausschuettungsstammdaten haben jetzt Vorrang vor den je Position gepflegten divs-Arrays, die nur noch Rueckfallebene fuer ETF ohne Stammdaten sind — zuvor liefen beide parallel und lieferten widerspruechliche Jahressummen und Zahlmonate, was allein in den ReBal-Portfolios vier Datenfehler erzeugte. (2) Vier ueber die Oberflaeche verstreute Prompt-Knoepfe sind zu einer Auswahl unter einem Knopf „Prompts" zusammengefasst. (3) Drei manuelle Einfuegewege (Kaeufe, Ausschuettungen, Vermoegensuebersicht) sind zu einer Box mit automatischer Erkennung geworden, inklusive Vorschau, was der eingefuegte Text enthaelt; der separate Vermoegensuebersichts-Dialog entfaellt.'},
@@ -821,7 +867,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -892,6 +938,8 @@ function loadState(){
 
 // State beim Start laden
 loadState();
+if(!state.currentTheme&&state.theme)state.currentTheme='theme-'+state.theme;  // Migration von vor 3.35
+applyTheme(state.currentTheme);
 // Sicherstellen, dass auch ein frischer Standard-State Lose besitzt
 initLose();syncAlleLose();
 if(!state.strategyV||state.strategyV<4)state.strategyV=4;
@@ -3197,6 +3245,15 @@ function updatePriceByISIN(isin, pfIdx, posIdx, rawVal){
 
 function screenSettings(){
   const items=[
+    {t:'Design / Vorlagen',ic:'🎨',body:`
+      <p class="hint" style="margin-bottom:12px">Wähle dein bevorzugtes Layout für das Ziele-Dashboard und den Dividenden-Kalender:</p>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px">
+        <button class="btn ${(state.currentTheme||'theme-neon')==='theme-neon'?'btn-g':'btn-c'}" onclick="applyTheme('theme-neon');render()">⚡ Cyber Neon (Default)${(state.currentTheme||'theme-neon')==='theme-neon'?' ✓':''}</button>
+        <button class="btn ${state.currentTheme==='theme-apple'?'btn-g':'btn-c'}" onclick="applyTheme('theme-apple');render()">🍏 Apple Glassmorphism${state.currentTheme==='theme-apple'?' ✓':''}</button>
+        <button class="btn ${state.currentTheme==='theme-terminal'?'btn-g':'btn-c'}" onclick="applyTheme('theme-terminal');render()">💻 Terminal Minimalist${state.currentTheme==='theme-terminal'?' ✓':''}</button>
+        <button class="btn ${state.currentTheme==='theme-analytics'?'btn-g':'btn-c'}" onclick="applyTheme('theme-analytics');render()">📊 Analytics Executive${state.currentTheme==='theme-analytics'?' ✓':''}</button>
+        <button class="btn ${state.currentTheme==='theme-yield'?'btn-g':'btn-c'}" onclick="applyTheme('theme-yield');render()">💰 Yield & Cashflow Engine${state.currentTheme==='theme-yield'?' ✓':''}</button>
+      </div>`},
     {t:'Cloud-Sync',ic:'☁',body:(window.buildCloudSyncSettingsBody?window.buildCloudSyncSettingsBody():'<p class="hint">Lädt…</p>')},
     {t:'Persönlicher Check',ic:'👤',body:`
       <div class="field"><label>Sparrate / Monat €</label><input type="text" inputmode="decimal" id="ss_sr" value="${state.sparrate}"/></div>
