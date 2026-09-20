@@ -171,8 +171,13 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.28';
+const APP_VERSION='3.33';
 const APP_CHANGELOG=[
+  {v:'3.33',d:'2026-09-20',t:'Nacharbeit zur Aufraeumrunde. Beim Zusammenlegen der Warnkarten waren drei Bedienmoeglichkeiten ohne Knopf geblieben: das Einlesen nachrecherchierter Ausschuettungsdaten sowie das Ausblenden von Jahrespruefung und Datenhinweis bis zum Folgejahr. Sie haengen jetzt als Zweitknopf und „×" am jeweiligen Eintrag im Block „Handlungsbedarf". Ausserdem sieben Funktionen entfernt, die von keiner Stelle mehr aufgerufen wurden.'},
+  {v:'3.32',d:'2026-09-20',t:'Abschluss der Aufraeumrunde. Der Sparplan-Reiter zeigte die Hinweise noch als drei Einzelkarten, waehrend das Dashboard bereits den gebuendelten Block „Handlungsbedarf" nutzte — beide liefen parallel und konnten sich widersprechen. Jetzt gilt ueberall derselbe Block. Damit entfallen datenCheckBlock, jahresCheckBlock und wiederaufnahmeBlock sowie der seit 3.24 stillgelegte Kontoauszug-Kaufparser, der zwar noch im Code stand, aber von niemandem mehr aufgerufen wurde.'},
+  {v:'3.31',d:'2026-09-18',t:'Aufraeumrunde. (1) Eine Datenquelle statt zweier: die Ausschuettungsstammdaten haben jetzt Vorrang vor den je Position gepflegten divs-Arrays, die nur noch Rueckfallebene fuer ETF ohne Stammdaten sind — zuvor liefen beide parallel und lieferten widerspruechliche Jahressummen und Zahlmonate, was allein in den ReBal-Portfolios vier Datenfehler erzeugte. (2) Vier ueber die Oberflaeche verstreute Prompt-Knoepfe sind zu einer Auswahl unter einem Knopf „Prompts" zusammengefasst. (3) Drei manuelle Einfuegewege (Kaeufe, Ausschuettungen, Vermoegensuebersicht) sind zu einer Box mit automatischer Erkennung geworden, inklusive Vorschau, was der eingefuegte Text enthaelt; der separate Vermoegensuebersichts-Dialog entfaellt.'},
+  {v:'3.30',d:'2026-09-18',t:'Grafische Ueberarbeitung. Vier neue Inline-SVG-Diagramme ohne Bibliothek: Ausschuettungen je Monat als Balken (antippbar, Hoehe zeigt den Betrag), Ist gegen Ziel je ETF als waagerechte Balken mit Zielmarkierung, Vermoegensverlauf aus den Kauflosen (heutiger Wert gegen kumulierten Einstand) und gestapelte Ausschuettungsprognose bis 2041 je ETF. Die bisher einzeln gestapelten Warnkarten sind zu einem einklappbaren Block „Handlungsbedarf" zusammengefasst, der dringende Punkte hervorhebt und Direktknoepfe bietet. Die lange Je-ETF-Dividendenbox ist standardmaessig eingeklappt. Einheitliche Zahlformate: Geld und Prozent zwei Stellen, Stueckzahlen sechs, Kurse vier.'},
+  {v:'3.29',d:'2026-09-18',t:'Die Import- und Pruefkarten standen faelschlich oberhalb der Ueberschrift „Einstellungen", ausserhalb des Screen-Bereichs. Sie sind jetzt in den Akkordeon-Eintrag verschoben, der von „Depotauszug-Import" in „CSV-Import" umbenannt wurde und Transaktionsexport, manuelles Einfuegen von Kaeufen und Ausschuettungen, Datenqualitaets-Pruefung sowie den bisherigen Vermoegensuebersicht-Abgleich buendelt.'},
   {v:'3.28',d:'2026-09-18',t:'Fehler behoben: „Aktualisieren" buchte Kaeufe, die vor dem Erfassungsbeginn liegen, zusaetzlich zum Anfangsbestand ein — bei einem vollstaendigen Export wuchs der Bestand dadurch auf fast das Doppelte. Solche Kaeufe werden jetzt uebersprungen und gemeldet; wer die ganze Historie will, nutzt „Neu aufbauen", das den Erfassungsbeginn vorzieht. Auch die Uebersicht zaehlt nur noch Kaeufe ab dem Erfassungsbeginn als offen.'},
   {v:'3.27',d:'2026-09-18',t:'Der CSV-Transaktionsexport wird jetzt als Datei ausgewaehlt statt hineinkopiert. Nach dem Laden zeigt die Karte, wie viele Kaeufe, Verkaeufe und Ausschuettungen enthalten sind, welchen Zeitraum sie abdecken und wie viele Kaeufe noch nicht erfasst sind. Zwei Knoepfe: „Aktualisieren" ergaenzt nur Fehlendes und uebernimmt die Ausschuettungen — der normale Monatsablauf; „Neu aufbauen" legt die komplette Historie neu an. Die bisherigen Textfelder bleiben als Ausweichweg fuer einzelne Belege erhalten. Die Datei wird im Browser gelesen und verlaesst das Geraet nicht.'},
   {v:'3.26',d:'2026-09-18',t:'Erfassungsbeginn der Kauflose ist nicht mehr fest auf den 01.09.2026 gesetzt, sondern wandert beim neuen Vollimport auf die erste Transaktion des CSV-Exports. Damit entfaellt die Naeherung fuer zurueckliegende Monate und der Dividendenkalender rechnet durchgaengig Ex-Datum-genau. „Historie komplett neu aufbauen" verwirft die bisherigen Lose und legt sie aus dem Export neu an, Verkaeufe werden dabei in zeitlicher Reihenfolge per FIFO verrechnet; Abweichungen zur bisherigen Stueckzahl werden gemeldet.'},
@@ -229,8 +234,6 @@ function posIst(p,pf){const t=pfTotal(pf);return t>0?posVal(p)/t*100:0;}
 // davon, ob die Position ein- oder ausgeschaltet ist.
 function pfTotalAlle(pf){return(pf.positions||[]).reduce((s,p)=>s+posVal(p),0);}
 function posIstGesamt(p,pf){const t=pfTotalAlle(pf);return t>0?posVal(p)/t*100:0;}
-function posDevGesamt(p,pf){return posIstGesamt(p,pf)-(p.target||0);}
-
 // Ab wann ist ein pausierter ETF wieder besparbar?
 // Solange er pausiert ist, bleibt sein Wert stehen, waehrend das Depot um die Sparrate waechst.
 // Sein Anteil am GESAMTdepot sinkt dadurch Monat fuer Monat. Gesucht ist die kleinste Zahl
@@ -272,7 +275,6 @@ function pfMaxDevSteuerbar(pf){
   if(t<=0||sumRaw<=0)return 0;
   return Math.max(...ap.map(p=>Math.abs(posVal(p)/t*100-p.target/sumRaw*100)));
 }
-function pfAmpelSteuerbar(pf){const d=pfMaxDevSteuerbar(pf);return d<2?'ok':d<5?'pruefen':'sofort';}
 function pfScoreSteuerbar(pf){return Math.max(0,Math.min(100,Math.round(100-pfMaxDevSteuerbar(pf)*3)));}
 function pfScore(pf){return Math.max(0,Math.min(100,Math.round(100-pfMaxDev(pf)*3)));}
 function totalScore(){const s=state.portfolios.filter(p=>p.enabled).map(pfScore);return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):100;}
@@ -463,10 +465,14 @@ function nettoFaktor(pos){return 1-STEUERSATZ*(1-teilfreistellung(pos)/100);}
 // Reihenfolge: manuell gepflegte divs -> Stammdaten (echt oder fortgeschrieben).
 // Auf fortgeschriebene Jahre wird das Dividendenwachstum angewandt, auf nachgetragene nicht.
 function divJeAnteil(pos,jahr,mIdx){
-  const arr=(pos.divs||{})[jahr];
-  if(Array.isArray(arr)&&arr.some(v=>v>0))return arr[mIdx]||0;
+  // Vorrang haben die Ausschuettungsstammdaten: sie tragen Ex-Tag, Zahltag, Waehrung und Status.
+  // Die je Position gepflegten divs-Arrays sind nur noch Rueckfallebene fuer ETF ohne Stammdaten —
+  // frueher liefen beide parallel, was zu widerspruechlichen Jahressummen und Zahlmonaten fuehrte.
   const items=ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr);
-  if(!items.length)return 0;
+  if(!items.length){
+    const arr=(pos.divs||{})[jahr];
+    return(Array.isArray(arr)&&arr.some(v=>v>0))?(arr[mIdx]||0):0;
+  }
   const fx=fxKurs(fondsWaehrung(pos.ticker));
   const roh=items.reduce((a,x)=>a+x.betrag,0)*fx;
   const fortgeschrieben=items.every(x=>x.status==='fortgeschrieben');
@@ -672,6 +678,10 @@ function fullRebalanceAmount(pf){
   return Math.max(0,(sumTgt*t-sumVal)/denom);
 }
 const EUR0=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' €';
+// Einheitliche Tiefen: Geld immer 2 Stellen, Prozent 2, Stueckzahlen 6 (Bruchstuecke!), Kurse 4.
+const PCT=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v||0)+' %';
+const STK=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:6,maximumFractionDigits:6}).format(v||0);
+const KURS=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:4,maximumFractionDigits:4}).format(v||0);
 
 // ===== SVG RING =====
 let uid=0;
@@ -712,7 +722,7 @@ function svgRing({progress=0,color=N.cyan,size=100,lw=6,label='',sub=''}={}){
 function defaultState(){
   const Z=()=>Array(12).fill(0);
   return{
-    tab:0,view:'list',subIdx:0,posIdx:-1,divCalYear:2026,divSelMonth:null,selectedSparIdx:4,
+    tab:0,view:'list',subIdx:0,posIdx:-1,divCalYear:2026,divSelMonth:null,jeEtfOffen:false,hbOffen:true,selectedSparIdx:4,
     strategyV:3,
     sparrate:110,
     portfolios:[
@@ -811,7 +821,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -908,8 +918,6 @@ function sollDepot(y){
   if(y<SOLL.sparStart)return SOLL.startkapital;
   const r=SOLL.jahre.find(x=>x[0]===y);return r&&r[3]!=null?r[3]:null;
 }
-function sollDivMonNetto(y){const r=SOLL.jahre.find(x=>x[0]===y);return r?r[2]:null;}
-
 // ===== DARSTELLUNGS-HELFER =====
 function pctBadge(ist,soll,invers){
   if(soll==null||soll===0)return '<span style="color:var(--t3)">–</span>';
@@ -918,12 +926,6 @@ function pctBadge(ist,soll,invers){
   const c=Math.abs(d)<2?'var(--yellow)':(gut?'var(--green)':'var(--red)');
   return `<span style="color:${c};font-weight:700">${d>=0?'+':''}${d.toFixed(1)} %</span>`;
 }
-function dCell(ist,soll){
-  if(ist==null||soll==null)return '<span style="color:var(--t3)">–</span>';
-  const d=ist-soll;const c=Math.abs(d)<0.005?'var(--t2)':(d>=0?'var(--green)':'var(--red)');
-  return `<span style="color:${c}">${d>=0?'+':''}${EUR0(d)}</span>`;
-}
-
 // Balkenpaar Soll/Ist
 function barPair(lb,ist,soll,unit){
   const max=Math.max(ist||0,soll||0)||1;
@@ -1020,6 +1022,107 @@ function depotKennzahlenBlock(){
   </div>`;
 }
 
+// ===== DIAGRAMME =====
+// Alles als Inline-SVG ohne Bibliothek: haelt die Datei eigenstaendig und funktioniert offline.
+// Farben kommen aus N bzw. CSS-Variablen, damit Hell/Dunkel mitlaeuft.
+const SERIENFARBEN=['#00F0FF','#39FF6A','#FFE600','#FF8A00','#FF1744','#B388FF','#64FFDA'];
+function svgEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Senkrechte Balken, z.B. Ausschuettungen je Monat. markiert = Index hervorheben.
+function svgBalken(werte,labels,opt){
+  const o=Object.assign({h:150,markiert:-1,farbe:N.cyan,hervor:N.green,einheit:'€',klick:null},opt||{});
+  const n=werte.length; if(!n)return '';
+  const max=Math.max(...werte,0.0001);
+  const B=100/n, pad=B*0.18, bw=B-2*pad;
+  const balken=werte.map((v,i)=>{
+    const hh=max>0?(v/max)*72:0;                    // 72 % der Hoehe fuer Balken, Rest fuer Beschriftung
+    const x=i*B+pad, y=78-hh;
+    const f=i===o.markiert?o.hervor:o.farbe;
+    const klick=o.klick?` onclick="${o.klick}(${i})" style="cursor:pointer"`:'';
+    return`<g${klick}><rect x="${x}" y="0" width="${bw}" height="78" fill="transparent"/>`
+      +`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(hh,v>0?0.8:0)}" rx="0.6" fill="${f}" opacity="${i===o.markiert?1:.72}"/>`
+      +(v>0?`<text x="${x+bw/2}" y="${Math.max(y-1.6,3)}" font-size="3" fill="${f}" text-anchor="middle">${Math.round(v)}</text>`:'')
+      +`<text x="${x+bw/2}" y="84" font-size="3.2" fill="${i===o.markiert?o.hervor:'var(--t3)'}" text-anchor="middle">${svgEsc(labels[i]||'')}</text></g>`;
+  }).join('');
+  return`<svg viewBox="0 0 100 88" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">`
+    +`<line x1="0" y1="78" x2="100" y2="78" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${balken}</svg>`;
+}
+
+// Waagerechte Balken mit Ziel-Markierung, z.B. Ist gegen Ziel je ETF.
+function svgIstZiel(zeilen,opt){
+  const o=Object.assign({hoeheProZeile:26},opt||{});
+  if(!zeilen.length)return '';
+  const max=Math.max(...zeilen.map(z=>Math.max(z.ist,z.ziel)),1)*1.08;
+  return zeilen.map(z=>{
+    const bi=z.ist/max*100, bz=z.ziel/max*100;
+    const ab=z.ist-z.ziel;
+    const farbe=Math.abs(ab)<2?N.green:Math.abs(ab)<5?N.yellow:N.orange;
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span style="color:var(--cyan)">${svgEsc(z.name)}${z.pausiert?' · pausiert':''}</span>
+        <span style="color:${farbe}">${z.ist.toFixed(2)} % <span style="color:var(--t3)">/ ${z.ziel.toFixed(2)} %</span></span>
+      </div>
+      <svg viewBox="0 0 100 6" preserveAspectRatio="none" style="width:100%;height:12px;display:block">
+        <rect x="0" y="1.4" width="100" height="3.2" rx="1.6" fill="var(--bg2,#12203a)"/>
+        <rect x="0" y="1.4" width="${Math.min(bi,100)}" height="3.2" rx="1.6" fill="${farbe}" opacity="${z.pausiert?.45:.9}"/>
+        <line x1="${Math.min(bz,100)}" y1="0.2" x2="${Math.min(bz,100)}" y2="5.8" stroke="var(--t)" stroke-width="0.7"/>
+      </svg></div>`;
+  }).join('');
+}
+
+// Linie mit Flaeche, z.B. Depotwert gegen kumulierten Einstand.
+function svgLinien(serien,labels,opt){
+  const o=Object.assign({h:170,einheit:'€'},opt||{});
+  const n=labels.length; if(n<2)return '';
+  const alle=serien.flatMap(s=>s.werte);
+  const max=Math.max(...alle,1),min=Math.min(...alle,0);
+  const sp=max-min||1;
+  const X=i=>i/(n-1)*100, Y=v=>76-((v-min)/sp)*70;
+  const pfade=serien.map((s,si)=>{
+    const f=s.farbe||SERIENFARBEN[si%SERIENFARBEN.length];
+    const d=s.werte.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(2)},${Y(v).toFixed(2)}`).join(' ');
+    const flaeche=`${d} L100,76 L0,76 Z`;
+    return`<path d="${flaeche}" fill="${f}" opacity="0.10"/><path d="${d}" fill="none" stroke="${f}" stroke-width="0.8" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+  const schritt=Math.max(1,Math.ceil(n/6));
+  const achse=labels.map((l,i)=>i%schritt===0||i===n-1
+    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" fill="var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
+  const legende=serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;color:var(--t2)">
+    <span style="width:9px;height:3px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join('');
+  return`<svg viewBox="0 0 100 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
+    <line x1="0" y1="76" x2="100" y2="76" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${pfade}${achse}</svg>
+    <div style="margin-top:6px">${legende}</div>`;
+}
+
+// Gestapelte Flaechen, z.B. Ausschuettungsprognose je ETF ueber die Jahre.
+function svgGestapelt(serien,labels,opt){
+  const o=Object.assign({h:180},opt||{});
+  const n=labels.length; if(n<2||!serien.length)return '';
+  const summen=Array(n).fill(0);
+  const unten=[],oben=[];
+  serien.forEach(s=>{
+    unten.push([...summen]);
+    s.werte.forEach((v,i)=>summen[i]+=v);
+    oben.push([...summen]);
+  });
+  const max=Math.max(...summen,1);
+  const X=i=>i/(n-1)*100, Y=v=>76-(v/max)*70;
+  const flaechen=serien.map((s,si)=>{
+    const f=s.farbe||SERIENFARBEN[si%SERIENFARBEN.length];
+    const o1=oben[si].map((v,i)=>`${i?'L':'M'}${X(i).toFixed(2)},${Y(v).toFixed(2)}`).join(' ');
+    const u1=unten[si].map((v,i)=>`${X(i).toFixed(2)},${Y(v).toFixed(2)}`).reverse().map(pt=>`L${pt}`).join(' ');
+    return`<path d="${o1} ${u1} Z" fill="${f}" opacity="0.65"/>`;
+  }).join('');
+  const schritt=Math.max(1,Math.ceil(n/6));
+  const achse=labels.map((l,i)=>i%schritt===0||i===n-1
+    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" fill="var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
+  const legende=serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:var(--t2)">
+    <span style="width:9px;height:9px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join('');
+  return`<svg viewBox="0 0 100 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
+    <line x1="0" y1="76" x2="100" y2="76" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${flaechen}${achse}</svg>
+    <div style="margin-top:6px;line-height:1.7">${legende}</div>`;
+}
+
 // Aktiv markierter Monat (0-11). Ohne Auswahl: laufender Monat, wenn das Kalenderjahr das aktuelle ist, sonst Januar.
 function divAktiverMonat(){
   if(state.divSelMonth!==null&&state.divSelMonth>=0&&state.divSelMonth<12)return state.divSelMonth;
@@ -1048,6 +1151,88 @@ function divZuwachsProKauf(){
   return{pfName:pf.name,sp,jahr,monat:jahr/12,rendite:jahr/sp*100};
 }
 
+// ===== VERMOEGENSVERLAUF =====
+// Aus den datierten Losen laesst sich der kumulierte Einstand je Monat rekonstruieren.
+// Der heutige Kurs gilt fuer alle Stuecke, die zum jeweiligen Zeitpunkt schon im Depot lagen —
+// das ist keine Kurshistorie, sondern zeigt, wie sich Einsatz und heutiger Wert entwickelt haben.
+function vermoegensVerlauf(pf){
+  const lose=[];
+  (pf.positions||[]).forEach(pos=>posLots(pos).forEach(l=>{
+    if((l.stueck||0)>0&&l.d)lose.push({d:l.d,stueck:l.stueck,kurs:l.kurs||0,heute:pos.kurs||0});
+  }));
+  if(lose.length<2)return null;
+  lose.sort((a,b)=>a.d<b.d?-1:1);
+  const von=lose[0].d.slice(0,7), bis=new Date().toISOString().slice(0,7);
+  const monate=[];
+  let [j,m]=von.split('-').map(Number);
+  const [jb,mb]=bis.split('-').map(Number);
+  while(j<jb||(j===jb&&m<=mb)){
+    monate.push(`${j}-${String(m).padStart(2,'0')}`);
+    m++; if(m>12){m=1;j++;}
+    if(monate.length>400)break;
+  }
+  const einstand=[],wert=[];
+  monate.forEach(mo=>{
+    let e=0,w=0;
+    lose.forEach(l=>{ if(l.d.slice(0,7)<=mo){e+=l.stueck*l.kurs;w+=l.stueck*l.heute;} });
+    einstand.push(e);wert.push(w);
+  });
+  // Bei langen Reihen ausduennen, damit die Beschriftung lesbar bleibt
+  const schritt=Math.max(1,Math.ceil(monate.length/48));
+  const idx=monate.map((_,i)=>i).filter(i=>i%schritt===0||i===monate.length-1);
+  return{
+    labels:idx.map(i=>monate[i].slice(2).split('-').reverse().join('/')),
+    einstand:idx.map(i=>einstand[i]),
+    wert:idx.map(i=>wert[i])
+  };
+}
+function vermoegensVerlaufBlock(){
+  const pf=zielPf();if(!pf)return'';
+  const v=vermoegensVerlauf(pf);
+  if(!v)return'';
+  const e=v.einstand[v.einstand.length-1],w=v.wert[v.wert.length-1];
+  const g=w-e, gp=e>0?g/e*100:0;
+  return`<div class="card card-c">
+    <div class="ctitle">VERMÖGENSVERLAUF · DIV ETF DEPOT</div>
+    ${svgLinien([
+      {name:'Heutiger Wert',werte:v.wert,farbe:N.cyan},
+      {name:'Kumulierter Einstand',werte:v.einstand,farbe:N.green}
+    ],v.labels,{h:170})}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div class="kz-tile"><div class="kz-lbl">Eingesetzt</div><div class="kz-val">${EUR0(e)}</div></div>
+      <div class="kz-tile"><div class="kz-lbl">Heutiger Wert</div><div class="kz-val" style="color:${g>=0?N.green:N.orange}">${EUR0(w)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${g>=0?'+':''}${EUR0(g)} · ${gp>=0?'+':''}${gp.toFixed(2)} %</div></div>
+    </div>
+    <p class="hint" style="margin-top:8px">Aus den erfassten Kauflosen rekonstruiert. Der heutige Kurs wird auf alle Stücke angewandt, die zum jeweiligen Zeitpunkt schon im Depot lagen — die Linie zeigt also den Aufbau des Bestands, keine echte Kurshistorie. Ausschüttungen sind nicht enthalten.</p>
+  </div>`;
+}
+
+// ===== AUSSCHUETTUNGSPROGNOSE =====
+function prognoseBlock(){
+  const pf=zielPf();if(!pf)return'';
+  const vonJ=new Date().getFullYear();
+  const bisJ=Math.min(PROGNOSE_BIS,vonJ+15);
+  const jahre=[];for(let j=vonJ;j<=bisJ;j++)jahre.push(j);
+  if(jahre.length<2)return'';
+  const serien=(pf.positions||[]).map((pos,i)=>({
+    name:pos.ticker||pos.name,
+    farbe:SERIENFARBEN[i%SERIENFARBEN.length],
+    werte:jahre.map(j=>{let t=0;for(let m=0;m<12;m++)t+=posDivMonat(pos,j,m);return t;})
+  })).filter(s=>s.werte.some(v=>v>0));
+  if(!serien.length)return'';
+  const summe=jahre.map((_,i)=>serien.reduce((a,s)=>a+s.werte[i],0));
+  const netto=jahre.map(j=>zDivJahrNetto(j));
+  const wachstum=summe[0]>0?(Math.pow(summe[summe.length-1]/summe[0],1/(jahre.length-1))-1)*100:0;
+  return`<div class="card card-c">
+    <div class="ctitle">AUSSCHÜTTUNGSPROGNOSE ${vonJ}–${bisJ}</div>
+    ${svgGestapelt(serien,jahre.map(j=>String(j).slice(2)),{h:180})}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div class="kz-tile"><div class="kz-lbl">${vonJ} brutto</div><div class="kz-val">${EUR0(summe[0])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(netto[0])} · ${EUR0(netto[0]/12)}/Mon</div></div>
+      <div class="kz-tile"><div class="kz-lbl">${bisJ} brutto</div><div class="kz-val" style="color:${N.green}">${EUR0(summe[summe.length-1])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(netto[netto.length-1])} · ${EUR0(netto[netto.length-1]/12)}/Mon</div></div>
+    </div>
+    <p class="hint" style="margin-top:8px">Fortschreibung mit dem je ETF hinterlegten Dividendenwachstum (${wachstum.toFixed(2)} % p.a. im Mittel), <b>ohne</b> künftige Sparraten und ohne Wiederanlage der Ausschüttungen — der tatsächliche Strom dürfte deutlich höher ausfallen. Nachgetragene Echtdaten haben Vorrang vor der Fortschreibung.</p>
+  </div>`;
+}
+
 // Box 2: Monatliche Dividenden nach Kalenderjahr (aus dem Reiter Depot übernommen, exklusiv DIV ETF Depot)
 function monatlicheDividendenBlock(){
   const sel=divAktiverMonat();
@@ -1062,6 +1247,8 @@ function monatlicheDividendenBlock(){
       <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
       <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
     </div>
+    ${svgBalken(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,klick:'divSetMonth',h:150})}
+    <p class="hint" style="margin-top:4px;margin-bottom:8px">Balken antippen wählt den Monat. Höhe zeigt den Betrag — sichtbar wird so, wie ungleich sich die Ausschüttungen über das Jahr verteilen.</p>
     <div class="mog">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
       <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivMonatNetto(state.divCalYear,sel))}</div></div>
@@ -1101,8 +1288,11 @@ function dividendeJeEtfBlock(){
   }).filter(x=>x.betrag>0).sort((a,b)=>b.betrag-a.betrag);
   const detailSum=detail.reduce((s,x)=>s+x.betrag,0);
   return`<div class="card card-c">
-    <div class="ctitle">MONATLICHE DIVIDENDE JE ETF · NACH ZAHLTAG · DIV ETF DEPOT</div>
-    <p class="hint" style="margin-bottom:8px">Kalenderjahr ${state.divCalYear}, Beträge im Monat des <b>Zahltags</b> — berechtigt sind die Stücke, die vor dem jeweiligen <b>Ex-Tag</b> im Depot lagen. Auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots. Monat anklicken markiert ihn in allen Dividenden-Ansichten; nochmal klicken hebt die Auswahl auf.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="state.jeEtfOffen=${state.jeEtfOffen?'false':'true'};render()">
+      <span class="ctitle" style="margin:0">MONATLICHE DIVIDENDE JE ETF · NACH ZAHLTAG</span>
+      <span style="color:var(--t3);font-size:13px">${state.jeEtfOffen?'▲':'▼'}</span>
+    </div>
+    <p class="hint" style="margin:8px 0">Kalenderjahr ${state.divCalYear}, Beträge im Monat des <b>Zahltags</b> — berechtigt sind die Stücke, die vor dem jeweiligen <b>Ex-Tag</b> im Depot lagen. Auch pausierte ETFs (blass) werden angezeigt, sie bleiben Teil des Depots. Monat anklicken markiert ihn in allen Dividenden-Ansichten; nochmal klicken hebt die Auswahl auf.</p>
     <div class="kz-tile" style="margin-bottom:12px">
       <div class="kz-lbl">Aufstellung ${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div>
       ${detail.length?detail.map(x=>`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:4px 0;opacity:${x.paused?.5:1}">
@@ -1111,7 +1301,7 @@ function dividendeJeEtfBlock(){
       <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--line,#2a3a5a);margin-top:6px;padding-top:6px">
         <span>Summe</span><span style="color:${N.green}">${EUR0(detailSum)}</span></div>
     </div>
-    ${pos.map(p=>{
+    ${!state.jeEtfOffen?'':pos.map(p=>{
       const paused=p.active===false;
       const md=Array(12).fill(0).map((_,i)=>posDivMonat(p,state.divCalYear,i));
       const sum=md.reduce((a,b)=>a+b,0);
@@ -1130,7 +1320,7 @@ function dividendeJeEtfBlock(){
         }).join('')}</div>
       </div>`;
     }).join('')}
-    ${`<p class="hint" style="margin-top:10px;border-top:1px solid var(--line,#2a3a5a);padding-top:8px">${jahrIstFortgeschrieben(state.divCalYear)?`<b style="color:${N.orange}">Hinweis: Für ${state.divCalYear} liegen noch keine echten Termine vor — Ex-Tage, Zahltage und Beträge sind aus 2026 fortgeschrieben.</b><br>`:''}⚠ = Ex-Datum-Kipppunkt: dein Sparplan-Kauf am ${KAUFTAG}. liegt bei diesem ETF/Monat auf oder nach dem Ex-Tag → der Zukauf zählt erst zur nächsten Ausschüttung. <b>Die Beträge sind Ex-Datum-genau gerechnet</b>: es zählen nur Stücke, die vor dem jeweiligen Ex-Tag im Depot lagen.<br>* = Monat vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')} — dafür existiert keine Kaufhistorie, gerechnet wird näherungsweise mit dem Anfangsbestand. Beträge je Anteil: Recherchestand 09/2026, Q4 teils Prognose.</p>`}
+    ${!state.jeEtfOffen?'':`<p class="hint" style="margin-top:10px;border-top:1px solid var(--line,#2a3a5a);padding-top:8px">${jahrIstFortgeschrieben(state.divCalYear)?`<b style="color:${N.orange}">Hinweis: Für ${state.divCalYear} liegen noch keine echten Termine vor — Ex-Tage, Zahltage und Beträge sind aus 2026 fortgeschrieben.</b><br>`:''}⚠ = Ex-Datum-Kipppunkt: dein Sparplan-Kauf am ${KAUFTAG}. liegt bei diesem ETF/Monat auf oder nach dem Ex-Tag → der Zukauf zählt erst zur nächsten Ausschüttung. <b>Die Beträge sind Ex-Datum-genau gerechnet</b>: es zählen nur Stücke, die vor dem jeweiligen Ex-Tag im Depot lagen.<br>* = Monat vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')} — dafür existiert keine Kaufhistorie, gerechnet wird näherungsweise mit dem Anfangsbestand. Beträge je Anteil: Recherchestand 09/2026, Q4 teils Prognose.</p>`}
   </div>`;
 }
 
@@ -1265,11 +1455,11 @@ function zieleBlock(){
   </div>
 
   ${depotKennzahlenBlock()}
-  ${datenCheckBlock()}
-  ${jahresCheckBlock()}
-  ${(()=>{const z=zielPf();return z?wiederaufnahmeBlock(z):'';})()}
+  ${handlungsbedarfBlock()}
   ${monatlicheDividendenBlock()}
   ${dividendeJeEtfBlock()}
+  ${prognoseBlock()}
+  ${vermoegensVerlaufBlock()}
 
   <div class="card">
     <div class="ctitle">ZIEL ${SOLL.zielJahr} · SZENARIO A</div>
@@ -1462,140 +1652,10 @@ function screenDashboard(){
 
 
 
-// ══ DEPOTAUSZUG-IMPORT (Trade Republic Vermögensübersicht) ════════════════
 // Liest Stückzahlen und Kurse aus dem kopierten Text des PDF-Auszugs.
 // Robust gegen: ganzzahlige Bestände ("2 Stk."), Tausenderpunkte (10.572,89),
 // Datumsangaben in Kursspalten und ISINs auf beliebiger Folgezeile.
-function trNum(x){
-  if(x==null)return NaN;
-  x=String(x).trim();
-  if(!/^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$/.test(x))return NaN;
-  return parseFloat(x.replace(/\./g,'').replace(',','.'));
-}
-function parseTR(text){
-  const rows=[],warn=[];
-  if(!text||!text.trim())return{rows,warn:['Kein Text eingefügt.']};
-  const lines=text.replace(/\r/g,'').split('\n');
-  const STK=/(^|\s)(\d{1,3}(?:\.\d{3})*(?:,\d+)?)\s*Stk\./;
-  const ISIN=/ISIN:\s*([A-Z]{2}[A-Z0-9]{9}[0-9])/;
-  const NUM=/(?:^|\s)(\d{1,3}(?:\.\d{3})*,\d{2})(?=\s|$)/g;
-  const starts=[];lines.forEach((l,i)=>{if(STK.test(l))starts.push(i);});
-  if(!starts.length)return{rows,warn:['Keine Positionen gefunden — wurde der Wertpapier-Teil mitkopiert?']};
-  for(let b=0;b<starts.length;b++){
-    const from=starts[b],to=(b+1<starts.length?starts[b+1]:lines.length);
-    const block=lines.slice(from,to).join('\n'),head=lines[from];
-    const mS=head.match(STK);if(!mS)continue;
-    const stueck=trNum(mS[2]);
-    const mI=block.match(ISIN);
-    if(!mI){warn.push('Ohne ISIN übersprungen: '+head.trim().slice(0,42));continue;}
-    const tail=head.slice(head.indexOf('Stk.')+4).replace(/\d{2}\.\d{2}\.\d{4}/g,' ');
-    let pool=(tail.match(NUM)||[]).map(v=>trNum(v.trim())).filter(n=>!isNaN(n));
-    if(pool.length<2){
-      const t2=block.replace(/\d{2}\.\d{2}\.\d{4}/g,' ').replace(ISIN,' ');
-      pool=(t2.match(NUM)||[]).map(v=>trNum(v.trim())).filter(n=>!isNaN(n));
-    }
-    let kurs=NaN,wert=NaN,best=Infinity;
-    for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++){
-      const d=Math.abs(pool[i]*stueck-pool[j]);
-      if(d<best){best=d;kurs=pool[i];wert=pool[j];}
-    }
-    if(!(best<=Math.max(0.02,(wert||0)*0.005))){if(pool.length)kurs=pool[0];wert=NaN;}
-    if(isNaN(stueck)||isNaN(kurs)){warn.push(mI[1]+': Stück oder Kurs unlesbar');continue;}
-    rows.push({isin:mI[1],stueck,kurs,wert:isNaN(wert)?null:wert});
-  }
-  return{rows,warn};
-}
 let _trRows=null;
-function openTRModal(){
-  const m=document.getElementById('modal');
-  m.innerHTML=`<div class="modal-box">
-    <div class="modal-title">📄 Depotauszug importieren</div>
-    <p class="hint" style="margin-bottom:10px">Trade-Republic-Vermögensübersicht als PDF öffnen · alles markieren · kopieren · hier einfügen. Übernommen werden <strong>Stückzahlen und Kurse</strong>, zugeordnet über die ISIN.</p>
-    <div class="field"><label>Text aus dem Auszug</label>
-      <textarea id="tr_txt" rows="5" placeholder="4,893074 Stk.  Automation &amp; Robotics …&#10;ISIN: IE00BYWZ0333 …"
-        style="width:100%;background:var(--bg2);color:var(--t1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;font-size:12px;font-family:monospace"></textarea></div>
-    <div class="btnrow">
-      <button class="btn btn-c" style="flex:1" onclick="trAnalyse()">🔍 Analysieren</button>
-      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
-    </div>
-    <div id="tr_out" style="margin-top:12px"></div>
-  </div>`;
-  m.classList.add('open');
-  m.onclick=e=>{if(e.target===m)closeModal();};
-}
-function trAnalyse(){
-  const txt=document.getElementById('tr_txt')?.value||'';
-  const {rows,warn}=parseTR(txt);
-  const out=document.getElementById('tr_out');
-  if(!rows.length){out.innerHTML=`<div class="hint" style="color:var(--red)">✕ ${warn[0]||'Nichts erkannt.'}</div>`;return;}
-  const inApp=new Map();
-  state.portfolios.forEach(pf=>pf.positions.forEach(p=>{
-    const k=(p.isin||'').trim(); if(k&&!inApp.has(k))inApp.set(k,p);
-  }));
-  const treffer=[],neu=[];
-  rows.forEach(r=>{
-    const p=inApp.get(r.isin);
-    if(!p){neu.push(r);return;}
-    // Kaufkurs fortschreiben: gewichteter Durchschnitt bei Zukauf.
-    // Verkauf laesst den Einstand unveraendert (steuerliche Konvention).
-    const zu = r.stueck - p.stueck;
-    const kkAlt = p.kaufkurs || 0;
-    let kkNeu = kkAlt;
-    if(zu > 1e-6 && kkAlt > 0 && r.stueck > 0)
-      kkNeu = (p.stueck*kkAlt + zu*r.kurs) / r.stueck;
-    treffer.push({...r,name:p.name,stueckAlt:p.stueck,kursAlt:p.kurs,
-      kkAlt, kkNeu, zu,
-      chg:(Math.abs(p.stueck-r.stueck)>1e-6)||(Math.abs(p.kurs-r.kurs)>1e-4)});
-  });
-  const fehlt=[...inApp.keys()].filter(k=>!rows.some(r=>r.isin===k));
-  _trRows=treffer;
-  const zeilen=treffer.filter(t=>t.chg).map(t=>{
-    const ds=Math.abs(t.stueckAlt-t.stueck)>1e-6?`<span style="color:var(--yellow)">${t.stueckAlt} → ${t.stueck}</span>`:`${t.stueck}`;
-    const dk=Math.abs(t.kursAlt-t.kurs)>1e-4?`<span style="color:var(--yellow)">${t.kursAlt.toFixed(2)} → ${t.kurs.toFixed(2)} €</span>`:`${t.kurs.toFixed(2)} €`;
-    const dkk = (t.zu>1e-6 && Math.abs(t.kkNeu-t.kkAlt)>1e-4)
-      ? `<div style="color:var(--green)">↗ Zukauf ${t.zu.toFixed(6)} Stk · Einstand ${t.kkAlt.toFixed(2)} → ${t.kkNeu.toFixed(2)} €</div>`
-      : (t.zu<-1e-6 ? `<div style="color:var(--yellow)">↘ Verkauf ${Math.abs(t.zu).toFixed(6)} Stk · Einstand unverändert</div>` : '');
-    return `<div style="font-size:11px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-      <div style="color:var(--t1)">${t.name.slice(0,40)}</div>
-      <div style="color:var(--t2)">Stk ${ds} · Kurs ${dk}</div>${dkk}</div>`;
-  }).join('')||'<div class="hint">Alle Werte sind bereits aktuell.</div>';
-  out.innerHTML=`
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <div style="flex:1;min-width:80px;background:rgba(0,240,255,.08);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:17px;font-weight:700">${treffer.length}</div><div style="font-size:10px;color:var(--t2)">zugeordnet</div></div>
-      <div style="flex:1;min-width:80px;background:rgba(255,209,57,.08);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:17px;font-weight:700">${treffer.filter(t=>t.chg).length}</div><div style="font-size:10px;color:var(--t2)">geändert</div></div>
-      <div style="flex:1;min-width:80px;background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:17px;font-weight:700">${neu.length}</div><div style="font-size:10px;color:var(--t2)">nicht in App</div></div>
-    </div>
-    ${fehlt.length?`<div class="hint" style="color:var(--yellow);margin-bottom:6px">⚠ ${fehlt.length} Position(en) der App fehlen im Auszug: ${fehlt.join(', ')}</div>`:''}
-    ${warn.length?`<div class="hint" style="margin-bottom:6px">${warn.slice(0,3).map(w=>'· '+w).join('<br>')}</div>`:''}
-    <div style="max-height:190px;overflow-y:auto;margin-bottom:10px">${zeilen}</div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t2);margin-bottom:8px;cursor:pointer">
-      <input type="checkbox" id="tr_kk" checked style="width:16px;height:16px;accent-color:var(--green)"/>
-      Einstandskurse bei Zukäufen fortschreiben (${treffer.filter(t=>t.zu>1e-6&&Math.abs(t.kkNeu-t.kkAlt)>1e-4).length} betroffen)
-    </label>
-    <button class="btn btn-g" style="width:100%" onclick="trApply()">✓ ${treffer.filter(t=>t.chg).length} Änderung(en) übernehmen</button>`;
-}
-function trApply(){
-  if(!_trRows){showToast('Bitte zuerst analysieren');return;}
-  const mitKK = document.getElementById('tr_kk')?.checked !== false;
-  let n=0,k=0;
-  _trRows.forEach(t=>{
-    state.portfolios.forEach(pf=>pf.positions.forEach(p=>{
-      if((p.isin||'').trim()===t.isin){
-        if(Math.abs(p.stueck-t.stueck)>1e-6||Math.abs(p.kurs-t.kurs)>1e-4)n++;
-        p.stueck=t.stueck; p.kurs=t.kurs;
-        if(mitKK && t.zu>1e-6 && Math.abs(t.kkNeu-t.kkAlt)>1e-4){
-          p.kaufkurs=Math.round(t.kkNeu*10000)/10000; k++;
-        }
-      }
-    }));
-  });
-  saveState(); closeModal(); render();
-  showToast(`✓ ${n} Position(en) aktualisiert${k?` · ${k} Einstand fortgeschrieben`:''}`);
-}
-
 // ══ MONATS-CHECK · Erinnerung am 5. jedes Monats ═══════════════════════════
 // Erinnert daran, das JSON-Backup zu exportieren und zur Querprüfung
 // hochzuladen. Quittierung wird pro Monat in localStorage gespeichert.
@@ -1954,6 +2014,8 @@ function screenPfDetail(){
     <div class="card card-c">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <span class="ctitle" style="margin:0">REBALANCING</span>${ampelBadge(pfAmpel(pf))}</div>
+      ${svgIstZiel((pf.positions||[]).map(p=>({name:p.ticker||p.name,ist:posIst(p,pf),ziel:effTarget(p,pf),pausiert:p.active===false})))}
+      <p class="hint" style="margin-bottom:12px">Balken = Ist-Anteil am Gesamtdepot, senkrechter Strich = Zielgewicht. Grün unter 2 %, gelb bis 5 %, orange darüber.</p>
       ${(()=>{const pausMitWert=(pf.positions||[]).filter(x=>x.active===false&&posVal(x)>0);
         if(!pausMitWert.length)return'';
         return`<div class="kz-tile" style="margin-bottom:12px">
@@ -2048,9 +2110,9 @@ function screenETFDetail(){
     <div class="card" style="border-color:rgba(0,240,255,.35)">
       <div class="ctitle">Kursdaten</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="edf"><label>Stückzahl (aus Käufen)</label><input type="text" inputmode="decimal" value="${pos.stueck.toFixed(6)}" readonly style="opacity:.6" title="Ergibt sich aus den erfassten Käufen — unten im Block KÄUFE (LOSE) bearbeiten"/></div>
+        <div class="edf"><label>Stückzahl (aus Käufen)</label><input type="text" inputmode="decimal" value="${STK(pos.stueck)}" readonly style="opacity:.6" title="Ergibt sich aus den erfassten Käufen — unten im Block KÄUFE (LOSE) bearbeiten"/></div>
         <div class="edf"><label>Akt. Kurs €</label><input type="text" inputmode="decimal" value="${pos.kurs}" onchange="updPos(${state.subIdx},${state.posIdx},'kurs',+this.value.replace(',','.'))"/></div>
-        <div class="edf"><label>Ø Kaufkurs € (aus Käufen)</label><input type="text" inputmode="decimal" value="${(pos.kaufkurs||0).toFixed(4)}" readonly style="opacity:.6" title="Gewichteter Durchschnitt der erfassten Käufe"/></div>
+        <div class="edf"><label>Ø Kaufkurs € (aus Käufen)</label><input type="text" inputmode="decimal" value="${KURS(pos.kaufkurs)}" readonly style="opacity:.6" title="Gewichteter Durchschnitt der erfassten Käufe"/></div>
         <div class="edf"><label>TER % p.a.</label><input type="text" inputmode="decimal" value="${pos.ter}" onchange="updPos(${state.subIdx},${state.posIdx},'ter',+this.value.replace(',','.'))"/></div>
       </div>
       <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">
@@ -2084,17 +2146,17 @@ function screenETFDetail(){
             return `<tr>
               <td style="white-space:nowrap">${l.d.split('-').reverse().join('.')}</td>
               <td style="color:${l.typ==='anfang'?'var(--t3)':'var(--cyan)'}">${l.typ==='anfang'?'Anfangsbestand':'Kauf'}</td>
-              <td>${(l.stueck||0).toFixed(6)}</td>
-              <td>${(l.kurs||0).toFixed(4)}</td>
+              <td>${STK(l.stueck)}</td>
+              <td>${KURS(l.kurs)}</td>
               <td style="font-weight:700">${EUR0((l.stueck||0)*(l.kurs||0))}</td>
               <td>${l.typ==='anfang'?'':`<button class="yp-btn" title="Los löschen" onclick="deleteLot(${state.subIdx},${state.posIdx},${idx})">×</button>`}</td>
             </tr>`;}).join('')}</tbody>
         </table></div>`:`<p class="hint">Noch keine Lose erfasst.</p>`}
       <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,#2a3a5a)">
-        <span>Gesamt</span><span>${lotsStueck(pos).toFixed(6)} Stk · Ø ${lotsKaufkurs(pos).toFixed(4)} €</span>
+        <span>Gesamt</span><span>${STK(lotsStueck(pos))} Stk · Ø ${KURS(lotsKaufkurs(pos))} €</span>
       </div>
       <div class="edf" style="margin-top:10px"><label>Anfangsbestand per ${TRACKING_START.split('-').reverse().join('.')} korrigieren</label>
-        <input type="text" inputmode="decimal" value="${lotsAnfangsbestand(pos).toFixed(6)}"
+        <input type="text" inputmode="decimal" value="${STK(lotsAnfangsbestand(pos))}"
           onchange="setzeAnfangsbestand(${state.subIdx},${state.posIdx},+this.value.replace(',','.'))"/></div>
       ${(()=>{const alt=ausschuettungenJahr(pos.ticker,state.divCalYear).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
         return alt.length?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Zahltag ${alt.map(x=>x.pay.split('-').reverse().join('.')).join(', ')} beruht auf dem Ex-Tag ${alt.map(x=>x.ex.split('-').reverse().join('.')).join(', ')} — also <b>vor</b> dem Erfassungsbeginn. Gerechnet wird dort mit dem Anfangsbestand. Falls darin Stücke stecken, die du erst nach diesem Ex-Tag gekauft hast, trage sie oben als Kauf ein (Haken „steckt bereits im Anfangsbestand" gesetzt lassen) — dann fällt der Wert korrekt niedriger aus.</p>`:'';})()}
@@ -2200,24 +2262,6 @@ function parseKontoauszugDivs(t){
   while((m=re.exec(txt))!==null){
     const d=trDatum(m[1],m[2],m[5]);
     if(d)out.push({datum:d,isin:m[3],a:zahlAusText(m[4]),quelle:'Kontoauszug',istDividende:true});
-  }
-  return out;
-}
-// (c) Kontoauszug — Kaeufe (Sparplanausfuehrung / Buy trade). Die Stueckzahl steht je nach
-// Umbruch vor oder hinter dem Jahr; deshalb wird sie im Umfeld gesucht und der Kurs errechnet.
-function parseKontoauszugKaeufe(t){
-  const txt=trBereinige(t);
-  const out=[];
-  const re=/(\d{1,2})\s+(?:Savings plan execution|Buy trade)\s+([A-Z]{2}[A-Z0-9]{9}[0-9])([\s\S]{0,300}?)quantity:\s*([\d.]*)\s*([\d.]*,\d+)\s*€\s*[\d.]*,\d+\s*€\s*(\d{4})\s*([\d.]*)/g;
-  let m;
-  while((m=re.exec(txt))!==null){
-    const monMatch=m[3].match(/([A-Za-zäöü]{3})\.?\s*Handel/);
-    if(!monMatch)continue;
-    const d=trDatum(m[1],monMatch[1],m[6]);
-    const stk=zahlAusText(m[4]||m[7]);
-    const betrag=zahlAusText(m[5]);
-    if(!d||!(stk>0)||!(betrag>0))continue;
-    out.push({datum:d,isin:m[2],a:stk,b:betrag/stk,quelle:'Kontoauszug'});
   }
   return out;
 }
@@ -2328,18 +2372,6 @@ function parseImportTextEinfach(text){
 }
 
 // --- Kaeufe ---
-function importKaeufeVorschau(){
-  const r=parseImportText(gs('imp_kauf'));
-  const el=document.getElementById('imp_kauf_vorschau');if(!el)return;
-  if(r.fehler){el.innerHTML=`<div style="color:${N.orange};font-size:12px">${r.fehler}</div>`;return;}
-  if(!r.length){el.innerHTML=`<div style="color:var(--t3);font-size:12px">Nichts erkannt. Erwartet: Datum, ISIN, Stückzahl, Kurs — je Zeile, oder JSON.</div>`;return;}
-  const zeilen=r.map(x=>{
-    const t=ISIN_TICKER[x.isin];
-    const dop=t?istLosVorhanden(t,x.datum,x.a):false;
-    return`<div style="font-size:12px;padding:2px 0;color:${!t?N.orange:dop?'var(--t3)':'var(--t2)'}">${x.datum.split('-').reverse().join('.')} · ${x.isin} · ${(x.a||0).toFixed(4)} Stk à ${(x.b||0).toFixed(4)} €${!t?' · ISIN unbekannt':dop?' · bereits erfasst, wird übersprungen':''}</div>`;
-  }).join('');
-  el.innerHTML=`<div style="max-height:180px;overflow-y:auto">${zeilen}</div>`;
-}
 function istLosVorhanden(ticker,datum,stueck){
   let da=false;
   (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
@@ -2349,7 +2381,7 @@ function istLosVorhanden(ticker,datum,stueck){
   return da;
 }
 function importKaeufe(){
-  const alle=parseImportText(gsQuelle||gs('imp_kauf'));
+  const alle=parseImportText(gsQuelle||gs('imp_text'));
   if(alle.fehler){showToast(alle.fehler);return;}
   if(!alle.length){showToast('Keine Datensätze erkannt');return;}
   // Bestandszeilen (Vermoegensuebersicht) und Dividenden hier ignorieren
@@ -2433,7 +2465,7 @@ function csvNeuAufbauen(){
 // erste Transaktion vor. Verkaeufe werden per FIFO in der richtigen zeitlichen Reihenfolge
 // verrechnet, damit Restbestand und Einstandskurse stimmen.
 function importVollhistorie(){
-  const alle=parseImportText(gsQuelle||gs('imp_kauf'));
+  const alle=parseImportText(gsQuelle||gs('imp_text'));
   if(alle.fehler){showToast(alle.fehler);return;}
   const bewegungen=(Array.isArray(alle)?alle:[]).filter(x=>x.typ==='kauf'||x.typ==='verkauf');
   if(!bewegungen.length){showToast('Keine Kauf-/Verkaufshistorie erkannt — CSV-Transaktionsexport nötig');return;}
@@ -2470,9 +2502,58 @@ function importVollhistorie(){
     +(abw.length?` · Stückzahl geändert: ${abw.join(', ')}`:' · Stückzahlen unverändert'));
 }
 
+// --- Gemeinsame Einfuegebox ---
+// Erkennt selbst, was im Text steckt, statt den Nutzer zwischen drei Feldern waehlen zu lassen.
+function manuellVorschau(){
+  const el=document.getElementById('imp_vorschau');if(!el)return;
+  const t=gs('imp_text');
+  if(!t.trim()){el.innerHTML='<div style="font-size:12px;color:var(--t3)">Vorschau erscheint beim Einfügen.</div>';return;}
+  const r=parseImportText(t);
+  if(r.fehler){el.innerHTML=`<div style="font-size:12px;color:${N.orange}">${r.fehler}</div>`;return;}
+  const bek=r.filter(x=>ISIN_TICKER[x.isin]);
+  if(!bek.length){el.innerHTML='<div style="font-size:12px;color:var(--t3)">Nichts Verwertbares erkannt. Erwartet: CSV-Export, Wertpapierabrechnung, Vermögensübersicht, Kontoauszug, JSON oder Zeilen mit Semikolon.</div>';return;}
+  const k=bek.filter(x=>x.typ==='kauf'||(!x.typ&&!x.istDividende&&!x.istBestand));
+  const v=bek.filter(x=>x.typ==='verkauf');
+  const d=bek.filter(x=>x.istDividende);
+  const b=bek.filter(x=>x.istBestand);
+  const neu=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(ISIN_TICKER[x.isin],x.datum,x.a)).length;
+  el.innerHTML=`<div style="font-size:13px">${[k.length&&`${k.length} Käufe`,v.length&&`${v.length} Verkäufe`,d.length&&`${d.length} Ausschüttungen`,b.length&&`${b.length} Bestände`].filter(Boolean).join(' · ')}</div>
+    <div style="font-size:12px;color:var(--t3);margin-top:2px">${[...new Set(bek.map(x=>ISIN_TICKER[x.isin]))].join(', ')}</div>
+    ${k.length?`<div style="font-size:12px;color:${neu?N.green:'var(--t3)'};margin-top:4px">${neu?neu+' neue Käufe ab Erfassungsbeginn':'Keine neuen Käufe ab Erfassungsbeginn'}</div>`:''}`;
+}
+// Bestaende aus einer Vermoegensuebersicht uebernehmen (Stueckzahl und Kurs je ISIN)
+function importBestaende(saetze){
+  let n=0;
+  saetze.forEach(x=>{
+    const t=ISIN_TICKER[x.isin];if(!t)return;
+    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+      if(pos.ticker!==t)return;
+      if(x.b>0)pos.kurs=x.b;
+      if(x.a>0&&!posLots(pos).length)pos.stueck=x.a;
+      n++;
+    }));
+  });
+  return n;
+}
+function manuellUebernehmen(){
+  const t=gs('imp_text');
+  const r=parseImportText(t);
+  if(r.fehler){showToast(r.fehler);return;}
+  if(!r.length){showToast('Nichts Verwertbares erkannt');return;}
+  const merk=gsQuelle;gsQuelle=t;
+  let meldung=[];
+  try{
+    const b=r.filter(x=>x.istBestand);
+    if(b.length)meldung.push(importBestaende(b)+' Bestände');
+    if(r.some(x=>x.istDividende))importDividenden();
+    if(r.some(x=>x.typ==='kauf'||(!x.typ&&!x.istDividende&&!x.istBestand)))importKaeufe();
+  }finally{gsQuelle=merk;}
+  if(meldung.length){render();showToast(meldung.join(', ')+' übernommen');}
+}
+
 // --- Erhaltene Ausschuettungen ---
 function importDividenden(){
-  const alle=parseImportText(gsQuelle||gs('imp_div'));
+  const alle=parseImportText(gsQuelle||gs('imp_text'));
   if(alle.fehler){showToast(alle.fehler);return;}
   if(!alle.length){showToast('Keine Datensätze erkannt');return;}
   const r=alle.filter(x=>x.istDividende);
@@ -2563,12 +2644,54 @@ Ausgabe als reines JSON in einem Codeblock:
 [{"datum":"2026-09-04","isin":"LU0292095535","stueck":2.4695,"kurs":30.10}]
 \`\`\``;
 }
-function zeigeBelegPrompt(art){zeigePromptFallback(belegPrompt(art));}
-function kopiereBelegPrompt(art){
-  const t=belegPrompt(art);
-  if(navigator.clipboard&&navigator.clipboard.writeText)
-    navigator.clipboard.writeText(t).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(t));
-  else zeigePromptFallback(t);
+// ===== HANDLUNGSBEDARF =====
+// Statt mehrerer gestapelter Warnkarten ein einziger Bereich mit Einzeilern. Details erst auf Klick,
+// damit das Dashboard nicht von Hinweisen zugestellt wird, die gerade nicht dran sind.
+function handlungsbedarf(){
+  const l=[];
+  const j=new Date().getFullYear();
+  if(datenCheckFaellig())
+    l.push({dringend:true,text:`Ausschüttungsdaten ${j} fehlen — es wird mit fortgeschriebenen Werten gerechnet`,
+            knopf:'Daten holen',aktion:'goTab(4)',zweit:'Einlesen',zweitAktion:'openDatenImport()',
+            spaeter:'quittiereDatenCheck()'});
+  if(jahresCheckFaellig())
+    l.push({dringend:false,text:`Jahresprüfung ${j}: Gewichtung und ETF-Alternativen überprüfen`,
+            knopf:'Prompt',aktion:'openPromptWahl()',spaeter:'quittiereJahresCheck()'});
+  const pf=zielPf();
+  if(pf){
+    pausierteHinweise(pf).forEach(({pos,info})=>{
+      if(info.keineRate)l.push({dringend:true,text:`${pos.isin||pos.ticker} pausiert — keine Sparrate für „${pf.name}" hinterlegt`});
+      else if(info.monate<=1)l.push({dringend:false,text:`${pos.isin||pos.ticker} kann ab ${info.monate===0?'sofort':'nächsten Monat'} wieder bespart werden`});
+      else l.push({dringend:false,text:`${pos.isin||pos.ticker} pausiert — wieder besparbar ab ${monatsNameVersetzt(info.monate)} (${info.monate} Sparraten)`});
+    });
+    const u=csvUebersicht();
+    if(u&&u.neueLose)l.push({dringend:false,text:`${u.neueLose} Käufe aus dem geladenen Export noch nicht erfasst`,knopf:'Übernehmen',aktion:'csvAktualisieren()'});
+  }
+  const f=pruefeStammdaten().filter(x=>x.stufe==='fehler');
+  if(f.length)l.push({dringend:true,text:`${f.length} Datenfehler in den Stammdaten`,knopf:'Ansehen',aktion:'zeigeStammdatenPruefung()'});
+  return l;
+}
+function handlungsbedarfBlock(){
+  const l=handlungsbedarf();
+  if(!l.length)return`<div class="card card-c" style="padding:12px 16px">
+    <div style="font-size:13px;color:${N.green}">✓ Kein Handlungsbedarf — Daten aktuell, keine offenen Hinweise.</div></div>`;
+  const offen=state.hbOffen!==false;
+  const dringend=l.filter(x=>x.dringend).length;
+  return`<div class="card card-y">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="state.hbOffen=${offen?'false':'true'};render()">
+      <span class="ctitle" style="margin:0">HANDLUNGSBEDARF · ${l.length}${dringend?` · ${dringend} dringend`:''}</span>
+      <span style="color:var(--t3);font-size:13px">${offen?'▲':'▼'}</span>
+    </div>
+    ${offen?`<div style="margin-top:10px">${l.map(x=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line,#2a3a5a)">
+        <span style="font-size:13px;color:${x.dringend?N.orange:'var(--t2)'}">${x.dringend?'⚠':'•'} ${x.text}</span>
+        <span style="display:flex;gap:4px;flex-shrink:0">
+          ${x.knopf?`<button class="yp-btn" style="white-space:nowrap;padding:3px 10px;font-size:11px" onclick="event.stopPropagation();${x.aktion}">${x.knopf}</button>`:''}
+          ${x.zweit?`<button class="yp-btn" style="white-space:nowrap;padding:3px 10px;font-size:11px" onclick="event.stopPropagation();${x.zweitAktion}">${x.zweit}</button>`:''}
+          ${x.spaeter?`<button class="yp-btn" style="white-space:nowrap;padding:3px 8px;font-size:11px;opacity:.6" title="Bis nächstes Jahr ausblenden" onclick="event.stopPropagation();${x.spaeter}">×</button>`:''}
+        </span>
+      </div>`).join('')}</div>`:''}
+  </div>`;
 }
 
 // ===== STAMMDATEN-PRUEFUNG =====
@@ -2590,21 +2713,11 @@ function pruefeStammdaten(){
       const d=Math.abs(lotsStueck(pos)-(pos.stueck||0));
       if(d>1e-6)funde.push({stufe:'fehler',ort,text:`Summe der Lose (${lotsStueck(pos).toFixed(6)}) weicht von der Stückzahl (${(pos.stueck||0).toFixed(6)}) ab.`});
     }else funde.push({stufe:'warn',ort,text:'Keine Kauflose erfasst — Ex-Datum-Logik rechnet mit dem Gesamtbestand.'});
-    // Gepflegte divs gegen Stammdaten
+    // Ohne Stammdaten muss wenigstens ein gepflegtes divs-Array vorliegen
     const stamm=ausschuettungenJahr(pos.ticker,jahr);
     const arr=(pos.divs||{})[jahr];
-    if(stamm.length&&Array.isArray(arr)&&arr.some(v=>v>0)){
-      const fx=fxKurs(fondsWaehrung(pos.ticker));
-      const sumStamm=stamm.reduce((a,x)=>a+x.betrag,0)*fx;
-      const sumDivs=arr.reduce((a,b)=>a+(b||0),0);
-      if(sumStamm>0&&Math.abs(sumStamm-sumDivs)/sumStamm>0.02)
-        funde.push({stufe:'fehler',ort,text:`Jahressumme ${jahr}: gepflegt ${sumDivs.toFixed(4)} €, Stammdaten ${sumStamm.toFixed(4)} € — Abweichung ${((sumDivs/sumStamm-1)*100).toFixed(1)} %.`});
-      // Zahlmonate abgleichen
-      const mStamm=[...new Set(stamm.map(x=>+x.pay.slice(5,7)))].sort((a,b)=>a-b).join(',');
-      const mDivs=arr.map((v,i)=>v>0?i+1:0).filter(Boolean).join(',');
-      if(mStamm!==mDivs)
-        funde.push({stufe:'fehler',ort,text:`Zahlmonate ${jahr}: gepflegt ${mDivs||'keine'}, laut Stammdaten ${mStamm}.`});
-    }
+    if(!stamm.length&&!(Array.isArray(arr)&&arr.some(v=>v>0)))
+      funde.push({stufe:'warn',ort,text:`Keine Ausschüttungsdaten für ${jahr} — weder Stammdaten noch gepflegte Werte.`});
     // Plausibilitaet
     if(!(pos.kurs>0))funde.push({stufe:'fehler',ort,text:'Kein gültiger Kurs hinterlegt.'});
     if(pos.ter===undefined||pos.ter===null)funde.push({stufe:'warn',ort,text:'Keine TER hinterlegt.'});
@@ -2694,14 +2807,6 @@ Regeln für das JSON: Datumsformat immer JJJJ-MM-TT, "betrag" als Zahl in EUR mi
 Wenn du für eine ISIN keine belastbaren Daten findest, gib sie mit einer leeren Liste zurück und sage es mir ausdrücklich im Text — rate keine Termine.`;
 }
 
-function kopiereDatenPrompt(){
-  const txt=datenCheckPrompt();
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(txt));
-  }else zeigePromptFallback(txt);
-}
-function zeigeDatenPrompt(){zeigePromptFallback(datenCheckPrompt());}
-
 // JSON aus der Recherche einlesen
 function openDatenImport(){
   const j=new Date().getFullYear();
@@ -2743,25 +2848,6 @@ function importDaten(){
   state.datenCheckQuittiert=jahr;
   closeModal();render();
   showToast(n+' Ausschüttungen für '+jahr+' übernommen'+(unbekannt.length?' · unbekannte ISIN übersprungen: '+unbekannt.join(', '):''));
-}
-
-// Warnhinweis-Karte fuer die jaehrliche Datenaktualisierung
-function datenCheckBlock(){
-  if(!datenCheckFaellig())return'';
-  const j=new Date().getFullYear();
-  return`<div class="card card-y">
-    <div class="ctitle">AUSSCHÜTTUNGSDATEN ${j} FEHLEN</div>
-    <div style="font-weight:700;color:${N.orange};margin-bottom:6px">🔄 Für ${j} liegen noch keine echten Ausschüttungsdaten vor. Die App rechnet aktuell mit den aus 2026 fortgeschriebenen Ex-Tagen, Zahltagen und Beträgen.</div>
-    <p class="hint">Das ist eine Schätzung: Ex-Tage verschieben sich jedes Jahr um einige Tage, und die Beträge schwanken teils erheblich. Hol dir die echten Daten und lies sie hier ein — der Prompt fragt sie im passenden Format ab.</p>
-    <div class="btnrow" style="margin-top:10px">
-      <button class="btn btn-g" style="flex:1" onclick="kopiereDatenPrompt()">Prompt kopieren</button>
-      <button class="btn btn-c" onclick="zeigeDatenPrompt()">Ansehen</button>
-    </div>
-    <div class="btnrow" style="margin-top:6px">
-      <button class="btn btn-c" style="flex:1" onclick="openDatenImport()">Daten einlesen</button>
-      <button class="btn btn-gh" onclick="quittiereDatenCheck()">Später</button>
-    </div>
-  </div>`;
 }
 
 // ===== JAHRESEND-PRUEFUNG =====
@@ -2833,13 +2919,42 @@ ${zeilen}
 Antworte strukturiert: erst die aus deiner Sicht gravierendsten Befunde, dann die Detailanalyse je ETF, zum Schluss eine priorisierte Liste konkreter Handlungsoptionen mit jeweiliger Begründung und Gegenargument. Recherchiere aktuelle Daten (TER, Fondsvolumen, Ausschüttungshistorie), statt dich auf dein Gedächtnis zu verlassen.`;
 }
 
-function kopierePrompt(){
-  const txt=jahresCheckPrompt();
-  const fertig=()=>showToast('Prompt kopiert — in Claude einfügen');
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(fertig).catch(()=>zeigePromptFallback(txt));
-  }else zeigePromptFallback(txt);
+// Alle Prompts an einer Stelle — vorher lagen vier Knoepfe ueber die Oberflaeche verstreut.
+const PROMPTS=[
+  {id:'jahr',  titel:'Jahresprüfung Depot',        info:'Gewichtung, Überschneidungen und ETF-Alternativen prüfen lassen', fn:()=>jahresCheckPrompt()},
+  {id:'daten', titel:'Ausschüttungstermine holen', info:'Ex-Tage, Zahltage und Beträge für ein Jahr recherchieren, Rückgabe als JSON', fn:()=>datenCheckPrompt()},
+  {id:'kauf',  titel:'Beleg → Käufe',              info:'Wertpapierabrechnung in das Importformat umwandeln (nur nötig ohne CSV-Export)', fn:()=>belegPrompt('kauf')},
+  {id:'div',   titel:'Beleg → Ausschüttungen',     info:'Kontoauszug in das Importformat umwandeln (nur nötig ohne CSV-Export)', fn:()=>belegPrompt('div')}
+];
+function openPromptWahl(){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Prompt für Claude</div>
+    <p class="hint" style="margin-bottom:10px">Kopieren, in Claude einfügen, Antwort zurück ins Tool.</p>
+    ${PROMPTS.map(x=>`<div style="padding:8px 0;border-top:1px solid var(--line,#2a3a5a)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--cyan)">${x.titel}</span>
+        <span style="display:flex;gap:6px">
+          <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="promptKopieren('${x.id}')">Kopieren</button>
+          <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="promptAnsehen('${x.id}')">Ansehen</button>
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--t3);margin-top:3px">${x.info}</div>
+    </div>`).join('')}
+    <div class="btnrow" style="margin-top:12px"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
 }
+function promptText(id){const x=PROMPTS.find(y=>y.id===id);return x?x.fn():'';}
+function promptAnsehen(id){zeigePromptFallback(promptText(id));}
+function promptKopieren(id){
+  const t=promptText(id);
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(t));
+  else zeigePromptFallback(t);
+}
+
 function zeigePromptFallback(txt){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modal-box">
@@ -2851,57 +2966,6 @@ function zeigePromptFallback(txt){
   m.classList.add('open');
   m.onclick=e=>{if(e.target===m)closeModal();};
 }
-function zeigeJahresPrompt(){zeigePromptFallback(jahresCheckPrompt());}
-
-// Warnhinweis-Karte fuer die jaehrliche Depotpruefung
-function jahresCheckBlock(){
-  if(!jahresCheckFaellig())return'';
-  const jahr=new Date().getFullYear();
-  return`<div class="card card-y">
-    <div class="ctitle">JAHRESPRÜFUNG ${jahr} FÄLLIG</div>
-    <div style="font-weight:700;color:${N.orange};margin-bottom:6px">📅 Zeit für den Jahrescheck: Gewichtung der einzelnen ETF im Depot überprüfen und nach besseren ETF-Alternativen suchen.</div>
-    <p class="hint">Einmal im Jahr lohnt der Blick von außen: Haben sich die Gewichte verschoben? Überschneiden sich ETF inhaltlich? Gibt es inzwischen günstigere oder besser konstruierte Produkte? Das Tool hat dafür einen Prompt mit deinen aktuellen Depotdaten vorbereitet.</p>
-    <div class="btnrow" style="margin-top:10px">
-      <button class="btn btn-g" style="flex:1" onclick="kopierePrompt()">Prompt kopieren</button>
-      <button class="btn btn-c" onclick="zeigeJahresPrompt()">Ansehen</button>
-      <button class="btn btn-gh" onclick="quittiereJahresCheck()">Erledigt</button>
-    </div>
-  </div>`;
-}
-
-// Warnhinweis-Karte fuer pausierte ETF eines Depots
-function wiederaufnahmeBlock(pf){
-  const hins=pausierteHinweise(pf);
-  if(!hins.length)return '';
-  return`<div class="card card-y">
-    <div class="ctitle">PAUSIERTE ETF · WIEDERAUFNAHME</div>
-    ${hins.map(({pos,info})=>{
-      const isin=pos.isin||pos.ticker;
-      let text,farbe;
-      if(info.keineRate){
-        farbe=N.orange;
-        text=`${isin} ist pausiert. Ohne hinterlegte Sparrate für „${pf.name}" lässt sich nicht berechnen, ab wann wieder bespart werden kann.`;
-      }else if(info.monate===0){
-        farbe=N.green;
-        text=`${isin} kann ab sofort wieder bespart werden.`;
-      }else if(info.monate===1){
-        farbe=N.green;
-        text=`${isin} kann ab nächsten Monat wieder bespart werden.`;
-      }else{
-        farbe=N.orange;
-        text=`${isin} kann ab ${monatsNameVersetzt(info.monate)} wieder bespart werden — das sind noch ${info.monate} Sparraten.`;
-      }
-      return`<div style="margin-bottom:10px">
-        <div style="font-weight:700;color:${farbe};margin-bottom:4px">${info.monate===0||info.monate===1?'✓':'⏳'} ${text}</div>
-        <div style="font-size:12px;color:var(--t3)">
-          ${pos.ticker||pos.name} · Anteil am <b>gesamten</b> ${pf.name}: ${info.ist.toFixed(2)} % · Ziel ${info.ziel.toFixed(2)} %${info.istDanach!==undefined?` · nach ${info.monate} Sparrate${info.monate===1?'':'n'}: ${info.istDanach.toFixed(2)} %`:''}
-        </div>
-      </div>`;
-    }).join('')}
-    <p class="hint">Gerechnet wird stets über das vollständige Depot — pausierte Positionen zählen zum Depotwert, auch wenn sie keine Sparrate erhalten. Der pausierte ETF behält seinen Wert, während das Depot um die Sparrate wächst; sein Anteil sinkt dadurch Monat für Monat. Kursveränderungen sind nicht eingerechnet.</p>
-  </div>`;
-}
-
 function screenSparplan(){
   if(state.selectedSparIdx>=state.portfolios.length)state.selectedSparIdx=0;
   const apf=state.portfolios[state.selectedSparIdx]||state.portfolios[0];
@@ -2909,9 +2973,7 @@ function screenSparplan(){
   return`<div class="screen">
     <h1 class="stitle gg" style="font-size:50px;margin-top:16px">Sparplan</h1>
 
-    ${datenCheckBlock()}
-    ${jahresCheckBlock()}
-    ${wiederaufnahmeBlock(apf)}
+    ${handlungsbedarfBlock()}
 
     <!-- MERKER: klickbare Tiles -->
     <div class="card card-c">
@@ -3133,21 +3195,6 @@ function updatePriceByISIN(isin, pfIdx, posIdx, rawVal){
   showToast(`✓ Kurs ${val.toFixed(4)} € für ${targetIsin} gesetzt`);
 }
 
-// Stückzahl analog zur Kurspflege über alle Portfolios synchronisieren
-function updateSharesByISIN(isin, rawVal){
-  const val=parseFloat(String(rawVal).replace(',','.'));
-  if(isNaN(val)||val<0)return;
-  const targetIsin=(isin||'').trim();
-  if(!targetIsin)return;
-  state.portfolios.forEach(pf=>{
-    pf.positions.forEach(pos=>{
-      if((pos.isin||'').trim()===targetIsin)pos.stueck=val;
-    });
-  });
-  saveState();
-  showToast(`✓ ${val} Stk für ${targetIsin} in allen Portfolios gesetzt`);
-}
-
 function screenSettings(){
   const items=[
     {t:'Cloud-Sync',ic:'☁',body:(window.buildCloudSyncSettingsBody?window.buildCloudSyncSettingsBody():'<p class="hint">Lädt…</p>')},
@@ -3166,10 +3213,50 @@ function screenSettings(){
         <button class="btn btn-gh" onclick="document.getElementById('json-file').click()">📤 JSON importieren…</button>
       </div>
       <p class="hint" style="margin-top:8px;color:var(--green)">✓ Kompatibel mit RebalGold_Backup_*.json (iOS/macOS App)</p>`},
-    {t:'Depotauszug-Import',ic:'📄',body:`
-      <p class="hint" style="margin-bottom:10px">Übernimmt <strong>Stückzahlen und Kurse</strong> direkt aus der Trade-Republic-Vermögensübersicht. Zuordnung über die ISIN — gespiegelte Positionen werden in allen Teil-Portfolios gleichzeitig aktualisiert.</p>
-      <button class="btn btn-c" style="width:100%" onclick="openTRModal()">📄 Auszug einfügen und abgleichen</button>
-      <p class="hint" style="margin-top:8px">Empfohlener Rhythmus: quartalsweise nach den Ausschüttungen im März, Juni, September und Dezember.</p>`},
+    {t:'CSV-Import',ic:'📄',body:`
+      <div style="margin-bottom:18px">
+      <div class="ctitle" style="margin-bottom:8px">TRANSAKTIONSEXPORT</div>
+      <p class="hint" style="margin-bottom:10px">Der CSV-Transaktionsexport aus Trade Republic genügt — er enthält Käufe, Verkäufe und Ausschüttungen. Datei auswählen, fertig. Die Datei wird im Browser gelesen und verlässt dein Gerät nicht.</p>
+      <label class="btn btn-g" style="width:100%;display:block;text-align:center;cursor:pointer">
+        CSV-Datei auswählen
+        <input type="file" accept=".csv,text/csv,text/plain" onchange="ladeCSVDatei(this)" style="display:none"/>
+      </label>
+      ${(()=>{const u=csvUebersicht();
+        if(!u)return`<p class="hint" style="margin-top:10px">Noch keine Datei geladen.</p>`;
+        return`<div class="kz-tile" style="margin-top:10px">
+          <div style="font-size:13px">${u.kaeufe} Käufe · ${u.verkaeufe} Verkäufe · ${u.divs} Ausschüttungen</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} deiner ETF · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
+          <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe bereits erfasst'}</div>
+        </div>
+        <div class="btnrow" style="margin-top:10px">
+          <button class="btn btn-g" style="flex:1" onclick="csvAktualisieren()">Aktualisieren</button>
+          <button class="btn btn-c" onclick="csvNeuAufbauen()">Neu aufbauen</button>
+        </div>
+        <p class="hint" style="margin-top:6px"><b>Aktualisieren</b> ergänzt nur, was fehlt — der normale Monatsablauf. <b>Neu aufbauen</b> verwirft alle Lose und legt die komplette Historie neu an, mit Erfassungsbeginn bei der ersten Transaktion; einmalig sinnvoll oder nach Korrekturen im Export. Aktuell ab ${TRACKING_START.split('-').reverse().join('.')}.</p>`;})()}
+    </div>
+
+    <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid var(--line,#2a3a5a)">
+      <div class="ctitle" style="margin-bottom:8px">MANUELL EINFÜGEN</div>
+      <p class="hint" style="margin-bottom:8px">Für einzelne Belege, wenn kein CSV-Export zur Hand ist. Erkannt werden Wertpapierabrechnung, Vermögensübersicht, Kontoauszug, JSON und Zeilen mit Semikolon — was drinsteckt, ermittelt das Tool selbst.</p>
+      <textarea id="imp_text" oninput="manuellVorschau()" style="width:100%;height:110px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder="Beleg hier einfügen"></textarea>
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--t2);margin:8px 0;cursor:pointer">
+        <input type="checkbox" id="imp_kauf_bestand" checked style="margin-top:2px"/>
+        <span>Käufe stecken bereits im Anfangsbestand (Anfangs-Los reduzieren, Gesamtstückzahl bleibt gleich)</span>
+      </label>
+      <div id="imp_vorschau" class="kz-tile" style="margin-bottom:10px"><div style="font-size:12px;color:var(--t3)">Vorschau erscheint beim Einfügen.</div></div>
+      <div class="btnrow">
+        <button class="btn btn-g" style="flex:1" onclick="manuellUebernehmen()">Übernehmen</button>
+        <button class="btn btn-c" onclick="zeigeDivAbgleich()">Abgleich</button>
+        <button class="btn btn-c" onclick="openPromptWahl()">Prompts</button>
+      </div>
+    </div>
+
+    <div style="padding-top:14px;border-top:1px solid var(--line,#2a3a5a)">
+      <div class="ctitle" style="margin-bottom:8px">DATENQUALITÄT</div>
+      <p class="hint" style="margin-bottom:10px">Gleicht Kürzel gegen ISIN, Lose gegen Stückzahl, gepflegte Ausschüttungen gegen die Stammdaten und Zielgewichte gegen 100 % ab.</p>
+      <button class="btn btn-c" style="width:100%" onclick="zeigeStammdatenPruefung()">Stammdaten prüfen</button>
+    </div>
+`},
     {t:'Wissensdatenbank',ic:'💡',body:`
       <p><strong style="color:var(--yellow)">Ampel:</strong> Grün = Δ &lt;2% · Gelb = 2–5% · Rot = &gt;5%</p>
       <p><strong style="color:var(--yellow)">Buy-Only:</strong> Nur Käufe, keine Verkäufe — Buy-and-Hold-kompatibel.</p>
@@ -3212,62 +3299,6 @@ function screenSettings(){
       </div>`}
   ];
   return`
-    <div class="card card-c">
-      <div class="ctitle">TRANSAKTIONSEXPORT EINLESEN</div>
-      <p class="hint" style="margin-bottom:10px">Der CSV-Transaktionsexport aus Trade Republic genügt — er enthält Käufe, Verkäufe und Ausschüttungen. Datei auswählen, fertig. Die Datei wird im Browser gelesen und verlässt dein Gerät nicht.</p>
-      <label class="btn btn-g" style="width:100%;display:block;text-align:center;cursor:pointer">
-        CSV-Datei auswählen
-        <input type="file" accept=".csv,text/csv,text/plain" onchange="ladeCSVDatei(this)" style="display:none"/>
-      </label>
-      ${(()=>{const u=csvUebersicht();
-        if(!u)return`<p class="hint" style="margin-top:10px">Noch keine Datei geladen.</p>`;
-        return`<div class="kz-tile" style="margin-top:10px">
-          <div style="font-size:13px">${u.kaeufe} Käufe · ${u.verkaeufe} Verkäufe · ${u.divs} Ausschüttungen</div>
-          <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} deiner ETF · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
-          <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe bereits erfasst'}</div>
-        </div>
-        <div class="btnrow" style="margin-top:10px">
-          <button class="btn btn-g" style="flex:1" onclick="csvAktualisieren()">Aktualisieren</button>
-          <button class="btn btn-c" onclick="csvNeuAufbauen()">Neu aufbauen</button>
-        </div>
-        <p class="hint" style="margin-top:6px"><b>Aktualisieren</b> ergänzt nur, was fehlt — der normale Monatsablauf. <b>Neu aufbauen</b> verwirft alle Lose und legt die komplette Historie neu an, mit Erfassungsbeginn bei der ersten Transaktion; einmalig sinnvoll oder nach Korrekturen im Export. Aktuell ab ${TRACKING_START.split('-').reverse().join('.')}.</p>`;})()}
-    </div>
-
-    <div class="card card-c">
-      <div class="ctitle">MANUELL EINFÜGEN · KÄUFE</div>
-      <p class="hint" style="margin-bottom:8px">Am besten den <b>Transaktionsexport als CSV</b> komplett hineinkopieren — dort stehen alle Käufe mit Datum, ISIN, Stückzahl und Kurs in festen Spalten. Auch erkannt: Wertpapierabrechnung, Vermögensübersicht, JSON, Zeilen mit Semikolon. Maßgeblich ist der Ausführungstag, nicht die Wertstellung. Bereits erfasste Lose werden übersprungen, Verkäufe werden nicht automatisch gebucht.</p>
-      <textarea id="imp_kauf" oninput="importKaeufeVorschau()" style="width:100%;height:110px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder="2026-09-04; LU0292095535; 2.4695; 30.10"></textarea>
-      <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--t2);margin:8px 0;cursor:pointer">
-        <input type="checkbox" id="imp_kauf_bestand" checked style="margin-top:2px"/>
-        <span>Käufe stecken bereits im Anfangsbestand (Anfangs-Los entsprechend reduzieren, Gesamtstückzahl bleibt gleich)</span>
-      </label>
-      <div id="imp_kauf_vorschau" class="kz-tile" style="margin-bottom:10px"><div style="font-size:12px;color:var(--t3)">Vorschau erscheint beim Einfügen.</div></div>
-      <div class="btnrow">
-        <button class="btn btn-g" style="flex:1" onclick="importKaeufe()">Käufe ergänzen</button>
-        <button class="btn btn-c" onclick="kopiereBelegPrompt('kauf')">Prompt</button>
-      </div>
-      <div class="btnrow" style="margin-top:6px">
-        <button class="btn btn-c" style="flex:1" onclick="importVollhistorie()">Historie komplett neu aufbauen</button>
-      </div>
-      <p class="hint" style="margin-top:6px">„Historie komplett neu aufbauen" verwirft die bisherigen Lose und legt sie aus dem vollständigen CSV-Export neu an — inklusive Verkäufen nach FIFO. Der Erfassungsbeginn wandert dabei auf die erste Transaktion, wodurch die Näherung für zurückliegende Monate entfällt und der Dividendenkalender durchgängig exakt rechnet. Aktuell ab ${TRACKING_START.split('-').reverse().join('.')}.</p>
-    </div>
-
-    <div class="card card-c">
-      <div class="ctitle">MANUELL EINFÜGEN · AUSSCHÜTTUNGEN</div>
-      <p class="hint" style="margin-bottom:8px">Derselbe <b>CSV-Transaktionsexport</b> oder der Kontoauszug — Ausschüttungen werden daraus erkannt (im CSV der Typ DIVIDEND samt einbehaltener Steuer). Dient dem Abgleich gegen die erwarteten Beträge, so fallen falsche Stammdaten oder eine falsche Stückzahl zum Ex-Tag auf. Käufe werden hieraus bewusst nicht gelesen.</p>
-      <textarea id="imp_div" style="width:100%;height:90px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder="2026-09-03; LU0292095535; 17.80"></textarea>
-      <div class="btnrow" style="margin-top:8px">
-        <button class="btn btn-g" style="flex:1" onclick="importDividenden()">Zahlungen übernehmen</button>
-        <button class="btn btn-c" onclick="zeigeDivAbgleich()">Abgleich</button>
-        <button class="btn btn-c" onclick="kopiereBelegPrompt('div')">Prompt</button>
-      </div>
-    </div>
-
-    <div class="card card-c">
-      <div class="ctitle">DATENQUALITÄT</div>
-      <p class="hint" style="margin-bottom:10px">Gleicht Kürzel gegen ISIN, Lose gegen Stückzahl, gepflegte Ausschüttungen gegen die Stammdaten und Zielgewichte gegen 100 % ab.</p>
-      <button class="btn btn-c" style="width:100%" onclick="zeigeStammdatenPruefung()">Stammdaten prüfen</button>
-    </div>
 <div class="screen">
     <h1 class="stitle gy" style="font-size:50px;margin-top:16px">Einstellungen</h1>
     ${items.map((it,i)=>`
@@ -3406,7 +3437,7 @@ function openVerkaufModal(pfI,posI){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modal-box">
     <div class="modal-title">Verkauf simulieren · ${pos.ticker||pos.name}</div>
-    <p class="hint" style="margin-bottom:10px">Bestand ${lotsStueck(pos).toFixed(4)} Stk · Ø Kaufkurs ${lotsKaufkurs(pos).toFixed(4)} € · Kurs ${(pos.kurs||0).toFixed(4)} €. Abgerechnet wird nach FIFO: die ältesten Stücke zuerst.</p>
+    <p class="hint" style="margin-bottom:10px">Bestand ${STK(lotsStueck(pos))} Stk · Ø Kaufkurs ${KURS(lotsKaufkurs(pos))} € · Kurs ${KURS(pos.kurs)} €. Abgerechnet wird nach FIFO: die ältesten Stücke zuerst.</p>
     <div class="field"><label>Stückzahl</label><input type="text" inputmode="decimal" id="v_s" oninput="verkaufVorschau(${pfI},${posI})" placeholder="z.B. 100"/></div>
     <div class="field"><label>Verkaufskurs €</label><input type="text" inputmode="decimal" id="v_k" value="${(pos.kurs||0).toFixed(4)}" oninput="verkaufVorschau(${pfI},${posI})"/></div>
     <div class="field"><label>oder Zielgewicht erreichen (%)</label><input type="text" inputmode="decimal" id="v_z" placeholder="${(pos.target||0).toFixed(2)}" oninput="verkaufAufZiel(${pfI},${posI})"/></div>
