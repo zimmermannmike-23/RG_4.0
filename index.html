@@ -171,8 +171,15 @@ const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.21';
+const APP_VERSION='3.28';
 const APP_CHANGELOG=[
+  {v:'3.28',d:'2026-09-18',t:'Fehler behoben: „Aktualisieren" buchte Kaeufe, die vor dem Erfassungsbeginn liegen, zusaetzlich zum Anfangsbestand ein — bei einem vollstaendigen Export wuchs der Bestand dadurch auf fast das Doppelte. Solche Kaeufe werden jetzt uebersprungen und gemeldet; wer die ganze Historie will, nutzt „Neu aufbauen", das den Erfassungsbeginn vorzieht. Auch die Uebersicht zaehlt nur noch Kaeufe ab dem Erfassungsbeginn als offen.'},
+  {v:'3.27',d:'2026-09-18',t:'Der CSV-Transaktionsexport wird jetzt als Datei ausgewaehlt statt hineinkopiert. Nach dem Laden zeigt die Karte, wie viele Kaeufe, Verkaeufe und Ausschuettungen enthalten sind, welchen Zeitraum sie abdecken und wie viele Kaeufe noch nicht erfasst sind. Zwei Knoepfe: „Aktualisieren" ergaenzt nur Fehlendes und uebernimmt die Ausschuettungen — der normale Monatsablauf; „Neu aufbauen" legt die komplette Historie neu an. Die bisherigen Textfelder bleiben als Ausweichweg fuer einzelne Belege erhalten. Die Datei wird im Browser gelesen und verlaesst das Geraet nicht.'},
+  {v:'3.26',d:'2026-09-18',t:'Erfassungsbeginn der Kauflose ist nicht mehr fest auf den 01.09.2026 gesetzt, sondern wandert beim neuen Vollimport auf die erste Transaktion des CSV-Exports. Damit entfaellt die Naeherung fuer zurueckliegende Monate und der Dividendenkalender rechnet durchgaengig Ex-Datum-genau. „Historie komplett neu aufbauen" verwirft die bisherigen Lose und legt sie aus dem Export neu an, Verkaeufe werden dabei in zeitlicher Reihenfolge per FIFO verrechnet; Abweichungen zur bisherigen Stueckzahl werden gemeldet.'},
+  {v:'3.25',d:'2026-09-18',t:'Der Trade-Republic-Transaktionsexport als CSV wird jetzt direkt eingelesen und ist die bevorzugte Quelle: feste Spalten statt umbruchabhaengiger PDF-Zeilen. Kaeufe (BUY, BENEFITS_SAVEBACK) werden als datierte Lose mit Stueckzahl und Ausfuehrungskurs angelegt, Ausschuettungen (DIVIDEND, DISTRIBUTION) mit Betrag und einbehaltener Steuer fuer den Abgleich uebernommen. Verkaufszeilen werden erkannt, aber nicht automatisch gebucht — sie tragen im Export ein negatives Vorzeichen bei der Stueckzahl und werden nur gemeldet. Der eingebaute CSV-Leser kommt mit Anfuehrungszeichen und eingebetteten Kommas zurecht.'},
+  {v:'3.24',d:'2026-09-18',t:'Trade-Republic-Belege werden direkt eingelesen, ohne Umweg ueber einen Prompt. Die Belegart wird am Text erkannt: Wertpapierabrechnung Sparplan (Ausfuehrungstag, ISIN, Stueckzahl, Durchschnittskurs), Vermoegensuebersicht (Bestaende je ISIN zum Stichtag) und Kontoauszug (Aussschuettungen ueber die Zeilen Cash Dividend for ISIN). Massgeblich fuer ein Kauflos ist der Ausfuehrungstag, nicht die Wertstellung zwei Tage spaeter — fuer die Ex-Tag-Zuordnung zaehlt der Handelstag. Kaeufe werden bewusst NICHT aus dem Kontoauszug gelesen: dort stehen Stueckzahl und Betrag je nach Zeilenumbruch in wechselnder Reihenfolge, eine verlaessliche Zuordnung ist nicht moeglich. Markdown-Tabellenrahmen aus konvertierten PDF werden vor dem Parsen entfernt.'},
+  {v:'3.23',d:'2026-09-18',t:'Belegimport in den Einstellungen. (1) Kaeufe aus der Vermoegensuebersicht: Datum, ISIN, Stueckzahl und Kurs je Ausfuehrung werden als datierte Lose eingehaengt, mit Vorschau vor dem Uebernehmen; bereits erfasste Lose werden anhand Datum und Stueckzahl uebersprungen, ein erneuter Upload legt also nichts doppelt an. Die Option „steckt bereits im Anfangsbestand" greift auch hier. (2) Erhaltene Ausschuettungen aus dem Kontoauszug samt Abgleich gegen die erwarteten Betraege je ETF — Abweichungen ueber 5 % werden hervorgehoben. Fuer beide Wege erzeugt die App einen Prompt, der einen Beleg in das erwartete JSON bringt. Akzeptiert werden JSON und einfache Zeilen mit Semikolon, Tabulator oder mehreren Leerzeichen als Trenner.'},
+  {v:'3.22',d:'2026-09-18',t:'Vier Erweiterungen. (1) Steuer: Ausschuettungen werden zusaetzlich netto ausgewiesen — 26,375 % ohne Kirchensteuer auf den nach Teilfreistellung steuerpflichtigen Anteil, Sparerpauschbetrag ab 2027 als ausgeschoepft angesetzt; Teilfreistellung je ETF aenderbar (Covered Call vorsorglich 0 %). (2) Dividendenwachstum je ETF aus dem Bericht ZC-K vom 15.09.2026 (Kurs-CAGR 2026-2041): DXSA 5,33 · ISPA 4,33 · ZPRG 2,43 · VGWD 5,96 · XGSD 3,77 · TDIV 8,00 · QYLE 0 %; wirkt nur auf fortgeschriebene Jahre. (3) Verkauf nach FIFO mit Vorschau: realisierter Gewinn, Steuer, Netto-Erloes, Anteil danach und entfallende Ausschuettung; wahlweise ueber ein Zielgewicht statt einer Stueckzahl. (4) ZPRG gefuehrt in USD mit pflegbarem Umrechnungskurs statt fester EUR-Skalierung. Dazu eine Stammdaten-Pruefung in den Einstellungen.'},
   {v:'3.21',d:'2026-09-18',t:'Ausschuettungsdaten fuer 2027 bis 2041: Ex-Tage, Zahltage und Betraege werden aus 2026 fortgeschrieben (gleicher Tag/Monat, Jahr hochgezaehlt), sodass Dividendenkalender und Ex-Datum-Logik auch fuer kuenftige Jahre rechnen. Solche Jahre sind im Dividenden-Screen ausdruecklich als Schaetzung gekennzeichnet. Ab dem 1. Januar jedes Jahres (ab 2027) erinnert eine Karte daran, die echten Daten zu beschaffen — mit fertigem Rechercheprompt, der die Fonds nur ueber ISIN anspricht, jede einzelne Ausschuettung statt je Kalendermonat eine abfragt und zusaetzlich TER, Fondsvolumen, Verschmelzungen, Index-/Domizilwechsel und steuerliche Aenderungen erhebt. Die Antwort kommt als JSON zurueck und laesst sich direkt einlesen; nachgetragene Daten haben Vorrang vor der Fortschreibung.'},
   {v:'3.20',d:'2026-09-18',t:'Jahrespruefungs-Prompt identifiziert die Fonds jetzt ausschliesslich ueber die ISIN. Die im Tool gespeicherten Fondsnamen und Kuerzel werden nicht mehr mitgegeben, weil sie fehlerhaft sein koennen (Beispiel: LU0292095535 ist als „Select Dividend 30" hinterlegt, gehoert aber zum Quality Dividend). Der Prompt fordert Claude ausdruecklich auf, jede ISIN nachzuschlagen, den amtlichen Namen samt Index, Replikation, Domizil, Waehrung und Volumen zu nennen und Abweichungen zu meinen Tabellenwerten zu melden; Alternativvorschlaege muessen ebenfalls eine ISIN tragen.'},
   {v:'3.19',d:'2026-09-18',t:'Sparrate wird jetzt unter den AKTIVEN ETF verteilt (Ziele untereinander normiert), waehrend Ampel, Score und Warnhinweise weiter ueber das gesamte Depot inkl. pausierter Positionen rechnen. Zuvor liefen beide ueber das Gesamtdepot, wodurch auch der unter den Aktiven bereits uebergewichtete ETF noch Geld bekam und die Angleichung statt einem Monat viele Monate gedauert haette. Neu ausserdem: Jahrespruefung — ab dem 1. Dezember erscheint ein Hinweis, die Gewichtung der einzelnen ETF zu pruefen und nach Alternativen zu suchen, samt fertigem Claude-Prompt mit Depotwert, Sparrate, Gewichten, TER, Ausschuettungen und Rendite je ETF. Einmal je Jahr quittierbar.'},
@@ -338,11 +345,11 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-04-15',pay:'2026-04-15',betrag:0.1870,status:'bestaetigt'},
     {ex:'2026-07-15',pay:'2026-07-15',betrag:0.6749,status:'bestaetigt'},
     {ex:'2026-10-15',pay:'2026-10-15',betrag:0.4100,status:'prognose'}]},
-  ZPRG:{quelle:'divvydiary (IE00B9CQXS71, USD -> EUR auf Jahressumme 1,29 skaliert)',items:[
-    {ex:'2026-02-02',pay:'2026-02-17',betrag:0.2218,status:'bestaetigt'},
-    {ex:'2026-05-06',pay:'2026-05-20',betrag:0.2984,status:'bestaetigt'},
-    {ex:'2026-08-03',pay:'2026-08-17',betrag:0.4747,status:'bestaetigt'},
-    {ex:'2026-11-02',pay:'2026-11-17',betrag:0.2951,status:'prognose'}]},
+  ZPRG:{quelle:'divvydiary (IE00B9CQXS71) — Originalbetraege in USD',waehrung:'USD',items:[
+    {ex:'2026-02-02',pay:'2026-02-17',betrag:0.2676,status:'bestaetigt'},
+    {ex:'2026-05-06',pay:'2026-05-20',betrag:0.3600,status:'bestaetigt'},
+    {ex:'2026-08-03',pay:'2026-08-17',betrag:0.5726,status:'bestaetigt'},
+    {ex:'2026-11-02',pay:'2026-11-17',betrag:0.3559,status:'prognose'}]},
   VGWD:{quelle:'Vanguard / dividenden.com (IE00B8GKDB10, EUR)',items:[
     {ex:'2026-03-19',pay:'2026-04-01',betrag:0.3730,status:'bestaetigt'},
     {ex:'2026-06-18',pay:'2026-07-01',betrag:0.8060,status:'bestaetigt'},
@@ -412,13 +419,64 @@ function ausschuettungenJahr(ticker,jahr){
 function ausschuettungenZahlmonat(ticker,m,jahr){
   return ausschuettungenJahr(ticker,jahr??2026).filter(x=>+x.pay.slice(5,7)===m);
 }
-// Ausschuettung je Anteil fuer einen Zahlmonat: manuell gepflegte divs haben Vorrang,
-// sonst wird aus den Stammdaten abgeleitet (so muessen nicht 15 Jahre im State liegen).
+// ===== FREMDWAEHRUNG =====
+// Manche Fonds schuetten nicht in Euro aus (ZPRG in USD). Die Stammdaten halten den
+// Originalbetrag; die Umrechnung erfolgt mit einem gepflegten Kurs aus state.fx.
+const FX_STANDARD={USD:0.8290};   // EUR je 1 Einheit Fremdwaehrung, Stand 09/2026
+function fondsWaehrung(ticker){return AUSSCHUETTUNGEN_2026[ticker]?.waehrung||'EUR';}
+function fxKurs(w){
+  if(!w||w==='EUR')return 1;
+  return(state.fx&&state.fx[w])||FX_STANDARD[w]||1;
+}
+
+// ===== DIVIDENDENWACHSTUM =====
+// Fuer fortgeschriebene Jahre bleiben die Betraege sonst 15 Jahre konstant, was die
+// Prognose deutlich untertreibt. Je Position konfigurierbar; Standardwerte unten.
+// Covered-Call-Produkte wachsen historisch nicht — dort ist der Standard 0 %.
+// Werte aus dem Einzelbericht ZC-K vom 15.09.2026, abgeleitet aus der dort fortgeschriebenen
+// Kurs-CAGR 2026->2041 (Ausschuettungsrendite bleibt konstant, die Ausschuettung je Anteil
+// waechst also mit dem Anteilspreis). Grundlage sind gemessene Gesamtrenditen ab 2016 abzueglich
+// Ausschuettungsrendite und TER. QYLE liegt bei rund null: eine Optionspraemie kann je Anteil
+// nicht wachsen, historisch ist der Anteilspreis leicht ruecklaeufig.
+const WACHSTUM_STANDARD={DXSA:5.33,ISPA:4.33,ZPRG:2.43,VGWD:5.96,XGSD:3.77,TDIV:8.00,QYLE:0};
+function divWachstum(pos){
+  return pos.divWachstum!==undefined&&pos.divWachstum!==null
+    ? pos.divWachstum
+    : (WACHSTUM_STANDARD[pos.ticker]!==undefined?WACHSTUM_STANDARD[pos.ticker]:2.5);
+}
+
+// ===== STEUER =====
+// Abgeltungsteuer 25 % + 5,5 % Soli = 26,375 %; keine Kirchensteuer.
+// Teilfreistellung je Fondsart: Aktienfonds 30 %. Bei Covered-Call-Produkten ist die
+// Einstufung nicht selbstverstaendlich — Standard 0 %, im ETF-Detail aenderbar.
+// Der Sparerpauschbetrag gilt laut Vorgabe ab 2027 als voll ausgeschoepft.
+const STEUERSATZ=0.26375;
+const TFS_STANDARD={DXSA:30,ISPA:30,ZPRG:30,VGWD:30,XGSD:30,TDIV:30,QYLE:0};
+function teilfreistellung(pos){
+  return pos.tfs!==undefined&&pos.tfs!==null
+    ? pos.tfs
+    : (TFS_STANDARD[pos.ticker]!==undefined?TFS_STANDARD[pos.ticker]:30);
+}
+function nettoFaktor(pos){return 1-STEUERSATZ*(1-teilfreistellung(pos)/100);}
+
+// Ausschuettung je Anteil fuer einen Zahlmonat, in EUR, brutto.
+// Reihenfolge: manuell gepflegte divs -> Stammdaten (echt oder fortgeschrieben).
+// Auf fortgeschriebene Jahre wird das Dividendenwachstum angewandt, auf nachgetragene nicht.
 function divJeAnteil(pos,jahr,mIdx){
   const arr=(pos.divs||{})[jahr];
   if(Array.isArray(arr)&&arr.some(v=>v>0))return arr[mIdx]||0;
-  return ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr).reduce((a,x)=>a+x.betrag,0);
+  const items=ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr);
+  if(!items.length)return 0;
+  const fx=fxKurs(fondsWaehrung(pos.ticker));
+  const roh=items.reduce((a,x)=>a+x.betrag,0)*fx;
+  const fortgeschrieben=items.every(x=>x.status==='fortgeschrieben');
+  if(!fortgeschrieben)return roh;
+  return roh*Math.pow(1+divWachstum(pos)/100,jahr-2026);
 }
+// Netto nach Abgeltungsteuer und Teilfreistellung
+function posDivMonatNetto(pos,jahr,mIdx){return posDivMonat(pos,jahr,mIdx)*nettoFaktor(pos);}
+function zDivMonatNetto(y,m){return zPos().reduce((s,p)=>s+posDivMonatNetto(p,y,m),0);}
+function zDivJahrNetto(y){return zPos().reduce((s,p)=>{let t=0;for(let i=0;i<12;i++)t+=posDivMonatNetto(p,y,i);return s+t;},0);}
 // Beruht ein Jahr ausschliesslich auf Fortschreibung?
 function jahrIstFortgeschrieben(jahr){
   if(jahr<=2026)return false;
@@ -441,7 +499,14 @@ function exDatumHatKipppunkt(ticker,jahr){
 //   lots:[{d:'2026-09-01',stueck:14.1685,kurs:40.20,typ:'anfang'},{d:'2026-10-04',...,typ:'kauf'}]
 // Das Los 'anfang' buendelt den gesamten Bestand zum Erfassungsbeginn — fuer die Zeit davor
 // existiert keine Kaufhistorie, das ist so gewollt und wird in der Anzeige gekennzeichnet.
-const TRACKING_START='2026-09-01';
+// Erfassungsbeginn der Kauflose. Voreinstellung ist der 01.09.2026; liegt eine vollstaendige
+// Transaktionshistorie vor, wird er beim Vollimport automatisch auf die erste Transaktion
+// vorgezogen — dann entfaellt jede Naeherung und der Dividendenkalender rechnet durchgaengig exakt.
+const TRACKING_START_STANDARD='2026-09-01';
+Object.defineProperty(globalThis,'TRACKING_START',{
+  get(){return(state&&state.trackingStart)||TRACKING_START_STANDARD;},
+  configurable:true
+});
 function posLots(pos){return Array.isArray(pos.lots)?pos.lots:[];}
 function lotsSortiert(pos){return posLots(pos).slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);}
 function lotsStueck(pos){return posLots(pos).reduce((s,l)=>s+(l.stueck||0),0);}
@@ -477,6 +542,38 @@ function initLose(){
     }
   }));
   return n;
+}
+
+// ===== VERKAUF NACH FIFO =====
+// Deutsche Abgeltungsteuer arbeitet FIFO: die aeltesten Stuecke gelten als zuerst verkauft.
+// Da jedes Los ein Datum und einen Kaufkurs traegt, laesst sich der realisierte Gewinn und die
+// darauf entfallende Steuer beziffern. Laut Vorgabe sind Verkaeufe nicht geplant — die Funktion
+// dient der Simulation, etwa fuer die Frage, was ein Teilverkauf einer uebergewichteten Position
+// kosten wuerde. Vorschau (nurRechnen=true) veraendert nichts.
+function verkaufFIFO(pos,stueck,kurs,nurRechnen){
+  const lots=lotsSortiert(pos);
+  const vorhanden=lotsStueck(pos);
+  if(stueck>vorhanden+1e-9)return{fehler:'Nur '+vorhanden.toFixed(4)+' Stück vorhanden'};
+  let rest=stueck,einstand=0;const verbraucht=[];
+  for(const l of lots){
+    if(rest<=1e-12)break;
+    const n=Math.min(l.stueck||0,rest);
+    if(n<=0)continue;
+    einstand+=n*(l.kurs||0);
+    verbraucht.push({d:l.d,stueck:n,kurs:l.kurs||0});
+    if(!nurRechnen)l.stueck-=n;
+    rest-=n;
+  }
+  const erloes=stueck*kurs;
+  const gewinn=erloes-einstand;
+  // Teilfreistellung gilt auch fuer Veraeusserungsgewinne aus Fondsanteilen
+  const steuer=Math.max(0,gewinn)*STEUERSATZ*(1-teilfreistellung(pos)/100);
+  if(!nurRechnen){
+    pos.lots=posLots(pos).filter(l=>(l.stueck||0)>1e-9);
+    if(!pos.lots.length)pos.lots=[{d:TRACKING_START,stueck:0,kurs:pos.kurs||0,typ:'anfang'}];
+    syncAusLosen(pos);
+  }
+  return{erloes,einstand,gewinn,steuer,netto:erloes-steuer,verbraucht};
 }
 
 // Dividendenbetrag einer Position fuer einen Zahlmonat — Ex-Datum-genau.
@@ -714,7 +811,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -967,9 +1064,10 @@ function monatlicheDividendenBlock(){
     </div>
     <div class="mog">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-      <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div></div>
-      <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
+      <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivMonatNetto(state.divCalYear,sel))}</div></div>
+      <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivJahrNetto(state.divCalYear)/12)} · Jahr ${EUR0(divSum)}</div></div>
     </div>
+    <p class="hint" style="margin-top:8px">Netto = nach Abgeltungsteuer 26,375 % (ohne Kirchensteuer) auf den nach Teilfreistellung steuerpflichtigen Anteil. Der Sparerpauschbetrag ist ab 2027 als voll ausgeschöpft angesetzt. Teilfreistellung je ETF im ETF-Detail änderbar — für Covered-Call-Produkte ist sie mit 0 % angesetzt, das solltest du prüfen lassen.</p>
     ${zw&&zw.fehlendeRate?`<div class="kz-tile" style="margin-top:10px">
       <div class="kz-lbl">Ø Zuwachs mtl. Dividende je Sparplan-Kauf</div>
       <div class="kz-val" style="color:${N.orange};font-size:16px">Sparrate für „${zw.pfName}" nicht gesetzt</div>
@@ -1963,6 +2061,19 @@ function screenETFDetail(){
     </div>
 
     <div class="card card-c">
+      <div class="ctitle">AUSSCHÜTTUNG · ANNAHMEN</div>
+      <div class="kz-grid">
+        <div class="edf"><label>Dividendenwachstum % p.a.</label><input type="text" inputmode="decimal" value="${divWachstum(pos)}" onchange="updPos(${state.subIdx},${state.posIdx},'divWachstum',+this.value.replace(',','.'))"/></div>
+        <div class="edf"><label>Teilfreistellung %</label><input type="text" inputmode="decimal" value="${teilfreistellung(pos)}" onchange="updPos(${state.subIdx},${state.posIdx},'tfs',+this.value.replace(',','.'))"/></div>
+      </div>
+      <p class="hint">Das Wachstum wirkt nur auf fortgeschriebene Jahre ab ${state.divCalYear>2026?2027:2027} — nachgetragene Echtdaten bleiben unverändert. Ausschüttungswährung dieses Fonds: <b>${fondsWaehrung(pos.ticker)}</b>${fondsWaehrung(pos.ticker)!=='EUR'?` · Umrechnungskurs ${fxKurs(fondsWaehrung(pos.ticker))} EUR je ${fondsWaehrung(pos.ticker)} (in den Einstellungen pflegbar) — dieser Teil deines Ausschüttungsstroms trägt Wechselkursrisiko.`:''}</p>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,#2a3a5a)">
+        <span>Ausschüttung ${state.divCalYear} netto</span>
+        <span style="font-weight:700;color:${N.green}">${EUR0(Array(12).fill(0).reduce((s,_,i)=>s+posDivMonatNetto(pos,state.divCalYear,i),0))}</span>
+      </div>
+    </div>
+
+    <div class="card card-c">
       <div class="ctitle">KÄUFE (LOSE) · ERFASSUNG AB ${TRACKING_START.split('-').reverse().join('.')}</div>
       <p class="hint" style="margin-bottom:10px">Jeder Kauf mit Datum. Das Los „Anfangsbestand" bündelt alles, was vor dem Erfassungsbeginn im Depot lag — dafür gibt es keine Einzelhistorie. Nur Stücke, die <b>vor</b> dem Ex-Tag einer Ausschüttung im Depot lagen, zählen für diese Ausschüttung.</p>
       ${lotsSortiert(pos).length?`<div style="overflow-x:auto">
@@ -1987,7 +2098,11 @@ function screenETFDetail(){
           onchange="setzeAnfangsbestand(${state.subIdx},${state.posIdx},+this.value.replace(',','.'))"/></div>
       ${(()=>{const alt=ausschuettungenJahr(pos.ticker,state.divCalYear).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
         return alt.length?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Zahltag ${alt.map(x=>x.pay.split('-').reverse().join('.')).join(', ')} beruht auf dem Ex-Tag ${alt.map(x=>x.ex.split('-').reverse().join('.')).join(', ')} — also <b>vor</b> dem Erfassungsbeginn. Gerechnet wird dort mit dem Anfangsbestand. Falls darin Stücke stecken, die du erst nach diesem Ex-Tag gekauft hast, trage sie oben als Kauf ein (Haken „steckt bereits im Anfangsbestand" gesetzt lassen) — dann fällt der Wert korrekt niedriger aus.</p>`:'';})()}
-      <button class="btn btn-g" style="width:100%;margin-top:10px" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
+      <div class="btnrow" style="margin-top:10px">
+        <button class="btn btn-g" style="flex:1" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
+        <button class="btn btn-c" onclick="openVerkaufModal(${state.subIdx},${state.posIdx})">Verkauf simulieren</button>
+      </div>
+      ${(pos.verkaeufe||[]).length?`<div style="margin-top:10px;font-size:12px;color:var(--t3)">Gebuchte Verkäufe: ${pos.verkaeufe.map(v=>v.d.split('-').reverse().join('.')+' · '+v.stueck.toFixed(2)+' Stk · Gewinn '+EUR0(v.gewinn)+' · Steuer '+EUR0(v.steuer)).join('<br>')}</div>`:''}
       ${exDatumHatKipppunkt(pos.ticker,state.divCalYear)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
       <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
     </div>
@@ -2019,6 +2134,503 @@ function screenETFDetail(){
       <button class="btn btn-r" onclick="deletePos(${state.subIdx},${state.posIdx})">Position löschen</button>
     </div>
   </div>`;
+}
+
+// ===== IMPORT AUS DEPOT-/KONTOUNTERLAGEN =====
+// Zwei Wege in die App: gekaufte Lose (aus Vermoegensuebersicht/Abrechnungen) und tatsaechlich
+// erhaltene Ausschuettungen (aus dem Kontoauszug). Beides wird als Text eingefuegt. Akzeptiert
+// werden JSON oder einfache Zeilen mit Semikolon/Tab/Komma als Trenner. Vor dem Uebernehmen
+// gibt es immer eine Vorschau — ein stiller Import waere bei unbekanntem Belegformat riskant.
+function zahlAusText(t){
+  if(typeof t==='number')return t;
+  if(!t)return NaN;
+  let x=String(t).replace(/[€$\s]/g,'');
+  // 1.234,56 -> 1234.56 ; 1,2345 -> 1.2345 ; 1234.56 bleibt
+  if(/,\d+$/.test(x))x=x.replace(/\./g,'').replace(',','.');
+  return parseFloat(x);
+}
+function datumAusText(t){
+  if(!t)return null;
+  const a=String(t).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(a)return a[0];
+  const b=String(t).match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(b)return b[3]+'-'+String(b[2]).padStart(2,'0')+'-'+String(b[1]).padStart(2,'0');
+  return null;
+}
+// ===== TRADE-REPUBLIC-BELEGE =====
+// Erkennt die drei Belegarten am Text und liest sie direkt ein — ohne Umweg ueber einen Prompt.
+const TR_MONATE={jan:1,feb:2,'mär':3,mrz:3,mar:3,apr:4,mai:5,jun:6,jul:7,aug:8,sep:9,okt:10,nov:11,dez:12};
+function trDatum(tag,monKurz,jahr){
+  const m=TR_MONATE[String(monKurz).toLowerCase().replace('.','').slice(0,3)];
+  if(!m)return null;
+  return jahr+'-'+String(m).padStart(2,'0')+'-'+String(tag).padStart(2,'0');
+}
+// Markdown-Tabellenrahmen entfernen, damit die Textzeilen wieder zusammenhaengen
+function trBereinige(t){
+  return String(t||'')
+    .replace(/^\s*\|?\s*[-: ]{3,}\|[-:| ]*$/gm,'')   // Trennzeilen
+    .replace(/\|/g,' ')
+    .replace(/[ \t]+/g,' ');
+}
+// (a) Wertpapierabrechnung Sparplan — massgeblich ist der Ausfuehrungstag, nicht die Wertstellung
+function parseAbrechnung(t){
+  const txt=trBereinige(t);
+  if(!/WERTPAPIERABRECHNUNG|Sparplanausf[uü]hrung|Wertpapierabrechnung/i.test(txt))return[];
+  const out=[];
+  // Ausfuehrungsdatum: "Sparplanausführung am TT.MM.JJJJ" oder Kopfzeile "DATUM TT.MM.JJJJ"
+  const dm=txt.match(/Sparplanausf[uü]hrung am (\d{2})\.(\d{2})\.(\d{4})/i)||txt.match(/DATUM\s+(\d{2})\.(\d{2})\.(\d{4})/i);
+  const datum=dm?`${dm[3]}-${dm[2]}-${dm[1]}`:null;
+  if(!datum)return[];
+  // Positionen: ISIN und die zugehoerige Zeile mit "n,nnnnnn Stk." + Durchschnittskurs
+  const re=/ISIN:\s*([A-Z]{2}[A-Z0-9]{9}[0-9])([\s\S]{0,400}?)([\d.]+,\d+)\s*Stk\.\s*([\d.]+,\d+)\s*EUR/g;
+  let m;
+  while((m=re.exec(txt))!==null)out.push({datum,isin:m[1],a:zahlAusText(m[3]),b:zahlAusText(m[4]),quelle:'Abrechnung'});
+  if(out.length)return out;
+  // Alternative Reihenfolge: Stueckzahl steht vor der ISIN-Zeile
+  const re2=/([\d.]+,\d+)\s*Stk\.\s*([\d.]+,\d+)\s*EUR[\s\S]{0,200}?ISIN:\s*([A-Z]{2}[A-Z0-9]{9}[0-9])/g;
+  while((m=re2.exec(txt))!==null)out.push({datum,isin:m[3],a:zahlAusText(m[1]),b:zahlAusText(m[2]),quelle:'Abrechnung'});
+  return out;
+}
+// (b) Kontoauszug — Ausschuettungen ("Cash Dividend for ISIN")
+function parseKontoauszugDivs(t){
+  const txt=trBereinige(t);
+  const out=[];
+  const re=/(\d{1,2})\s+([A-Za-zäöü]{3})\.?\s*Ertrag\s*Cash Dividend for ISIN\s*([A-Z]{2}[A-Z0-9]{9}[0-9])\s*([\d.]*,\d+)\s*€\s*[\d.]*,\d+\s*€\s*(\d{4})/g;
+  let m;
+  while((m=re.exec(txt))!==null){
+    const d=trDatum(m[1],m[2],m[5]);
+    if(d)out.push({datum:d,isin:m[3],a:zahlAusText(m[4]),quelle:'Kontoauszug',istDividende:true});
+  }
+  return out;
+}
+// (c) Kontoauszug — Kaeufe (Sparplanausfuehrung / Buy trade). Die Stueckzahl steht je nach
+// Umbruch vor oder hinter dem Jahr; deshalb wird sie im Umfeld gesucht und der Kurs errechnet.
+function parseKontoauszugKaeufe(t){
+  const txt=trBereinige(t);
+  const out=[];
+  const re=/(\d{1,2})\s+(?:Savings plan execution|Buy trade)\s+([A-Z]{2}[A-Z0-9]{9}[0-9])([\s\S]{0,300}?)quantity:\s*([\d.]*)\s*([\d.]*,\d+)\s*€\s*[\d.]*,\d+\s*€\s*(\d{4})\s*([\d.]*)/g;
+  let m;
+  while((m=re.exec(txt))!==null){
+    const monMatch=m[3].match(/([A-Za-zäöü]{3})\.?\s*Handel/);
+    if(!monMatch)continue;
+    const d=trDatum(m[1],monMatch[1],m[6]);
+    const stk=zahlAusText(m[4]||m[7]);
+    const betrag=zahlAusText(m[5]);
+    if(!d||!(stk>0)||!(betrag>0))continue;
+    out.push({datum:d,isin:m[2],a:stk,b:betrag/stk,quelle:'Kontoauszug'});
+  }
+  return out;
+}
+// (d) Vermoegensuebersicht — Bestaende zum Stichtag
+function parseVermoegen(t){
+  const txt=trBereinige(t);
+  if(!/VERM[OÖ]GENS[UÜ]BERSICHT/i.test(txt))return[];
+  const stich=(txt.match(/zum\s+(\d{2})\.(\d{2})\.(\d{4})/)||[]);
+  const datum=stich.length?`${stich[3]}-${stich[2]}-${stich[1]}`:null;
+  const out=[];
+  const re=/([\d.]+,\d+)\s*Stk\.([\s\S]{0,300}?)ISIN:\s*([A-Z]{2}[A-Z0-9]{9}[0-9])/g;
+  let m;
+  while((m=re.exec(txt))!==null){
+    const kursM=m[2].match(/([\d.]+,\d+)\s*[\d.]*,?\d*\s*$/)||m[2].match(/([\d.]+,\d+)/);
+    out.push({datum,isin:m[3],a:zahlAusText(m[1]),b:kursM?zahlAusText(kursM[1]):0,quelle:'Vermögensübersicht',istBestand:true});
+  }
+  return out;
+}
+// (e) Transaktionsexport als CSV — die verlaesslichste Quelle, weil alle Felder in festen
+// Spalten stehen. Spalten: date, type, symbol (= ISIN), shares, price, amount, tax.
+// Wichtig: bei SELL ist "shares" bereits negativ, es wird also nur summiert, nie subtrahiert.
+function parseCSVZeile(z){
+  const out=[];let feld='',inQ=false;
+  for(let i=0;i<z.length;i++){
+    const c=z[i];
+    if(c==='"'){ if(inQ&&z[i+1]==='"'){feld+='"';i++;} else inQ=!inQ; }
+    else if(c===','&&!inQ){out.push(feld);feld='';}
+    else feld+=c;
+  }
+  out.push(feld);return out;
+}
+function parseTransaktionsCSV(t){
+  const zeilen=String(t||'').split(/\r?\n/).filter(z=>z.trim());
+  if(zeilen.length<2)return[];
+  const kopf=parseCSVZeile(zeilen[0]).map(x=>x.trim().toLowerCase());
+  const iDate=kopf.indexOf('date'),iTyp=kopf.indexOf('type'),iSym=kopf.indexOf('symbol'),
+        iStk=kopf.indexOf('shares'),iKurs=kopf.indexOf('price'),iBetrag=kopf.indexOf('amount'),
+        iSteuer=kopf.indexOf('tax');
+  if(iDate<0||iTyp<0||iSym<0)return[];
+  const out=[];
+  for(let i=1;i<zeilen.length;i++){
+    const f=parseCSVZeile(zeilen[i]);
+    const isin=(f[iSym]||'').trim().toUpperCase();
+    if(!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(isin))continue;
+    const datum=(f[iDate]||'').trim().slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(datum))continue;
+    const typ=(f[iTyp]||'').trim().toUpperCase();
+    const stk=parseFloat(f[iStk]||'')||0;
+    const kurs=parseFloat(f[iKurs]||'')||0;
+    const betrag=parseFloat(f[iBetrag]||'')||0;
+    const steuer=Math.abs(parseFloat(f[iSteuer]||'')||0);
+    if(typ==='BUY'||typ==='BENEFITS_SAVEBACK'){
+      if(stk>0&&kurs>0)out.push({datum,isin,a:stk,b:kurs,quelle:'CSV',typ:'kauf'});
+    }else if(typ==='SELL'){
+      if(stk<0&&kurs>0)out.push({datum,isin,a:Math.abs(stk),b:kurs,quelle:'CSV',typ:'verkauf'});
+    }else if(typ==='DIVIDEND'||typ==='DISTRIBUTION'){
+      if(betrag>0)out.push({datum,isin,a:betrag,steuer,quelle:'CSV',istDividende:true});
+    }
+  }
+  return out;
+}
+
+// Erkennt die Belegart automatisch
+function parseTradeRepublic(t){
+  const csv=parseTransaktionsCSV(t); if(csv.length)return csv;
+  const a=parseAbrechnung(t); if(a.length)return a;
+  const v=parseVermoegen(t);  if(v.length)return v;
+  // Kaeufe werden bewusst NICHT aus dem Kontoauszug gelesen: dort stehen Stueckzahl und Betrag
+  // je nach Zeilenumbruch in wechselnder Reihenfolge, die Zuordnung ist nicht verlaesslich.
+  // Kaeufe kommen aus der Wertpapierabrechnung, Bestaende aus der Vermoegensuebersicht.
+  return parseKontoauszugDivs(t);
+}
+
+// Zerlegt eingefuegten Text in Datensaetze {datum,isin,a,b}
+function parseImportText(text){
+  const tr=parseTradeRepublic(text);
+  if(tr.length)return tr;
+  return parseImportTextEinfach(text);
+}
+function parseImportTextEinfach(text){
+  const roh=(text||'').replace(/^```[a-z]*\s*/i,'').replace(/```\s*$/,'').trim();
+  if(!roh)return[];
+  if(roh.startsWith('[')||roh.startsWith('{')){
+    try{
+      const j=JSON.parse(roh);
+      const arr=Array.isArray(j)?j:(Array.isArray(j.eintraege)?j.eintraege:[]);
+      return arr.map(x=>({
+        datum:datumAusText(x.datum||x.d||x.pay||x.date),
+        isin:(x.isin||'').toUpperCase(),
+        a:zahlAusText(x.stueck!==undefined?x.stueck:x.betrag),
+        b:zahlAusText(x.kurs),
+        istDividende:x.betrag!==undefined&&x.stueck===undefined
+      })).filter(x=>x.datum&&x.isin);
+    }catch(e){return{fehler:'JSON nicht lesbar: '+e.message};}
+  }
+  const out=[];
+  roh.split(/\r?\n/).forEach(z=>{
+    if(!z.trim()||/^\s*(datum|date)\b/i.test(z))return;
+    const isin=(z.match(/\b([A-Z]{2}[A-Z0-9]{9}[0-9])\b/)||[])[1];
+    const datum=datumAusText(z);
+    if(!isin||!datum)return;
+    const teile=z.split(/[;\t]|\s{2,}/).map(t=>t.trim()).filter(Boolean);
+    const zahlen=teile.filter(t=>!/[A-Z]{2}[A-Z0-9]{9}[0-9]/.test(t)&&!/\d{1,2}\.\d{1,2}\.\d{4}|\d{4}-\d{2}-\d{2}/.test(t))
+      .map(zahlAusText).filter(n=>!isNaN(n));
+    out.push({datum,isin,a:zahlen[0],b:zahlen[1]});
+  });
+  return out;
+}
+
+// --- Kaeufe ---
+function importKaeufeVorschau(){
+  const r=parseImportText(gs('imp_kauf'));
+  const el=document.getElementById('imp_kauf_vorschau');if(!el)return;
+  if(r.fehler){el.innerHTML=`<div style="color:${N.orange};font-size:12px">${r.fehler}</div>`;return;}
+  if(!r.length){el.innerHTML=`<div style="color:var(--t3);font-size:12px">Nichts erkannt. Erwartet: Datum, ISIN, Stückzahl, Kurs — je Zeile, oder JSON.</div>`;return;}
+  const zeilen=r.map(x=>{
+    const t=ISIN_TICKER[x.isin];
+    const dop=t?istLosVorhanden(t,x.datum,x.a):false;
+    return`<div style="font-size:12px;padding:2px 0;color:${!t?N.orange:dop?'var(--t3)':'var(--t2)'}">${x.datum.split('-').reverse().join('.')} · ${x.isin} · ${(x.a||0).toFixed(4)} Stk à ${(x.b||0).toFixed(4)} €${!t?' · ISIN unbekannt':dop?' · bereits erfasst, wird übersprungen':''}</div>`;
+  }).join('');
+  el.innerHTML=`<div style="max-height:180px;overflow-y:auto">${zeilen}</div>`;
+}
+function istLosVorhanden(ticker,datum,stueck){
+  let da=false;
+  (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    if(pos.ticker!==ticker)return;
+    if(posLots(pos).some(l=>l.d===datum&&Math.abs((l.stueck||0)-stueck)<1e-4))da=true;
+  }));
+  return da;
+}
+function importKaeufe(){
+  const alle=parseImportText(gsQuelle||gs('imp_kauf'));
+  if(alle.fehler){showToast(alle.fehler);return;}
+  if(!alle.length){showToast('Keine Datensätze erkannt');return;}
+  // Bestandszeilen (Vermoegensuebersicht) und Dividenden hier ignorieren
+  const r=alle.filter(x=>!x.istDividende&&!x.istBestand);
+  if(!r.length){showToast('Keine Kaufdaten enthalten — für Ausschüttungen die untere Box nutzen');return;}
+  const imBestand=document.getElementById('imp_kauf_bestand')?.checked;
+  let neu=0,uebersprungen=0,unbekannt=[],verkaeufe=0;
+  let vorBeginn=0;
+  r.forEach(x=>{
+    if(x.typ==='verkauf'){verkaeufe++;return;}
+    // Kaeufe vor dem Erfassungsbeginn stecken bereits im Anfangsbestand — sie duerfen hier
+    // nicht zusaetzlich eingebucht werden, sonst waechst der Bestand doppelt.
+    // Wer die ganze Historie will, nutzt „Neu aufbauen" (zieht den Erfassungsbeginn vor).
+    if(x.datum<TRACKING_START){vorBeginn++;return;}
+    const t=ISIN_TICKER[x.isin];
+    if(!t){if(!unbekannt.includes(x.isin))unbekannt.push(x.isin);return;}
+    if(!(x.a>0)||!(x.b>0)){uebersprungen++;return;}
+    if(istLosVorhanden(t,x.datum,x.a)){uebersprungen++;return;}
+    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+      if(pos.ticker!==t)return;
+      if(!Array.isArray(pos.lots))pos.lots=[];
+      if(imBestand){
+        const anf=pos.lots.find(l=>l.typ==='anfang');
+        if(anf&&anf.stueck>=x.a-1e-9)anf.stueck-=x.a;
+      }
+      pos.lots.push({d:x.datum,stueck:x.a,kurs:x.b,typ:'kauf'});
+      syncAusLosen(pos);
+    }));
+    neu++;
+  });
+  render();
+  showToast(`${neu} Käufe übernommen`+(uebersprungen?`, ${uebersprungen} übersprungen`:'')+(vorBeginn?`, ${vorBeginn} vor Erfassungsbeginn übersprungen`:'')+(verkaeufe?`, ${verkaeufe} Verkäufe ignoriert (manuell buchen)`:'')+(unbekannt.length?`, unbekannte ISIN: ${unbekannt.join(', ')}`:''));
+}
+
+// --- CSV-Datei einlesen ---
+// Der Transaktionsexport enthaelt alles, was die App braucht: Kaeufe mit Datum, Stueckzahl und
+// Kurs sowie Ausschuettungen mit Betrag und Steuer. Die Datei wird im Browser gelesen, nichts
+// verlaesst das Geraet.
+let CSV_INHALT='';
+let gsQuelle='';   // wenn gesetzt, lesen die Importfunktionen hieraus statt aus dem Textfeld
+function ladeCSVDatei(input){
+  const f=input&&input.files&&input.files[0];
+  if(!f)return;
+  const leser=new FileReader();
+  leser.onerror=()=>{CSV_INHALT='';showToast('Datei konnte nicht gelesen werden');render();};
+  leser.onload=e=>{
+    CSV_INHALT=String(e.target.result||'');
+    const r=parseTransaktionsCSV(CSV_INHALT);
+    if(!r.length){
+      CSV_INHALT='';
+      showToast('Kein gültiger Transaktionsexport — erwartet werden die Spalten date, type, symbol, shares, price');
+    }else showToast(f.name+' gelesen');
+    render();
+  };
+  leser.readAsText(f,'utf-8');
+}
+function csvUebersicht(){
+  if(!CSV_INHALT)return null;
+  const r=parseTransaktionsCSV(CSV_INHALT).filter(x=>ISIN_TICKER[x.isin]);
+  if(!r.length)return null;
+  const k=r.filter(x=>x.typ==='kauf'),v=r.filter(x=>x.typ==='verkauf'),d=r.filter(x=>x.istDividende);
+  const daten=r.map(x=>x.datum).sort();
+  const neueLose=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(ISIN_TICKER[x.isin],x.datum,x.a)).length;
+  return{kaeufe:k.length,verkaeufe:v.length,divs:d.length,von:daten[0],bis:daten[daten.length-1],
+         etf:[...new Set(r.map(x=>ISIN_TICKER[x.isin]))].length,neueLose};
+}
+// Ein Knopf fuer den Monatsablauf: neue Kaeufe ergaenzen und Ausschuettungen uebernehmen
+function csvAktualisieren(){
+  if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
+  const merk=gsQuelle;gsQuelle=CSV_INHALT;
+  try{importKaeufe();importDividenden();}finally{gsQuelle=merk;}
+}
+function csvNeuAufbauen(){
+  if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
+  const merk=gsQuelle;gsQuelle=CSV_INHALT;
+  try{importVollhistorie();importDividenden();}finally{gsQuelle=merk;}
+}
+
+// --- Vollimport der Kaufhistorie ---
+// Baut alle Lose neu aus dem Transaktionsexport auf und zieht den Erfassungsbeginn auf die
+// erste Transaktion vor. Verkaeufe werden per FIFO in der richtigen zeitlichen Reihenfolge
+// verrechnet, damit Restbestand und Einstandskurse stimmen.
+function importVollhistorie(){
+  const alle=parseImportText(gsQuelle||gs('imp_kauf'));
+  if(alle.fehler){showToast(alle.fehler);return;}
+  const bewegungen=(Array.isArray(alle)?alle:[]).filter(x=>x.typ==='kauf'||x.typ==='verkauf');
+  if(!bewegungen.length){showToast('Keine Kauf-/Verkaufshistorie erkannt — CSV-Transaktionsexport nötig');return;}
+  bewegungen.sort((a,b)=>a.datum<b.datum?-1:a.datum>b.datum?1:0);
+  const frueheste=bewegungen[0].datum;
+  // Betroffene Ticker bestimmen
+  const ticker=[...new Set(bewegungen.map(x=>ISIN_TICKER[x.isin]).filter(Boolean))];
+  if(!ticker.length){showToast('Keine bekannten ISIN im Export');return;}
+  const abw=[];
+  ticker.forEach(t=>{
+    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+      if(pos.ticker!==t)return;
+      const alt=pos.stueck||0;
+      const lose=[];
+      bewegungen.filter(x=>ISIN_TICKER[x.isin]===t).forEach(x=>{
+        if(x.typ==='kauf'){lose.push({d:x.datum,stueck:x.a,kurs:x.b,typ:'kauf'});return;}
+        // Verkauf: aelteste Lose zuerst abbauen
+        let rest=x.a;
+        for(const l of lose){
+          if(rest<=1e-12)break;
+          const n=Math.min(l.stueck,rest);l.stueck-=n;rest-=n;
+        }
+      });
+      pos.lots=lose.filter(l=>l.stueck>1e-9);
+      if(!pos.lots.length)pos.lots=[{d:frueheste,stueck:0,kurs:pos.kurs||0,typ:'anfang'}];
+      syncAusLosen(pos);
+      const d=Math.abs((pos.stueck||0)-alt);
+      if(d>0.01)abw.push(`${t}: ${alt.toFixed(4)} → ${(pos.stueck||0).toFixed(4)}`);
+    }));
+  });
+  state.trackingStart=frueheste;
+  render();
+  showToast(`Historie neu aufgebaut ab ${frueheste.split('-').reverse().join('.')} · ${ticker.length} ETF`
+    +(abw.length?` · Stückzahl geändert: ${abw.join(', ')}`:' · Stückzahlen unverändert'));
+}
+
+// --- Erhaltene Ausschuettungen ---
+function importDividenden(){
+  const alle=parseImportText(gsQuelle||gs('imp_div'));
+  if(alle.fehler){showToast(alle.fehler);return;}
+  if(!alle.length){showToast('Keine Datensätze erkannt');return;}
+  const r=alle.filter(x=>x.istDividende);
+  if(!r.length){showToast('Keine Ausschüttungen enthalten — für Käufe die obere Box nutzen');return;}
+  if(!state.erhalteneDivs)state.erhalteneDivs={};
+  let n=0,unbekannt=[];
+  r.forEach(x=>{
+    if(!ISIN_TICKER[x.isin]){if(!unbekannt.includes(x.isin))unbekannt.push(x.isin);return;}
+    if(!(x.a>0))return;
+    const jahr=+x.datum.slice(0,4);
+    if(!state.erhalteneDivs[jahr])state.erhalteneDivs[jahr]={};
+    if(!state.erhalteneDivs[jahr][x.isin])state.erhalteneDivs[jahr][x.isin]=[];
+    const liste=state.erhalteneDivs[jahr][x.isin];
+    const vorhanden=liste.find(e=>e.pay===x.datum);
+    if(vorhanden){vorhanden.betrag=x.a;vorhanden.steuer=x.steuer||0;}
+    else liste.push({pay:x.datum,betrag:x.a,steuer:x.steuer||0});
+    n++;
+  });
+  render();zeigeDivAbgleich();
+  showToast(`${n} Zahlungen übernommen`+(unbekannt.length?`, unbekannte ISIN: ${unbekannt.join(', ')}`:''));
+}
+// Vergleicht erhaltene mit erwarteten Ausschuettungen
+function divAbgleich(jahr){
+  const j=jahr||state.divCalYear;
+  const erh=(state.erhalteneDivs||{})[j]||{};
+  const pf=zielPf();if(!pf)return[];
+  return(pf.positions||[]).map(pos=>{
+    const isin=pos.isin;
+    const liste=erh[isin]||[];
+    const ist=liste.reduce((a,e)=>a+e.betrag,0);
+    let soll=0;for(let i=0;i<12;i++)soll+=posDivMonat(pos,j,i);
+    return{ticker:pos.ticker,isin,ist,soll,anzahl:liste.length,
+           abw:soll>0?(ist/soll-1)*100:null};
+  }).filter(x=>x.anzahl>0||x.soll>0);
+}
+function zeigeDivAbgleich(){
+  const j=state.divCalYear;
+  const a=divAbgleich(j);
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Abgleich erhaltene Ausschüttungen ${j}</div>
+    ${a.length?`<div style="max-height:320px;overflow-y:auto">${a.map(x=>`
+      <div style="margin-bottom:8px;padding-left:10px;border-left:3px solid ${x.anzahl===0?'var(--t3)':(Math.abs(x.abw||0)>5?N.orange:N.green)}">
+        <div style="font-size:11px;color:var(--t3)">${x.isin}</div>
+        <div style="font-size:13px">erhalten ${EUR0(x.ist)} (${x.anzahl} Zahlung${x.anzahl===1?'':'en'}) · erwartet ${EUR0(x.soll)}${x.abw!==null&&x.anzahl?` · <b style="color:${Math.abs(x.abw)>5?N.orange:N.green}">${x.abw>0?'+':''}${x.abw.toFixed(1)} %</b>`:''}</div>
+      </div>`).join('')}</div>
+    <p class="hint" style="margin-top:8px">Abweichungen über 5 % deuten auf falsche Beträge je Anteil, eine falsche Stückzahl zum Ex-Tag oder einen fehlenden Zahlungseingang hin. Beachte: erhaltene Beträge aus dem Kontoauszug sind netto nach Steuer, die erwarteten hier brutto — ein Abzug von rund 19 % ist normal.</p>`
+    :`<p class="hint">Noch keine Zahlungen für ${j} eingelesen.</p>`}
+    <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+// Prompt, der einen Beleg ins erwartete Format bringt
+function belegPrompt(art){
+  const isins=Object.keys(ISIN_TICKER);
+  if(art==='div')return`Ich hänge einen Kontoauszug/Depotauszug an. Bitte extrahiere daraus ausschließlich die **Ausschüttungen/Dividenden** der folgenden ETF und gib sie als JSON zurück.
+
+Relevante ISIN:
+${isins.map(i=>'- '+i).join('\n')}
+
+Regeln:
+- Eine Zeile je tatsächlichem Zahlungseingang, nicht je Monat.
+- "datum" ist der Tag der Gutschrift auf dem Konto (Zahltag), Format JJJJ-MM-TT.
+- "betrag" ist der auf dem Konto gutgeschriebene Betrag in EUR als Zahl mit Punkt als Dezimaltrennzeichen. Sag mir im Text dazu, ob es sich um den Brutto- oder den Nettobetrag nach Steuer handelt.
+- Positionen, die nicht in der ISIN-Liste stehen, weglässt du.
+- Wenn eine Angabe im Beleg fehlt oder unleserlich ist, lass den Eintrag weg und sag es mir — rate nichts.
+
+Ausgabe als reines JSON in einem Codeblock:
+\`\`\`json
+[{"datum":"2026-09-03","isin":"LU0292095535","betrag":17.80}]
+\`\`\``;
+  return`Ich hänge eine Vermögensübersicht/Wertpapierabrechnung an. Bitte extrahiere daraus ausschließlich die **Kaufausführungen** der folgenden ETF und gib sie als JSON zurück.
+
+Relevante ISIN:
+${isins.map(i=>'- '+i).join('\n')}
+
+Regeln:
+- Eine Zeile je einzelner Ausführung, nicht je Monat und nicht je Sparplan.
+- "datum" ist der Ausführungstag (Handelstag), Format JJJJ-MM-TT.
+- "stueck" ist die ausgeführte Stückzahl als Zahl mit Punkt als Dezimaltrennzeichen, in voller Genauigkeit (Bruchstücke nicht runden).
+- "kurs" ist der Ausführungskurs je Anteil in EUR. Falls nur der Anlagebetrag ausgewiesen ist, rechne Kurs = Betrag ÷ Stückzahl und sag mir das dazu.
+- Verkäufe, Sparplanankündigungen, Vorabpauschalen und Ausschüttungen gehören NICHT hierher.
+- Wenn eine Angabe fehlt oder unleserlich ist, lass den Eintrag weg und sag es mir — rate nichts.
+
+Ausgabe als reines JSON in einem Codeblock:
+\`\`\`json
+[{"datum":"2026-09-04","isin":"LU0292095535","stueck":2.4695,"kurs":30.10}]
+\`\`\``;
+}
+function zeigeBelegPrompt(art){zeigePromptFallback(belegPrompt(art));}
+function kopiereBelegPrompt(art){
+  const t=belegPrompt(art);
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(t));
+  else zeigePromptFallback(t);
+}
+
+// ===== STAMMDATEN-PRUEFUNG =====
+// In der Vergangenheit sind mehrere Datenfehler nur zufaellig aufgefallen (falscher Fondsname,
+// falsche Zahlmonate, ueberhoehte Jahressumme). Diese Pruefung gleicht die gepflegten Werte
+// gegen die Ausschuettungsstammdaten ab und meldet Abweichungen, statt auf Zufall zu bauen.
+function pruefeStammdaten(){
+  const funde=[];
+  const jahr=state.divCalYear;
+  (state.portfolios||[]).forEach((pf,pfI)=>(pf.positions||[]).forEach((pos,posI)=>{
+    const bez=pos.ticker||pos.name||('Position '+(posI+1));
+    const ort=pf.name+' · '+bez;
+    // ISIN vorhanden und bekannt?
+    if(!pos.isin)funde.push({stufe:'warn',ort,text:'Keine ISIN hinterlegt — Identifikation unsicher.'});
+    else if(ISIN_TICKER[pos.isin]&&ISIN_TICKER[pos.isin]!==pos.ticker)
+      funde.push({stufe:'fehler',ort,text:`ISIN ${pos.isin} gehört zu ${ISIN_TICKER[pos.isin]}, hier steht Kürzel ${pos.ticker}.`});
+    // Lose konsistent zur Stueckzahl?
+    if(posLots(pos).length){
+      const d=Math.abs(lotsStueck(pos)-(pos.stueck||0));
+      if(d>1e-6)funde.push({stufe:'fehler',ort,text:`Summe der Lose (${lotsStueck(pos).toFixed(6)}) weicht von der Stückzahl (${(pos.stueck||0).toFixed(6)}) ab.`});
+    }else funde.push({stufe:'warn',ort,text:'Keine Kauflose erfasst — Ex-Datum-Logik rechnet mit dem Gesamtbestand.'});
+    // Gepflegte divs gegen Stammdaten
+    const stamm=ausschuettungenJahr(pos.ticker,jahr);
+    const arr=(pos.divs||{})[jahr];
+    if(stamm.length&&Array.isArray(arr)&&arr.some(v=>v>0)){
+      const fx=fxKurs(fondsWaehrung(pos.ticker));
+      const sumStamm=stamm.reduce((a,x)=>a+x.betrag,0)*fx;
+      const sumDivs=arr.reduce((a,b)=>a+(b||0),0);
+      if(sumStamm>0&&Math.abs(sumStamm-sumDivs)/sumStamm>0.02)
+        funde.push({stufe:'fehler',ort,text:`Jahressumme ${jahr}: gepflegt ${sumDivs.toFixed(4)} €, Stammdaten ${sumStamm.toFixed(4)} € — Abweichung ${((sumDivs/sumStamm-1)*100).toFixed(1)} %.`});
+      // Zahlmonate abgleichen
+      const mStamm=[...new Set(stamm.map(x=>+x.pay.slice(5,7)))].sort((a,b)=>a-b).join(',');
+      const mDivs=arr.map((v,i)=>v>0?i+1:0).filter(Boolean).join(',');
+      if(mStamm!==mDivs)
+        funde.push({stufe:'fehler',ort,text:`Zahlmonate ${jahr}: gepflegt ${mDivs||'keine'}, laut Stammdaten ${mStamm}.`});
+    }
+    // Plausibilitaet
+    if(!(pos.kurs>0))funde.push({stufe:'fehler',ort,text:'Kein gültiger Kurs hinterlegt.'});
+    if(pos.ter===undefined||pos.ter===null)funde.push({stufe:'warn',ort,text:'Keine TER hinterlegt.'});
+  }));
+  // Zielgewichte je Portfolio
+  (state.portfolios||[]).forEach(pf=>{
+    const sum=(pf.positions||[]).reduce((a,p)=>a+(p.target||0),0);
+    if(pf.positions&&pf.positions.length&&Math.abs(sum-100)>0.01)
+      funde.push({stufe:'fehler',ort:pf.name,text:`Zielgewichte summieren sich auf ${sum.toFixed(2)} % statt 100 %.`});
+  });
+  return funde;
+}
+function zeigeStammdatenPruefung(){
+  const f=pruefeStammdaten();
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Stammdaten-Prüfung</div>
+    ${f.length?`<p class="hint" style="margin-bottom:10px">${f.filter(x=>x.stufe==='fehler').length} Fehler · ${f.filter(x=>x.stufe==='warn').length} Hinweise (Kalenderjahr ${state.divCalYear})</p>
+    <div style="max-height:340px;overflow-y:auto">${f.map(x=>`<div style="margin-bottom:8px;padding-left:10px;border-left:3px solid ${x.stufe==='fehler'?N.orange:'var(--t3)'}">
+      <div style="font-size:11px;color:var(--t3)">${x.ort}</div>
+      <div style="font-size:13px;color:${x.stufe==='fehler'?N.orange:'var(--t2)'}">${x.text}</div></div>`).join('')}</div>`
+    :`<p style="color:${N.green};font-weight:700">Keine Abweichungen gefunden.</p>`}
+    <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
 }
 
 // ===== JAHRESANFANG: AUSSCHUETTUNGSDATEN AKTUALISIEREN =====
@@ -2599,7 +3211,64 @@ function screenSettings(){
         <button class="btn btn-r" onclick="if(confirm('Wirklich ALLE Daten zurücksetzen? Dies kann nicht rückgängig gemacht werden.')){localStorage.removeItem(STORAGE_KEY);state=defaultState();render();showToast('✓ Zurückgesetzt')}">🗑 Alle Daten löschen</button>
       </div>`}
   ];
-  return`<div class="screen">
+  return`
+    <div class="card card-c">
+      <div class="ctitle">TRANSAKTIONSEXPORT EINLESEN</div>
+      <p class="hint" style="margin-bottom:10px">Der CSV-Transaktionsexport aus Trade Republic genügt — er enthält Käufe, Verkäufe und Ausschüttungen. Datei auswählen, fertig. Die Datei wird im Browser gelesen und verlässt dein Gerät nicht.</p>
+      <label class="btn btn-g" style="width:100%;display:block;text-align:center;cursor:pointer">
+        CSV-Datei auswählen
+        <input type="file" accept=".csv,text/csv,text/plain" onchange="ladeCSVDatei(this)" style="display:none"/>
+      </label>
+      ${(()=>{const u=csvUebersicht();
+        if(!u)return`<p class="hint" style="margin-top:10px">Noch keine Datei geladen.</p>`;
+        return`<div class="kz-tile" style="margin-top:10px">
+          <div style="font-size:13px">${u.kaeufe} Käufe · ${u.verkaeufe} Verkäufe · ${u.divs} Ausschüttungen</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} deiner ETF · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
+          <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe bereits erfasst'}</div>
+        </div>
+        <div class="btnrow" style="margin-top:10px">
+          <button class="btn btn-g" style="flex:1" onclick="csvAktualisieren()">Aktualisieren</button>
+          <button class="btn btn-c" onclick="csvNeuAufbauen()">Neu aufbauen</button>
+        </div>
+        <p class="hint" style="margin-top:6px"><b>Aktualisieren</b> ergänzt nur, was fehlt — der normale Monatsablauf. <b>Neu aufbauen</b> verwirft alle Lose und legt die komplette Historie neu an, mit Erfassungsbeginn bei der ersten Transaktion; einmalig sinnvoll oder nach Korrekturen im Export. Aktuell ab ${TRACKING_START.split('-').reverse().join('.')}.</p>`;})()}
+    </div>
+
+    <div class="card card-c">
+      <div class="ctitle">MANUELL EINFÜGEN · KÄUFE</div>
+      <p class="hint" style="margin-bottom:8px">Am besten den <b>Transaktionsexport als CSV</b> komplett hineinkopieren — dort stehen alle Käufe mit Datum, ISIN, Stückzahl und Kurs in festen Spalten. Auch erkannt: Wertpapierabrechnung, Vermögensübersicht, JSON, Zeilen mit Semikolon. Maßgeblich ist der Ausführungstag, nicht die Wertstellung. Bereits erfasste Lose werden übersprungen, Verkäufe werden nicht automatisch gebucht.</p>
+      <textarea id="imp_kauf" oninput="importKaeufeVorschau()" style="width:100%;height:110px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder="2026-09-04; LU0292095535; 2.4695; 30.10"></textarea>
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--t2);margin:8px 0;cursor:pointer">
+        <input type="checkbox" id="imp_kauf_bestand" checked style="margin-top:2px"/>
+        <span>Käufe stecken bereits im Anfangsbestand (Anfangs-Los entsprechend reduzieren, Gesamtstückzahl bleibt gleich)</span>
+      </label>
+      <div id="imp_kauf_vorschau" class="kz-tile" style="margin-bottom:10px"><div style="font-size:12px;color:var(--t3)">Vorschau erscheint beim Einfügen.</div></div>
+      <div class="btnrow">
+        <button class="btn btn-g" style="flex:1" onclick="importKaeufe()">Käufe ergänzen</button>
+        <button class="btn btn-c" onclick="kopiereBelegPrompt('kauf')">Prompt</button>
+      </div>
+      <div class="btnrow" style="margin-top:6px">
+        <button class="btn btn-c" style="flex:1" onclick="importVollhistorie()">Historie komplett neu aufbauen</button>
+      </div>
+      <p class="hint" style="margin-top:6px">„Historie komplett neu aufbauen" verwirft die bisherigen Lose und legt sie aus dem vollständigen CSV-Export neu an — inklusive Verkäufen nach FIFO. Der Erfassungsbeginn wandert dabei auf die erste Transaktion, wodurch die Näherung für zurückliegende Monate entfällt und der Dividendenkalender durchgängig exakt rechnet. Aktuell ab ${TRACKING_START.split('-').reverse().join('.')}.</p>
+    </div>
+
+    <div class="card card-c">
+      <div class="ctitle">MANUELL EINFÜGEN · AUSSCHÜTTUNGEN</div>
+      <p class="hint" style="margin-bottom:8px">Derselbe <b>CSV-Transaktionsexport</b> oder der Kontoauszug — Ausschüttungen werden daraus erkannt (im CSV der Typ DIVIDEND samt einbehaltener Steuer). Dient dem Abgleich gegen die erwarteten Beträge, so fallen falsche Stammdaten oder eine falsche Stückzahl zum Ex-Tag auf. Käufe werden hieraus bewusst nicht gelesen.</p>
+      <textarea id="imp_div" style="width:100%;height:90px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder="2026-09-03; LU0292095535; 17.80"></textarea>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn btn-g" style="flex:1" onclick="importDividenden()">Zahlungen übernehmen</button>
+        <button class="btn btn-c" onclick="zeigeDivAbgleich()">Abgleich</button>
+        <button class="btn btn-c" onclick="kopiereBelegPrompt('div')">Prompt</button>
+      </div>
+    </div>
+
+    <div class="card card-c">
+      <div class="ctitle">DATENQUALITÄT</div>
+      <p class="hint" style="margin-bottom:10px">Gleicht Kürzel gegen ISIN, Lose gegen Stückzahl, gepflegte Ausschüttungen gegen die Stammdaten und Zielgewichte gegen 100 % ab.</p>
+      <button class="btn btn-c" style="width:100%" onclick="zeigeStammdatenPruefung()">Stammdaten prüfen</button>
+    </div>
+<div class="screen">
     <h1 class="stitle gy" style="font-size:50px;margin-top:16px">Einstellungen</h1>
     ${items.map((it,i)=>`
       <div class="acc" id="ac${i}">
@@ -2731,6 +3400,65 @@ function confirmLot(pfI,posI){
     ?'Kauf erfasst — Ex-Tag '+kipp[0].ex.split('-').reverse().join('.')+' lag bereits: zählt erst zur Folgeausschüttung'
     :'Kauf erfasst');
 }
+// ===== VERKAUFS-SIMULATION =====
+function openVerkaufModal(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos)return;
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Verkauf simulieren · ${pos.ticker||pos.name}</div>
+    <p class="hint" style="margin-bottom:10px">Bestand ${lotsStueck(pos).toFixed(4)} Stk · Ø Kaufkurs ${lotsKaufkurs(pos).toFixed(4)} € · Kurs ${(pos.kurs||0).toFixed(4)} €. Abgerechnet wird nach FIFO: die ältesten Stücke zuerst.</p>
+    <div class="field"><label>Stückzahl</label><input type="text" inputmode="decimal" id="v_s" oninput="verkaufVorschau(${pfI},${posI})" placeholder="z.B. 100"/></div>
+    <div class="field"><label>Verkaufskurs €</label><input type="text" inputmode="decimal" id="v_k" value="${(pos.kurs||0).toFixed(4)}" oninput="verkaufVorschau(${pfI},${posI})"/></div>
+    <div class="field"><label>oder Zielgewicht erreichen (%)</label><input type="text" inputmode="decimal" id="v_z" placeholder="${(pos.target||0).toFixed(2)}" oninput="verkaufAufZiel(${pfI},${posI})"/></div>
+    <div id="v_vorschau" class="kz-tile" style="margin-bottom:12px"><div style="font-size:12px;color:var(--t3)">Stückzahl eingeben für die Vorschau.</div></div>
+    <div class="btnrow">
+      <button class="btn btn-g" style="flex:1" onclick="confirmVerkauf(${pfI},${posI})">Verkauf buchen</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+function verkaufAufZiel(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI],pf=state.portfolios[pfI];if(!pos)return;
+  const ziel=gv('v_z');if(!(ziel>0))return;
+  const gesamt=pfTotal(pf),wert=posVal(pos);
+  // wert-x*kurs = ziel/100*(gesamt-x*kurs)  ->  x*kurs = (wert-ziel/100*gesamt)/(1-ziel/100)
+  const betrag=(wert-ziel/100*gesamt)/(1-ziel/100);
+  if(betrag<=0){showToast('Position liegt bereits unter '+ziel+' %');return;}
+  const stk=Math.min(lotsStueck(pos),betrag/(pos.kurs||1));
+  const f=document.getElementById('v_s');if(f)f.value=stk.toFixed(4);
+  verkaufVorschau(pfI,posI);
+}
+function verkaufVorschau(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI],pf=state.portfolios[pfI];if(!pos)return;
+  const el=document.getElementById('v_vorschau');if(!el)return;
+  const stk=gv('v_s'),kurs=gv('v_k');
+  if(!(stk>0)||!(kurs>0)){el.innerHTML='<div style="font-size:12px;color:var(--t3)">Stückzahl eingeben für die Vorschau.</div>';return;}
+  const r=verkaufFIFO(pos,stk,kurs,true);
+  if(r.fehler){el.innerHTML=`<div style="font-size:12px;color:${N.orange}">${r.fehler}</div>`;return;}
+  const gesamtNach=pfTotal(pf)-r.erloes,wertNach=posVal(pos)-r.erloes;
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Erlös</span><span>${EUR0(r.erloes)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Einstand (FIFO)</span><span>${EUR0(r.einstand)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Realisierter Gewinn</span><span style="color:${r.gewinn>=0?N.green:N.orange}">${EUR0(r.gewinn)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Steuer (26,375 % auf ${(100-teilfreistellung(pos)).toFixed(0)} %)</span><span style="color:${N.orange}">− ${EUR0(r.steuer)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--line,#2a3a5a);margin-top:6px;padding-top:6px"><span>Netto-Erlös</span><span style="color:${N.green}">${EUR0(r.netto)}</span></div>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px">Anteil danach: ${gesamtNach>0?(wertNach/gesamtNach*100).toFixed(2):'0.00'} % (vorher ${posIst(pos,pf).toFixed(2)} %) · entfallende Ausschüttung ${EUR0(stk*((pos.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0))}/Jahr</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:4px">Verbrauchte Lose: ${r.verbraucht.map(x=>x.d.split('-').reverse().join('.')+' ('+x.stueck.toFixed(2)+' Stk à '+x.kurs.toFixed(2)+' €)').join(' · ')}</div>`;
+}
+function confirmVerkauf(pfI,posI){
+  const pos=state.portfolios[pfI]?.positions[posI];if(!pos)return;
+  const stk=gv('v_s'),kurs=gv('v_k');
+  if(!(stk>0)||!(kurs>0)){showToast('Stückzahl und Kurs angeben');return;}
+  const r=verkaufFIFO(pos,stk,kurs,false);
+  if(r.fehler){showToast(r.fehler);return;}
+  if(!Array.isArray(pos.verkaeufe))pos.verkaeufe=[];
+  pos.verkaeufe.push({d:new Date().toISOString().slice(0,10),stueck:stk,kurs,gewinn:r.gewinn,steuer:r.steuer});
+  closeModal();render();
+  showToast('Verkauf gebucht · Gewinn '+EUR0(r.gewinn)+' · Steuer '+EUR0(r.steuer));
+}
+
 function deleteLot(pfI,posI,idx){
   const pos=state.portfolios[pfI]?.positions[posI];if(!pos||!Array.isArray(pos.lots))return;
   const l=pos.lots[idx];if(!l||l.typ==='anfang')return;
