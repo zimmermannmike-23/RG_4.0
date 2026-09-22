@@ -195,6 +195,53 @@ html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .screen{animation:fadeUp .22s ease}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+
+/* ===================== CLEAN-MODUS (neues Design) =====================
+   Alles hier greift nur, wenn <body> zusaetzlich die Klasse ui-clean traegt.
+   Das klassische Design bleibt dadurch vollstaendig unberuehrt. */
+html body.ui-clean{--bg0:#0b0d10;--bg1:#121418;--bg2:#181b21;--b:#252a31;
+  --t:#f3f4f6;--t2:#a1a7b0;--t3:#6b7280;
+  --cyan:#e5e7eb;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--orange:#fb923c;
+  --rr:14px;--card-bg:#121418;--glass-filter:none}
+/* 3) Farbe nur fuer Bedeutung: keine Leuchteffekte, neutrale Rahmen */
+body.ui-clean .card,body.ui-clean .card-c,body.ui-clean .card-y{box-shadow:none!important;border-color:var(--b)!important;
+  background:var(--bg1)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.ui-clean .card-y{border-left:3px solid var(--orange)!important}
+body.ui-clean .kz-tile{background:var(--bg2)!important;border:1px solid var(--b)!important;box-shadow:none!important}
+body.ui-clean .kz-val,body.ui-clean .gc,body.ui-clean .gg,body.ui-clean .gy{text-shadow:none!important}
+body.ui-clean .mob{box-shadow:none!important}
+body.ui-clean .tb{--tc:#f3f4f6!important;--tg:transparent!important}
+/* 5) Ruhige Ueberschriften: Pacifico nur noch im Logo */
+body.ui-clean .stitle{font-family:system-ui,-apple-system,sans-serif!important;font-weight:700!important;
+  font-size:24px!important;text-align:left!important;margin:14px 2px 14px!important;
+  text-shadow:none!important;color:var(--t)!important;letter-spacing:-.01em}
+body.ui-clean .ctitle{color:var(--t3)!important;font-weight:600!important;letter-spacing:.08em}
+/* 4) Doppelte Darstellungen ausblenden */
+body.ui-clean .dup-clean{display:none!important}
+/* 1) Erklaertexte hinter ein kleines i */
+details.hx{margin:2px 0 6px}
+details.hx>summary{list-style:none;cursor:pointer;font-size:12px;color:var(--t3);width:max-content;
+  margin-left:auto;padding:0 2px;user-select:none}
+details.hx>summary::-webkit-details-marker{display:none}
+details.hx[open]>summary{color:var(--t2)}
+/* 2) Dashboard: Kopfzeile + einklappbare Abschnitte */
+.cz-kopf{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.cz-kpi{background:var(--bg1);border:1px solid var(--b);border-radius:14px;padding:14px}
+.cz-kpi .l{font-size:11px;color:var(--t3);margin-bottom:6px}
+.cz-kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t);line-height:1.15}
+.cz-kpi .s{font-size:11px;color:var(--t3);margin-top:4px}
+.cs{background:var(--bg1);border:1px solid var(--b);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.cs-h{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
+.cs-h .t{font-size:15px;font-weight:600;color:var(--t);flex:1}
+.cs-h .i{font-size:12px;color:var(--t2);white-space:nowrap}
+.cs-h .c{font-size:11px;color:var(--t3);width:12px;text-align:right}
+.cs-b{padding:0 12px 4px;border-top:1px solid var(--b)}
+.cs-b>.card,.cs-b .card{border:none!important;background:transparent!important;padding:14px 4px 8px;margin-bottom:0}
+.cz-gruppe{font-size:11px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin:18px 4px 8px}
+.ui-schalter{display:flex;background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:3px;gap:3px}
+.ui-schalter button{flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13px;font-weight:600;
+  background:transparent;color:var(--t2);cursor:pointer}
+.ui-schalter button.on{background:var(--t);color:#000}
 </style>
 </head>
 <body>
@@ -218,6 +265,8 @@ const THEMES={
   yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}},
   neumorphic:{label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}}
 };
+const CLEAN_FARBEN={cyan:'#9ca3af',green:'#4ade80',red:'#f87171',yellow:'#fbbf24',orange:'#fb923c'};
+function setUiModus(clean){state.uiClean=!!clean;applyTheme(state.currentTheme);render();window.scrollTo&&window.scrollTo(0,0);}
 function applyTheme(themeName){
   const t=themeName||state.currentTheme||'theme-neon';
   const id=t.replace(/^theme-/,'');
@@ -225,14 +274,19 @@ function applyTheme(themeName){
   document.body.className='';
   document.body.classList.add('theme-'+gueltig);
   Object.assign(N,THEMES[gueltig].farben);
+  // Neues Design: eigenes, ruhiges Farbschema — gilt unabhaengig vom gewaehlten Theme
+  if(uiClean()){document.body.classList.add('ui-clean');Object.assign(N,CLEAN_FARBEN);}
   state.currentTheme='theme-'+gueltig;
   saveState();
 }
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.37';
+const APP_VERSION='3.40';
 const APP_CHANGELOG=[
+  {v:'3.40',d:'2026-09-20',t:'Neues Design (clean) mit Schalter unter Einstellungen -> Darstellung; das klassische Design bleibt unveraendert erhalten. Im neuen Design: (1) Erklaertexte liegen hinter einem kleinen i statt immer sichtbar zu sein. (2) Dashboard mit Kopfzeile aus vier Kennzahlen (Depotwert, Dividende netto pro Monat, Zielfortschritt, Handlungsbedarf) und einklappbaren Abschnitten, deren Inhalt erst beim Oeffnen berechnet wird; der Monats-Check wandert in den Handlungsbedarf. (3) Farbe nur fuer Bedeutung: festes ruhiges Farbschema ohne Leuchteffekte, gruen = im Plan, orange = Handlung, rot = Fehler. (4) Doppelte Darstellungen entfallen (Monatskacheln unter dem Balkendiagramm, Monatsraster im Depot-Reiter). (5) Seitentitel schlicht statt Pacifico 50 px, Kartentitel als dezente graue Zeile. (6) Betraege ab 100 EUR ohne Cent. (7) Vier statt fuenf Reiter: der Depot-Reiter ist als Abschnitt ins Dashboard gewandert. (8) Einstellungen in die Gruppen Daten, Planung und App geordnet. Technisch: Teil-Portfolios, Zielpfad und Income-Ziel sind als eigene Funktionen ausgelagert, die beide Designs gemeinsam nutzen — keine doppelte Implementierung.'},
+  {v:'3.39',d:'2026-09-20',t:'Kontrollprompt praezisiert: zeigt jetzt das genaue Datum statt nur das Jahr (\'Stand 14.03.2027\' statt \'heute (2027)\'), da der Prompt zu jedem Zeitpunkt im Folgejahr erzeugt werden kann, nicht nur im Dezember — er nutzt immer die Depotdaten des Aufrufzeitpunkts. Zusaetzlich eine Kurs-Spalte und ein Hinweis, dass der im Tool hinterlegte Kurs der zuletzt geladene Stand ist, nicht zwingend der heutige Marktkurs — Claude wird angewiesen, sich fuer die Bewertung auf eigene Recherche zu verlassen statt auf diese Spalte.'},
+  {v:'3.38',d:'2026-09-20',t:'Jahresprüfungs-Archiv: Jede Dezember-Jahresprüfung (Prompt + Claudes Antwort) wird ab jetzt automatisch unter dem Jahr abgelegt, sobald der Prompt geöffnet oder kopiert wird. Über den neuen Knopf „Ergebnis speichern" laesst sich Claudes Antwort eintragen. Neue Karte „Jahresprüfungs-Archiv" in den Einstellungen listet alle Jahre mit Status. Ab dem Folgejahr erzeugt ein Kontrollprompt je archiviertem Jahr eine Gegenprüfung: Claudes damalige Antwort im Volltext plus der heutige Depotstand, mit der Aufgabe, recherchiert zu pruefen, ob die Einschaetzung zutraf und wie sich die damals vorgeschlagenen Alternativen tatsaechlich entwickelt haben. Offene Kontrollpruefungen erscheinen im Block Handlungsbedarf und in der Prompt-Zentrale unter einem eigenen Abschnitt.'},
   {v:'3.37',d:'2026-09-20',t:'Neumorphic Soft UI als sechstes Theme (weiche, gepresste Karten mit Doppel-Schatten statt Rahmen). Bewusst NUR die Optik uebernommen: die mitgelieferten Ersatzfunktionen fuer das Ziele-Dashboard (Ring-Gauges) und den Dividendenkalender (horizontaler Timeline-Slider) wurden nicht eingebaut, weil sie die seit v3.13 gewachsenen Funktionen dieser beiden Bloecke unter den Tisch fallen liessen — Netto-Werte, Ex-Datum-Kipppunkt-Warnungen, Szenario-Einordnung, synchronisierte Monatsauswahl ueber alle Dividenden-Ansichten. Ein Wechsel auf die vereinfachten Varianten waere ein Funktionsverlust gewesen, kein Fortschritt.'},
   {v:'3.36',d:'2026-09-20',t:'Design-Karte durch die von Mike vorgegebene Button-Liste ersetzt („Design / Vorlagen", Emoji-Beschriftung, ein Knopf je Theme statt Kachel-Raster mit Farbpunkten). Ergaenzt um eine aktiv-Markierung (gruener Knopf plus Haekchen), da sonst nicht erkennbar waere, welches Theme gerade eingestellt ist.'},
   {v:'3.35',d:'2026-09-20',t:'Theme-Verwaltung auf das von Mike vorgegebene Muster umgestellt: applyTheme(name) mit state.currentTheme (traegt den vollen Klassennamen, z.B. \'theme-apple\') statt state.theme mit Kurz-ID, plus explizitem saveState()-Aufruf bei jedem Wechsel. Alte Speicherstaende mit der Kurzform werden beim Laden automatisch migriert. Dabei einen Absturz beim Programmstart gefunden und behoben: ein render()-Aufruf innerhalb von applyTheme griff beim initialen Laden auf die Konstante TABS zu, bevor diese im Skript deklariert ist (Temporal Dead Zone) — die App waere beim Start mit \'Cannot access TABS before initialization\' abgestuerzt. render() erfolgt jetzt nur noch dort, wo tatsaechlich neu gezeichnet werden muss (der Auswahl-Knopf in den Einstellungen), nicht beim Start.'},
@@ -741,7 +795,11 @@ function fullRebalanceAmount(pf){
   if(denom<=0)return 0;
   return Math.max(0,(sumTgt*t-sumVal)/denom);
 }
-const EUR0=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v)+' €';
+// Im neuen Design (clean) werden Betraege ab 100 € auf ganze Euro gerundet — Cent sagen bei
+// Depotwerten und Jahressummen nichts aus. Kleine Monatsbetraege behalten zwei Stellen.
+function uiClean(){try{return !!state.uiClean;}catch(e){return false;}}
+const EUR0=v=>{const ganz=uiClean()&&Math.abs(v||0)>=100;
+  return new Intl.NumberFormat('de-DE',{minimumFractionDigits:ganz?0:2,maximumFractionDigits:ganz?0:2}).format(v||0)+' €';};
 // Einheitliche Tiefen: Geld immer 2 Stellen, Prozent 2, Stueckzahlen 6 (Bruchstuecke!), Kurse 4.
 const PCT=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v||0)+' %';
 const STK=v=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:6,maximumFractionDigits:6}).format(v||0);
@@ -885,7 +943,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','jahresPruefungen','uiClean','cleanOffen','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -1315,7 +1373,7 @@ function monatlicheDividendenBlock(){
     </div>
     ${svgBalken(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,klick:'divSetMonth',h:150})}
     <p class="hint" style="margin-top:4px;margin-bottom:8px">Balken antippen wählt den Monat. Höhe zeigt den Betrag — sichtbar wird so, wie ungleich sich die Ausschüttungen über das Jahr verteilen.</p>
-    <div class="mog">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+    <div class="mog dup-clean">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
       <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivMonatNetto(state.divCalYear,sel))}</div></div>
       <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivJahrNetto(state.divCalYear)/12)} · Jahr ${EUR0(divSum)}</div></div>
@@ -1520,12 +1578,12 @@ function zieleBlock(){
     </div>
   </div>
 
-  ${depotKennzahlenBlock()}
+  ${uiClean()?'<!--ZSPLIT-->':`${depotKennzahlenBlock()}
   ${handlungsbedarfBlock()}
   ${monatlicheDividendenBlock()}
   ${dividendeJeEtfBlock()}
   ${prognoseBlock()}
-  ${vermoegensVerlaufBlock()}
+  ${vermoegensVerlaufBlock()}`}
 
   <div class="card">
     <div class="ctitle">ZIEL ${SOLL.zielJahr} · SZENARIO A</div>
@@ -1626,26 +1684,65 @@ function zieleBlock(){
   </div>`;
 }
 
-function screenDashboard(){
-  const sc=totalScore(),scC=scoreColor(sc),now=new Date().getMonth();
-  const md=monthlyDivs(state.divCalYear),t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0;
+// ===================== NEUES DESIGN: DASHBOARD =====================
+// Oben vier Kennzahlen, die in einer Sekunde sagen, ob alles im Plan ist. Darunter nur der
+// Handlungsbedarf (falls vorhanden) und einklappbare Abschnitte. Inhalte werden erst beim
+// Aufklappen berechnet. Die Abschnitte nutzen dieselben Funktionen wie das klassische Design.
+function toggleCleanSek(k){state.cleanOffen=state.cleanOffen||{};state.cleanOffen[k]=!state.cleanOffen[k];render();}
+function cleanSektion(key,titel,info,inhaltFn){
+  const offen=!!(state.cleanOffen||{})[key];
+  return`<div class="cs">
+    <div class="cs-h" onclick="toggleCleanSek('${key}')"><span class="t">${titel}</span><span class="i">${info||''}</span><span class="c">${offen?'▲':'▼'}</span></div>
+    ${offen?`<div class="cs-b">${inhaltFn()}</div>`:''}
+  </div>`;
+}
+// Alle Depots und Einzelpositionen (frueher eigener Reiter „Depot")
+function depotDetailsInhalt(){
+  return screenDepot()
+    .replace(/^<div class="screen">/,'<div>')
+    .replace(/<h1 class="stitle[^"]*"[^>]*>Depot<\/h1>/,'');
+}
+function screenDashboardClean(){
+  const pf=zielPf();
+  const wert=pf?zWert():allTotal();
+  const nettoMon=pf?zDivJahrNetto(HEUTE_J)/12:0;
+  const bruttoMon=pf?zDivJahr(HEUTE_J)/12:0;
+  const ziel=SOLL&&SOLL.szenarioA?SOLL.szenarioA.depot:0;
+  const fort=ziel>0?wert/ziel*100:0;
+  const hb=handlungsbedarf(), dringend=hb.filter(x=>x.dringend).length;
+  const hbFarbe=dringend?'var(--orange)':hb.length?'var(--yellow)':'var(--green)';
+  // Zielteil und Planungsrechnung aus zieleBlock trennen
+  const zb=pf?zieleBlock():'';
+  const [zielKopf,zielRest]=zb.includes('<!--ZSPLIT-->')?zb.split('<!--ZSPLIT-->'):[zb,''];
+  const verlauf=pf?vermoegensVerlauf(pf):null;
+  const vGew=verlauf&&verlauf.einstand.length?(()=>{const e=verlauf.einstand[verlauf.einstand.length-1],w=verlauf.wert[verlauf.wert.length-1];return e>0?(w/e-1)*100:0;})():null;
+  const progJ=Math.min(PROGNOSE_BIS,HEUTE_J+15);
   return`<div class="screen">
-    <h1 class="stitle gg" style="font-size:42px">Dashboard</h1>
-    ${zieleBlock()}
-    ${checkDue()?`<div class="card" style="border-color:rgba(255,209,57,.55);background:rgba(255,209,57,.07)">
-      <div class="ctitle" style="color:var(--yellow)">📤 MONATS-CHECK FÄLLIG</div>
-      <div style="font-size:13px;line-height:1.6;margin-bottom:10px">
-        Es ist der ${new Date().getDate()}. — Zeit für den Monats-Check.
-        Exportiere dein JSON-Backup und lade es in Claude hoch: Positionen, Kurse,
-        Dividendenmonate und der Zielpfad werden dann gegengeprüft.
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" onclick="checkExport()" style="flex:1;min-width:140px">JSON exportieren</button>
-        <button class="btn btn-r" onclick="checkDone()" style="flex:0 0 auto">Erledigt</button>
-      </div>
-    </div>`:''}
-    <div class="gauge-wrap">${svgRing({progress:sc/100,color:scC,size:220,lw:16,label:String(sc),sub:'Score'})}</div>
-    <div class="card">
+    <h1 class="stitle">Dashboard</h1>
+    <div class="cz-kopf">
+      <div class="cz-kpi"><div class="l">${pf?pf.name:'Gesamtkapital'}</div><div class="v">${EUR0(wert)}</div><div class="s">Depotwert</div></div>
+      <div class="cz-kpi"><div class="l">Dividende / Monat</div><div class="v" style="color:var(--green)">${EUR0(nettoMon)}</div><div class="s">netto · brutto ${EUR0(bruttoMon)}</div></div>
+      <div class="cz-kpi"><div class="l">Ziel ${SOLL?SOLL.zielJahr:''}</div><div class="v">${PCT(fort)}</div><div class="s">von ${EUR0(ziel)}</div></div>
+      <div class="cz-kpi" style="cursor:pointer" onclick="state.hbOffen=true;render()"><div class="l">Handlungsbedarf</div>
+        <div class="v" style="color:${hbFarbe}">${hb.length?hb.length:'✓'}</div>
+        <div class="s">${hb.length?(dringend?dringend+' dringend':'nichts dringend'):'alles erledigt'}</div></div>
+    </div>
+    ${hb.length?handlungsbedarfBlock():''}
+    ${pf?cleanSektion('ziele','Ziele '+(SOLL?SOLL.zielJahr:''),PCT(fort),()=>zielKopf):''}
+    ${pf?cleanSektion('div','Dividenden '+state.divCalYear,EUR0(nettoMon)+' netto/Mon',()=>monatlicheDividendenBlock()+dividendeJeEtfBlock()):''}
+    ${pf?cleanSektion('prog','Prognose bis '+progJ,EUR0(zDivJahrNetto(progJ)/12)+'/Mon',()=>prognoseBlock()):''}
+    ${pf&&verlauf?cleanSektion('verlauf','Vermögensverlauf',vGew!==null?(vGew>=0?'+':'')+PCT(vGew):'',()=>vermoegensVerlaufBlock()):''}
+    ${pf?cleanSektion('kennz','Depot-Kennzahlen','',()=>depotKennzahlenBlock()):''}
+    ${cleanSektion('income','Income-Ziele','',()=>zielpfadCard()+incomeKapitalCard())}
+    ${cleanSektion('teil','Teil-Portfolios','Score '+totalScore(),()=>teilPortfoliosCard())}
+    ${cleanSektion('depot','Alle Depots & Positionen',EUR0(allTotal()),()=>depotDetailsInhalt())}
+    ${zielRest?cleanSektion('plan','Planungsrechnung (Details)','',()=>zielRest):''}
+  </div>`;
+}
+
+// Teilstuecke des Dashboards als eigene Funktionen — klassisches und neues Design nutzen dieselben.
+function teilPortfoliosCard(){
+  return`    <div class="card">
       <div class="ctitle">TEIL-PORTFOLIOS (REBALANCING &amp; SCORE)</div>
       <div class="mini-grid">${state.portfolios.filter(p=>p.enabled).map((pf,fi)=>{
         const idx=state.portfolios.indexOf(pf);
@@ -1653,20 +1750,9 @@ function screenDashboard(){
         return`<div class="mini-cell" onclick="openPfFromDash(${idx})" style="cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.6'" onmouseup="this.style.opacity='1'">
           <div class="mini-lbl">${pf.name}</div>${svgRing({progress:s/100,color:c,size:86,lw:6,label:String(s)})}</div>`;
       }).join('')}</div>
-    </div>
-    <div class="card card-c">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Gesamtkapital</div>
-          <div style="font-size:20px;font-weight:700" class="gc">${EUR0(t)}</div></div>
-        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Performance</div>
-          <div style="font-size:20px;font-weight:700;color:${g>=0?N.green:N.red}">${yp.toFixed(2)}%</div></div>
-        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ${MN[now]}</div>
-          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md[now])}</div></div>
-        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ø / Monat</div>
-          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md.reduce((a,b)=>a+b)/12)}</div></div>
-      </div>
-    </div>
-    ${(()=>{
+    </div>`;
+}
+function zielpfadCard(){
       const jetzt=new Date().getFullYear(), p=planFor(jetzt);
       const incVal=uniqueValueOf(ZIEL_PORTFOLIOS);
       const diff=incVal-p.income, ok=diff>=-p.income*0.05;
@@ -1689,8 +1775,8 @@ function screenDashboard(){
         </div>
         <div class="hint" style="margin-top:6px">Planwert ${jetzt}: ${EUR0(p.div)}/Monat netto · Ziel ${ZIELJAHR}: ${ZIEL_NETTO} €/Monat · Sparrate 1.140 €</div>
       </div>`;
-    })()}
-    ${(()=>{
+    }
+function incomeKapitalCard(){
       // Meilenstein Ziel 2: 138.000 € Income-Kapital → 500 €/Monat netto
       // FIX v3.5: uniqueValueOf() dedupliziert nach ISIN — Positionen, die in
       // ReBal 1 UND ReBal 2 liegen, wurden vorher doppelt gezählt.
@@ -1711,7 +1797,42 @@ function screenDashboard(){
           <span style="font-size:13px;font-weight:700;color:var(--green)">${pct.toFixed(1)} %</span>
         </div>
       </div>`;
-    })()}
+    }
+
+function screenDashboard(){
+  const sc=totalScore(),scC=scoreColor(sc),now=new Date().getMonth();
+  const md=monthlyDivs(state.divCalYear),t=allTotal(),cb=allCost(),g=t-cb,yp=cb>0?g/cb*100:0;
+  return`<div class="screen">
+    <h1 class="stitle gg" style="font-size:42px">Dashboard</h1>
+    ${zieleBlock()}
+    ${checkDue()?`<div class="card" style="border-color:rgba(255,209,57,.55);background:rgba(255,209,57,.07)">
+      <div class="ctitle" style="color:var(--yellow)">📤 MONATS-CHECK FÄLLIG</div>
+      <div style="font-size:13px;line-height:1.6;margin-bottom:10px">
+        Es ist der ${new Date().getDate()}. — Zeit für den Monats-Check.
+        Exportiere dein JSON-Backup und lade es in Claude hoch: Positionen, Kurse,
+        Dividendenmonate und der Zielpfad werden dann gegengeprüft.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="checkExport()" style="flex:1;min-width:140px">JSON exportieren</button>
+        <button class="btn btn-r" onclick="checkDone()" style="flex:0 0 auto">Erledigt</button>
+      </div>
+    </div>`:''}
+    <div class="gauge-wrap">${svgRing({progress:sc/100,color:scC,size:220,lw:16,label:String(sc),sub:'Score'})}</div>
+    ${teilPortfoliosCard()}
+    <div class="card card-c">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Gesamtkapital</div>
+          <div style="font-size:20px;font-weight:700" class="gc">${EUR0(t)}</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Performance</div>
+          <div style="font-size:20px;font-weight:700;color:${g>=0?N.green:N.red}">${yp.toFixed(2)}%</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ${MN[now]}</div>
+          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md[now])}</div></div>
+        <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Div. ø / Monat</div>
+          <div style="font-size:18px;font-weight:700" class="gc">${EUR0(md.reduce((a,b)=>a+b)/12)}</div></div>
+      </div>
+    </div>
+    ${zielpfadCard()}
+    ${incomeKapitalCard()}
   </div>`;
 }
 
@@ -1919,7 +2040,7 @@ function screenDepot(){
       <div class="ctitle">DEPOT-KENNZAHLEN</div>
       <div class="kz-grid">${kz.map(k=>`<div class="kz-tile"><div class="kz-lbl">${k.lb}</div><div class="kz-val ${k.cls}">${k.val}</div></div>`).join('')}</div>
     </div>
-    <div class="card card-c">
+    <div class="card card-c dup-clean">
       <div class="ctitle">MONATLICHE DIVIDENDEN NACH ZAHLTAG</div>
       <div class="yr-pick">
         <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
@@ -2723,6 +2844,12 @@ function handlungsbedarf(){
   if(jahresCheckFaellig())
     l.push({dringend:false,text:`Jahresprüfung ${j}: Gewichtung und ETF-Alternativen überprüfen`,
             knopf:'Prompt',aktion:'openPromptWahl()',spaeter:'quittiereJahresCheck()'});
+  if(uiClean()&&checkDue())
+    l.push({dringend:false,text:'Monats-Check fällig — JSON-Backup exportieren',
+            knopf:'Exportieren',aktion:'checkExport()',spaeter:'checkDone()'});
+  offenePruefungen().forEach(jj=>
+    l.push({dringend:false,text:`Jahresprüfung ${jj} noch nicht gegengeprüft — hat die Einschätzung zugetroffen?`,
+            knopf:'Prompt',aktion:'openPromptWahl()'}));
   const pf=zielPf();
   if(pf){
     pausierteHinweise(pf).forEach(({pos,info})=>{
@@ -2985,7 +3112,82 @@ ${zeilen}
 Antworte strukturiert: erst die aus deiner Sicht gravierendsten Befunde, dann die Detailanalyse je ETF, zum Schluss eine priorisierte Liste konkreter Handlungsoptionen mit jeweiliger Begründung und Gegenargument. Recherchiere aktuelle Daten (TER, Fondsvolumen, Ausschüttungshistorie), statt dich auf dein Gedächtnis zu verlassen.`;
 }
 
-// Alle Prompts an einer Stelle — vorher lagen vier Knoepfe ueber die Oberflaeche verstreut.
+// ===== JAHRESPRÜFUNGS-ARCHIV =====
+// Jede Dezember-Jahresprüfung (Prompt + Claudes Antwort) wird unter dem Jahr abgelegt, in dem
+// sie erstellt wurde. Im Folgejahr lässt sich daraus ein Kontrollprompt erzeugen, der prüft, ob
+// die damalige Einschätzung zugetroffen hat — mit den heutigen Ist-Daten als Gegenprobe.
+function jahresArchiv(){return state.jahresPruefungen||(state.jahresPruefungen={});}
+// Legt den aktuellen Jahresprüfungs-Prompt unter dem laufenden Jahr ab (überschreibt, solange
+// noch kein Ergebnis eingetragen ist — mit Ergebnis bleibt der Prompt als Beleg unverändert stehen).
+function archiviereJahresPrompt(){
+  const j=new Date().getFullYear();
+  const a=jahresArchiv();
+  if(a[j]&&a[j].ergebnis)return;      // nicht überschreiben, wenn schon ausgewertet
+  a[j]={...(a[j]||{}),prompt:jahresCheckPrompt(),datum:new Date().toISOString().slice(0,10)};
+  saveState();
+}
+function speichereJahresErgebnis(jahr,text){
+  if(!text||!text.trim()){showToast('Kein Text eingefügt');return;}
+  const a=jahresArchiv();
+  if(!a[jahr])a[jahr]={prompt:'(nachträglich ohne archivierten Prompt gespeichert)',datum:new Date().toISOString().slice(0,10)};
+  a[jahr].ergebnis=text.trim();
+  a[jahr].ergebnisDatum=new Date().toISOString().slice(0,10);
+  saveState();render();
+  showToast('Ergebnis für '+jahr+' gespeichert');
+}
+function markiereGeprueft(jahr){
+  const a=jahresArchiv();
+  if(a[jahr]){a[jahr].geprueftAm=new Date().toISOString().slice(0,10);saveState();render();showToast(jahr+' als geprüft markiert');}
+}
+function openErgebnisModal(jahr){
+  const a=jahresArchiv()[jahr]||{};
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modal-box">
+    <div class="modal-title">Ergebnis ${jahr} speichern</div>
+    <p class="hint" style="margin-bottom:8px">Claudes vollständige Antwort auf die Jahresprüfung ${jahr} hier einfügen.</p>
+    <textarea id="jp_ergebnis" style="width:100%;height:260px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace">${(a.ergebnis||'').replace(/</g,'&lt;')}</textarea>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn btn-g" style="flex:1" onclick="speichereJahresErgebnis(${jahr},gs('jp_ergebnis'));closeModal()">Speichern</button>
+      <button class="btn btn-gh" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>`;
+  m.classList.add('open');
+  m.onclick=e=>{if(e.target===m)closeModal();};
+}
+// Kontrollprompt: prueft, ob die Einschaetzung aus `jahr` im Rueckblick zutraf.
+function kontrollPrompt(jahr){
+  const a=jahresArchiv()[jahr];
+  if(!a||!a.ergebnis)return'Für '+jahr+' liegt noch kein gespeichertes Ergebnis vor.';
+  const pf=zielPf();
+  const heute=new Date().toISOString().slice(0,10);
+  const zeilen=pf?(pf.positions||[]).map(p=>{
+    const wert=posVal(p);
+    const ist=pfTotal(pf)>0?wert/pfTotal(pf)*100:0;
+    return`| ${p.isin||'?'} | ${ist.toFixed(2)} % | ${(p.target||0).toFixed(2)} % | ${(p.ter??'?')} % | ${(p.kurs||0).toFixed(4)} € |`;
+  }).join('\n'):'';
+  return`Ich hatte dich im Dezember ${jahr} um eine Jahresprüfung meines Dividenden-ETF-Depots gebeten. Anbei zuerst deine damalige Antwort im Volltext, danach der Stand meines Depot-Tools vom ${heute.split('-').reverse().join('.')}. Bitte prüfe rückblickend, ob deine damalige Einschätzung zutraf.
+
+## Deine Antwort aus ${jahr} (Volltext)
+${a.ergebnis}
+
+## Was ich wissen möchte
+1. Recherchiere die seither tatsächlich eingetretene Entwicklung: TER-Änderungen, Fondsvolumen, Ausschüttungsverlauf, Kursverlauf der damals genannten ISIN — sowohl meiner bestehenden Positionen als auch der von dir damals vorgeschlagenen Alternativen. Die Kurse in meiner Tabelle unten sind der zuletzt im Tool hinterlegte Stand, nicht zwingend der heutige Marktkurs — verlasse dich für die eigentliche Bewertung auf deine eigene Recherche, nicht auf diese Spalte.
+2. Waren deine damaligen Warnungen (Klumpenrisiken, Überschneidungen, Substanzverzehr bei Covered-Call-Produkten) im Rückblick berechtigt? Was ist tatsächlich passiert?
+3. Hätten die damals vorgeschlagenen Alternativ-ISIN im Rückblick tatsächlich besser abgeschnitten als das, was ich hielt — nach TER, Ausschüttung und Kursentwicklung?
+4. Was von deiner damaligen Einschätzung würdest du heute anders bewerten, und warum?
+5. Sei dabei selbstkritisch, aber nicht pauschal — wenn etwas zutraf, sag das auch klar.
+
+## Mein Depot laut Tool, Stand ${heute.split('-').reverse().join('.')}
+${zeilen?`| ISIN | Ist-% | Ziel-% | TER | Kurs im Tool |\n|---|---|---|---|---|\n${zeilen}`:'(Depotdaten nicht verfügbar)'}
+
+## Format
+Kurzes Fazit zuerst (traf die Einschätzung insgesamt zu oder nicht), dann Punkt für Punkt entlang der obigen Fragen mit Quellenangaben zu den recherchierten Daten.`;
+}
+function offenePruefungen(){
+  const a=jahresArchiv();
+  const jetzt=new Date().getFullYear();
+  return Object.keys(a).map(Number).filter(j=>j<jetzt&&a[j].ergebnis&&!a[j].geprueftAm).sort((x,y)=>y-x);
+}
 const PROMPTS=[
   {id:'jahr',  titel:'Jahresprüfung Depot',        info:'Gewichtung, Überschneidungen und ETF-Alternativen prüfen lassen', fn:()=>jahresCheckPrompt()},
   {id:'daten', titel:'Ausschüttungstermine holen', info:'Ex-Tage, Zahltage und Beträge für ein Jahr recherchieren, Rückgabe als JSON', fn:()=>datenCheckPrompt()},
@@ -2994,27 +3196,40 @@ const PROMPTS=[
 ];
 function openPromptWahl(){
   const m=document.getElementById('modal');
+  const offen=offenePruefungen();
   m.innerHTML=`<div class="modal-box">
     <div class="modal-title">Prompt für Claude</div>
     <p class="hint" style="margin-bottom:10px">Kopieren, in Claude einfügen, Antwort zurück ins Tool.</p>
     ${PROMPTS.map(x=>`<div style="padding:8px 0;border-top:1px solid var(--line,#2a3a5a)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
         <span style="font-size:13px;color:var(--cyan)">${x.titel}</span>
-        <span style="display:flex;gap:6px">
+        <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="promptKopieren('${x.id}')">Kopieren</button>
           <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="promptAnsehen('${x.id}')">Ansehen</button>
+          ${x.id==='jahr'?`<button class="yp-btn" style="padding:3px 10px;font-size:11px;color:${N.green}" onclick="openErgebnisModal(${new Date().getFullYear()})">Ergebnis speichern</button>`:''}
         </span>
       </div>
       <div style="font-size:11px;color:var(--t3);margin-top:3px">${x.info}</div>
     </div>`).join('')}
+    ${offen.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#2a3a5a)">
+      <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Kontrollprüfungen — trafen die Einschätzungen zu?</div>
+      ${offen.map(j=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0">
+        <span style="font-size:13px;color:var(--yellow)">Jahresprüfung ${j} gegenprüfen</span>
+        <span style="display:flex;gap:6px">
+          <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="navigator.clipboard&&navigator.clipboard.writeText(kontrollPrompt(${j})).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(kontrollPrompt(${j})))">Kopieren</button>
+          <button class="yp-btn" style="padding:3px 10px;font-size:11px" onclick="zeigePromptFallback(kontrollPrompt(${j}))">Ansehen</button>
+        </span>
+      </div>`).join('')}
+    </div>`:''}
     <div class="btnrow" style="margin-top:12px"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>
   </div>`;
   m.classList.add('open');
   m.onclick=e=>{if(e.target===m)closeModal();};
 }
 function promptText(id){const x=PROMPTS.find(y=>y.id===id);return x?x.fn():'';}
-function promptAnsehen(id){zeigePromptFallback(promptText(id));}
+function promptAnsehen(id){if(id==='jahr')archiviereJahresPrompt();zeigePromptFallback(promptText(id));}
 function promptKopieren(id){
+  if(id==='jahr')archiviereJahresPrompt();
   const t=promptText(id);
   if(navigator.clipboard&&navigator.clipboard.writeText)
     navigator.clipboard.writeText(t).then(()=>showToast('Prompt kopiert')).catch(()=>zeigePromptFallback(t));
@@ -3273,7 +3488,33 @@ function screenSettings(){
         <button class="btn ${state.currentTheme==='theme-yield'?'btn-g':'btn-c'}" onclick="applyTheme('theme-yield');render()">💰 Yield & Cashflow Engine${state.currentTheme==='theme-yield'?' ✓':''}</button>
         <button class="btn ${state.currentTheme==='theme-neumorphic'?'btn-g':'btn-c'}" onclick="applyTheme('theme-neumorphic');render()">🌗 Neumorphic Soft UI${state.currentTheme==='theme-neumorphic'?' ✓':''}</button>
       </div>
+      ${uiClean()?`<p style="margin-top:10px;font-size:12px;color:var(--orange)">Im neuen Design gilt ein festes, ruhiges Farbschema. Die Themes wirken im klassischen Design.</p>`:''}
       <p class="hint" style="margin-top:10px">Neumorphic ändert nur Farben und Schattenwurf (weiche, „gepresste" Karten) — die Ring-Anzeige und der horizontale Monats-Slider aus der Vorlage sind nicht übernommen, s. Hinweis im Chat.</p>`},
+    {t:'Jahresprüfungs-Archiv',ic:'📚',body:(()=>{
+      const a=jahresArchiv();
+      const jahre=Object.keys(a).map(Number).sort((x,y)=>y-x);
+      if(!jahre.length)return`<p class="hint">Noch keine Jahresprüfung archiviert. Sobald du im Dezember unter „Prompts" die Jahresprüfung öffnest oder kopierst, wird sie hier automatisch abgelegt.</p>`;
+      return`<p class="hint" style="margin-bottom:10px">Jede Dezember-Jahresprüfung mit Prompt und Claudes Antwort. Im Folgejahr lässt sich daraus über „Prompts → Kontrollprüfungen" gegenprüfen, ob die Einschätzung zutraf.</p>
+      ${jahre.map(j=>{const e=a[j];
+        return`<div class="kz-tile" style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-weight:700;color:var(--cyan)">${j}</span>
+            <span style="font-size:11px;color:var(--t3)">archiviert ${e.datum?e.datum.split('-').reverse().join('.'):'—'}</span>
+          </div>
+          <div style="font-size:12px;color:${e.ergebnis?N.green:N.orange};margin-top:4px">
+            ${e.ergebnis?'✓ Ergebnis gespeichert'+(e.ergebnisDatum?' am '+e.ergebnisDatum.split('-').reverse().join('.'):''):'○ noch kein Ergebnis eingetragen'}
+            ${e.geprueftAm?` · ✓ gegengeprüft am ${e.geprueftAm.split('-').reverse().join('.')}`:''}
+          </div>
+          <div class="btnrow" style="margin-top:8px">
+            <button class="yp-btn" style="flex:1" onclick="zeigePromptFallback((jahresArchiv()[${j}]||{}).prompt||'kein Prompt gespeichert')">Prompt ansehen</button>
+            <button class="yp-btn" style="flex:1" onclick="openErgebnisModal(${j})">${e.ergebnis?'Ergebnis bearbeiten':'Ergebnis eintragen'}</button>
+          </div>
+          ${e.ergebnis?`<div class="btnrow" style="margin-top:6px">
+            <button class="yp-btn" style="flex:1" onclick="zeigePromptFallback((jahresArchiv()[${j}]||{}).ergebnis||'')">Ergebnis ansehen</button>
+            ${!e.geprueftAm?`<button class="yp-btn" style="flex:1;color:var(--t3)" onclick="markiereGeprueft(${j})" title="Ohne Kontrollprompt manuell als erledigt markieren">Ohne Gegenprüfung erledigt</button>`:''}
+          </div>`:''}
+        </div>`;}).join('')}`;
+    })()},
     {t:'Cloud-Sync',ic:'☁',body:(window.buildCloudSyncSettingsBody?window.buildCloudSyncSettingsBody():'<p class="hint">Lädt…</p>')},
     {t:'Persönlicher Check',ic:'👤',body:`
       <div class="field"><label>Sparrate / Monat €</label><input type="text" inputmode="decimal" id="ss_sr" value="${state.sparrate}"/></div>
@@ -3375,16 +3616,45 @@ function screenSettings(){
         <button class="btn btn-r" onclick="if(confirm('Wirklich ALLE Daten zurücksetzen? Dies kann nicht rückgängig gemacht werden.')){localStorage.removeItem(STORAGE_KEY);state=defaultState();render();showToast('✓ Zurückgesetzt')}">🗑 Alle Daten löschen</button>
       </div>`}
   ];
-  return`
-<div class="screen">
-    <h1 class="stitle gy" style="font-size:50px;margin-top:16px">Einstellungen</h1>
-    ${items.map((it,i)=>`
+  const accHtml=(it,i)=>`
       <div class="acc" id="ac${i}">
         <div class="acc-h" onclick="toggleAcc(${i})">
           <span class="acc-ic">${it.ic}</span><span class="acc-t">${it.t}</span><span class="acc-ch">▼</span>
         </div>
         <div class="acc-b">${it.body}</div>
-      </div>`).join('')}
+      </div>`;
+  const clean=uiClean();
+  const schalter=`<div class="card" style="margin-bottom:14px">
+      <div class="ctitle" style="margin-bottom:10px">DARSTELLUNG</div>
+      <div class="ui-schalter">
+        <button class="${clean?'':'on'}" onclick="setUiModus(false)">Klassisch</button>
+        <button class="${clean?'on':''}" onclick="setUiModus(true)">Neu (clean)</button>
+      </div>
+      <p class="hint" style="margin-top:8px">Wechselt jederzeit hin und zurück. Daten und Rechnungen sind in beiden Designs identisch — es ändert sich nur, was wann sichtbar ist.</p>
+    </div>`;
+  // Neues Design: zwölf gleichrangige Eintraege in drei Gruppen ordnen (IDs bleiben stabil)
+  const GRUPPEN=[
+    ['Daten',  ['CSV-Import','Kurse','Datenprüfung','Export / Import']],
+    ['Planung',['Persönlicher Check','Buy Only','Teil-Portfolios Übersicht','Jahresprüfungs-Archiv']],
+    ['App',    ['Design / Vorlagen','Cloud-Sync','Wissensdatenbank','Sonstiges']]
+  ];
+  const liste=clean
+    ? (()=>{const benutzt=new Set();let h='';
+        GRUPPEN.forEach(([g,titel])=>{
+          const teil=items.map((it,i)=>[it,i]).filter(([it])=>titel.includes(it.t));
+          if(!teil.length)return;
+          teil.forEach(([,i])=>benutzt.add(i));
+          h+=`<div class="cz-gruppe">${g}</div>`+teil.map(([it,i])=>accHtml(it,i)).join('');
+        });
+        const rest=items.map((it,i)=>[it,i]).filter(([,i])=>!benutzt.has(i));
+        if(rest.length)h+=`<div class="cz-gruppe">Weiteres</div>`+rest.map(([it,i])=>accHtml(it,i)).join('');
+        return h;})()
+    : items.map(accHtml).join('');
+  return`
+<div class="screen">
+    <h1 class="stitle gy" style="font-size:50px;margin-top:16px">Einstellungen</h1>
+    ${schalter}
+    ${liste}
   </div>`;
 }
 
@@ -3848,12 +4118,20 @@ function goTab(i){state.tab=i;if(i===2)state.view='list';render();}
 function render(){
   const openAccs=[...document.querySelectorAll('.acc.open')].map(el=>el.id);
   saveState();
+  const clean=uiClean();
+  // Neues Design: der Depot-Reiter ist ins Dashboard gewandert
+  if(clean&&state.tab===1)state.tab=0;
   const tab=TABS[state.tab];
-  document.getElementById('backdrop').style.background=
+  document.getElementById('backdrop').style.background=clean?'none':
     `radial-gradient(ellipse 600px 400px at 50% 0%,${tab.ab} 0%,transparent 68%)`;
-  const screens=[screenDashboard,screenDepot,screenPortfolio,screenSparplan,screenSettings];
-  document.getElementById('content').innerHTML=screens[state.tab]();
+  const screens=[clean?screenDashboardClean:screenDashboard,screenDepot,screenPortfolio,screenSparplan,screenSettings];
+  let html=screens[state.tab]();
+  // Neues Design: Erklaertexte hinter ein kleines i legen statt sie immer anzuzeigen
+  if(clean)html=html.replace(/<p class="hint"([^>]*)>([\s\S]*?)<\/p>/g,
+    (m,attr,inhalt)=>`<details class="hx"><summary>ⓘ</summary><p class="hint"${attr}>${inhalt}</p></details>`);
+  document.getElementById('content').innerHTML=html;
   document.getElementById('tabbar').innerHTML=TABS.map((t,i)=>
+    (clean&&i===1)?'':
     `<button class="tb${i===state.tab?' on':''}" style="--tc:${t.tc};--tg:${t.tg}" onclick="goTab(${i})" type="button">
       <span class="ic">${t.ic}</span>${t.lb}
     </button>`).join('');
