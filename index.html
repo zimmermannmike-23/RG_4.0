@@ -242,6 +242,175 @@ details.hx[open]>summary{color:var(--t2)}
 .ui-schalter button{flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13px;font-weight:600;
   background:transparent;color:var(--t2);cursor:pointer}
 .ui-schalter button.on{background:var(--t);color:#000}
+
+/* ===================== LIGHT MODE · DESIGN-SYSTEM =====================
+   Entworfen nach den Screenshot-Vorlagen: heller Flächen-Hintergrund, weiße Karten,
+   Abgrenzung über weichen Schatten statt Rahmen, Farbe ausschließlich für Bedeutung.
+   Die Tokens liegen als CSS-Variablen vor und gelten für klassisches wie neues Design. */
+html body.theme-light{
+  /* Flächen */
+  --bg0:#F8F9FA;        /* App-Hintergrund (Off-White) */
+  --bg1:#FFFFFF;        /* Karten & Container (Reinweiß) */
+  --bg2:#F8F9FA;        /* eingelassene Felder, Tabellenkopf */
+  --b:#E5E7EB;          /* dezente Ränder, 1px solid */
+  /* Typografie */
+  --t:#111827;          /* Primär: Hauptwerte & Titel */
+  --t2:#6B7280;         /* Sekundär: Beschriftungen & Subtitle */
+  --t3:#9CA3AF;         /* Muted: Hinweise, Achsen (abgeleitet) */
+  /* Akzentfarben */
+  --cyan:#2563EB;       /* interaktive Elemente */
+  --green:#059669;      /* Plus-Werte & Käufe (Smaragd) */
+  --red:#DC2626;        /* Minuszahlen & Verkäufe */
+  --yellow:#D97706;     /* Abweichungen / Ex-Datum */
+  --orange:#D97706;     /* Handlungsbedarf */
+  /* Für kleine Schrift: dunklere Varianten, da #059669 auf Weiß nur 3,8:1 erreicht */
+  --green-text:#047857;--warn-text:#B45309;
+  /* Form */
+  --rr:12px;
+  --card-bg:#FFFFFF;
+  --glass-filter:none;
+  --sh-1:0 1px 3px rgba(0,0,0,.05);
+  --sh-2:0 4px 10px -2px rgba(0,0,0,.08);
+  /* weiche Farbflächen für Zustände */
+  --green-bg:#ECFDF5;--green-bd:#A7F3D0;
+  --red-bg:#FEF2F2;--red-bd:#FECACA;
+  --accent-bg:#EFF6FF;
+}
+/* Kleine Schrift in Akzentfarbe auf die kontraststärkere Variante heben */
+body.theme-light .hint,body.theme-light .spar-sub,body.theme-light .badge{letter-spacing:0}
+body.theme-light .mob .moa{color:var(--green-text)!important}
+body.theme-light .badge-warn{color:var(--warn-text);border-color:#FCD34D;background:#FFFBEB}
+/* Flächen und Abgrenzung */
+body.theme-light .card,body.theme-light .card-c,body.theme-light .card-y{
+  background:#FFFFFF!important;border:1px solid var(--b)!important;
+  box-shadow:var(--sh-1)!important;backdrop-filter:none!important}
+body.theme-light .card-y{border-left:3px solid var(--orange)!important;background:#FFFBF5!important}
+body.theme-light .kz-tile{background:var(--bg2)!important;border:1px solid var(--b)!important;
+  box-shadow:none!important;border-radius:12px!important}
+body.theme-light .kz-val{color:var(--t)!important;text-shadow:none!important}
+body.theme-light .kz-lbl,body.theme-light .ctitle{color:var(--t3)!important}
+body.theme-light .ctitle{text-shadow:none!important}
+/* Monatskacheln: Monate mit Zahlung bekommen die weiche grüne Fläche aus der Vorlage */
+body.theme-light .mob{background:var(--green-bg)!important;border:1px solid var(--green-bd)!important;
+  border-radius:12px!important;box-shadow:none!important}
+body.theme-light .mob .mon{color:var(--t2)!important}
+body.theme-light .mob .moa{color:var(--green)!important}
+body.theme-light .mob.hi{background:var(--accent-bg)!important;border-color:var(--cyan)!important}
+body.theme-light .mob.hi .moa{color:var(--cyan)!important}
+/* Navigation */
+body.theme-light #tabbar{background:rgba(255,255,255,.94)!important;border-top:1px solid var(--b)!important}
+body.theme-light .tb{color:var(--t3)!important}
+body.theme-light .tb.on{color:var(--cyan)!important;text-shadow:none!important;--tc:#2F6BFF!important;--tg:transparent!important}
+/* Eingaben, Tabellen, Listen */
+body.theme-light .edf,body.theme-light .field input,body.theme-light .edf input,body.theme-light textarea{
+  background:#FFFFFF!important;border:1px solid var(--b)!important;color:var(--t)!important;box-shadow:none!important}
+body.theme-light .tbl th{background:var(--bg2);color:var(--t3)!important;border-bottom:1px solid var(--b)}
+body.theme-light .tbl td{border-bottom:1px solid var(--b)}
+body.theme-light .tbl td:first-child{color:var(--t)!important}
+body.theme-light .acc{background:#FFFFFF!important;border:1px solid var(--b)!important;box-shadow:var(--sh-1)!important}
+body.theme-light .yp-btn{background:var(--accent-bg)!important;color:var(--cyan)!important;border:1px solid var(--b)!important}
+body.theme-light .btn-c{background:var(--accent-bg)!important;border-color:#B2CCFF!important;color:var(--cyan)!important}
+body.theme-light .btn-g{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
+body.theme-light .btn-gh{background:#FFFFFF!important;border-color:var(--b)!important;color:var(--t2)!important}
+body.theme-light .ui-schalter{background:var(--bg2)!important;border-color:var(--b)!important}
+body.theme-light .ui-schalter button.on{background:var(--t)!important;color:#fff!important}
+/* Typografie-Skala */
+body.theme-light .stitle{color:var(--t)!important;text-shadow:none!important;
+  -webkit-text-fill-color:var(--t)!important;background:none!important}
+body.theme-light .cz-kpi{background:#FFFFFF;border-color:var(--b);box-shadow:var(--sh-1)}
+body.theme-light .cs{background:#FFFFFF;border-color:var(--b);box-shadow:var(--sh-1)}
+/* Im neuen Design (clean) gelten dieselben hellen Tokens — höhere Spezifität als die dunkle Clean-Palette */
+html body.ui-clean.theme-light{
+  --bg0:#F8F9FA;--bg1:#FFFFFF;--bg2:#F8F9FA;--b:#E5E7EB;
+  --t:#111827;--t2:#6B7280;--t3:#9CA3AF;
+  --cyan:#2563EB;--green:#059669;--red:#DC2626;--yellow:#D97706;--orange:#D97706;
+  --rr:12px;--card-bg:#FFFFFF}
+body.ui-clean.theme-light .card,body.ui-clean.theme-light .card-c{
+  box-shadow:var(--sh-1)!important;border:1px solid var(--b)!important;background:#FFFFFF!important}
+
+/* ===================== BILDSPRACHE DER VORLAGEN =====================
+   Kacheln mit Mini-Verlauf, Monats-Pills mit Zustand, Badges, zweispaltiges Sparplan-Raster.
+   Gilt in jedem Theme; die Farben kommen aus den Tokens. */
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.kpi-spark{width:54px;height:20px;flex-shrink:0;opacity:.9}
+/* Monats-Pill: gefuellt bei Zahlung, blass bei Monaten ohne Termin */
+.mob{transition:background .15s}
+.mob-0{opacity:.5}
+.mob-0 .moa{color:var(--t3)!important}
+body.theme-light .mob-0{background:var(--bg2)!important;border-color:var(--b)!important;opacity:1}
+body.theme-light .mob-0 .moa{color:var(--t3)!important}
+/* Badge-Zeile ueber den Monats-Pills (Ticker, Hinweis, Kennzahlen) */
+.etf-kopf{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.etf-tick{font-size:15px;font-weight:700;color:var(--t)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;
+  padding:2px 8px;border-radius:999px;border:1px solid var(--b);color:var(--t3);background:var(--bg2);white-space:nowrap}
+.badge-warn{color:var(--orange);border-color:var(--orange);background:transparent}
+.etf-kz{margin-left:auto;font-size:11px;color:var(--t2);white-space:nowrap}
+/* Sparplan: zweispaltiges Kachelraster wie in der Vorlage */
+.spar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.spar-tile{background:var(--bg1);border:1px solid var(--b);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+body.theme-light .spar-tile{background:#fff;box-shadow:var(--sh-1)}
+.spar-name{font-size:12px;font-weight:700;line-height:1.25;color:var(--t);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px}
+.spar-bars{display:flex;gap:10px;font-size:10px;color:var(--t3)}
+.spar-bar{flex:1}
+.spar-bar .l{display:flex;justify-content:space-between;margin-bottom:3px}
+.spar-track{height:4px;border-radius:2px;background:var(--b);overflow:hidden}
+.spar-fill{height:100%;border-radius:2px}
+.spar-amt{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.spar-sub{font-size:10px;color:var(--t3)}
+
+/* Kompakte Dashboard-Zusammenfassung: breite Wertkarte + Ziel-Ringe */
+.cz-wert .l{font-size:12px;color:var(--t3);margin-bottom:4px}
+.cz-wert .v{font-size:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.cz-wert .s{font-size:12px;color:var(--t3);margin-bottom:6px}
+.cz-ziel-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.cz-ziel-kopf .t{font-size:15px;font-weight:600;color:var(--t)}
+.cz-ziel-kopf .leg{font-size:11px;color:var(--t3)}
+
+/* ===== LIGHT MODE · VOLLSTAENDIGE KOMPONENTEN-UEBERSCHREIBUNG =====
+   Rund zwanzig Komponenten trugen fest verdrahtete Dunkelfarben (#040d10, #000,
+   rgba(0,240,255,…)). Auf hellem Grund blieben sie schwarz und ihr Text unlesbar.
+   Hier werden sie geschlossen auf die Tokens gezogen. */
+body.theme-light .order-card{background:#FFFFFF!important;border:1px solid var(--b)!important;
+  box-shadow:var(--sh-1)!important;border-radius:12px!important}
+body.theme-light .order-name{color:var(--t)!important}
+body.theme-light .order-sub{color:var(--t2)!important}
+body.theme-light .order-icon{box-shadow:none!important}
+body.theme-light .buy-ic{background:var(--green-bg)!important;border:1px solid var(--green-bd)!important;color:var(--green-text)!important}
+body.theme-light .sell-ic{background:var(--red-bg)!important;border:1px solid var(--red-bd)!important;color:var(--red)!important}
+body.theme-light .pf-row{background:#FFFFFF!important;border:1px solid var(--b)!important;box-shadow:var(--sh-1)!important}
+body.theme-light .pf-row.sel,body.theme-light .pf-row:active{box-shadow:var(--sh-2)!important;border-color:var(--cyan)!important}
+body.theme-light .merker-tile,body.theme-light .merker-inp,body.theme-light .spar-etf,
+body.theme-light .spar-rate-row,body.theme-light .edf{
+  background:#FFFFFF!important;border:1px solid var(--b)!important;box-shadow:none!important;color:var(--t)!important}
+body.theme-light .merker-inp input,body.theme-light .spar-rate-row input{background:transparent!important;color:var(--t)!important}
+body.theme-light .acc{border:1px solid var(--b)!important}
+body.theme-light .acc.open{border-color:var(--cyan)!important}
+body.theme-light .acc-b{border-top:1px solid var(--b)!important}
+body.theme-light .acc-t{color:var(--t)!important}
+body.theme-light .back-btn{background:var(--accent-bg)!important;border:1px solid var(--b)!important;color:var(--cyan)!important}
+body.theme-light .modal-box{background:#FFFFFF!important;border:1px solid var(--b)!important;
+  box-shadow:0 -8px 32px rgba(0,0,0,.14)!important}
+body.theme-light .modal-title{color:var(--t)!important}
+body.theme-light #modal{background:rgba(17,24,39,.35)!important}
+body.theme-light .sep{background:var(--b)!important}
+body.theme-light .sum-row{color:var(--t2)!important;border-color:var(--b)!important}
+body.theme-light .yr-pick{color:var(--t2)!important}
+body.theme-light .gc{color:var(--cyan)!important;text-shadow:none!important}
+body.theme-light .gg{color:var(--green-text)!important;text-shadow:none!important}
+body.theme-light .gy{color:var(--yellow)!important;text-shadow:none!important}
+body.theme-light .pdot{box-shadow:none!important}
+body.theme-light .tbl tr:nth-child(even) td{background:var(--bg2)}
+body.theme-light .mob.hi{box-shadow:none!important}
+body.theme-light .kz-tile{box-shadow:none!important}
+body.theme-light .btn-c:hover{background:#DBEAFE!important}
+body.theme-light .ampel-ok{background:var(--green-bg)!important;color:var(--green-text)!important;border:1px solid var(--green-bd)!important}
+body.theme-light .ampel-pruefen{background:#FFFBEB!important;color:var(--warn-text)!important;border:1px solid #FCD34D!important}
+body.theme-light .ampel-sofort{background:var(--red-bg)!important;color:var(--red)!important;border:1px solid var(--red-bd)!important}
+body.theme-light .badge{background:var(--bg2)!important;border-color:var(--b)!important;color:var(--t2)!important}
+/* Textfarben, die im Dunkeldesign auf Weiss gesetzt sind */
+body.theme-light [style*="color:white"],body.theme-light [style*="color:#fff"]{color:var(--t)!important}
 </style>
 </head>
 <body>
@@ -263,10 +432,17 @@ const THEMES={
   apple:    {label:'Apple Clean',        farben:{cyan:'#38bdf8',green:'#4ade80',red:'#f87171',yellow:'#facc15',orange:'#fb923c'}},
   analytics:{label:'Analytics',          farben:{cyan:'#6366f1',green:'#10b981',red:'#f43f5e',yellow:'#f59e0b',orange:'#ed8936'}},
   yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}},
-  neumorphic:{label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}}
+  neumorphic:{label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
+  // Light Mode: dunklere Farbwerte, damit sie auf weissem Grund denselben Kontrast tragen
+  light:    {label:'Light Mode',         hell:true,
+             farben:{cyan:'#2563EB',green:'#059669',red:'#DC2626',yellow:'#D97706',orange:'#D97706'}}
 };
 const CLEAN_FARBEN={cyan:'#9ca3af',green:'#4ade80',red:'#f87171',yellow:'#fbbf24',orange:'#fb923c'};
 function setUiModus(clean){state.uiClean=!!clean;applyTheme(state.currentTheme);render();window.scrollTo&&window.scrollTo(0,0);}
+function istHell(){
+  const id=(state.currentTheme||'theme-neon').replace(/^theme-/,'');
+  return !!(THEMES[id]&&THEMES[id].hell);
+}
 function applyTheme(themeName){
   const t=themeName||state.currentTheme||'theme-neon';
   const id=t.replace(/^theme-/,'');
@@ -275,15 +451,178 @@ function applyTheme(themeName){
   document.body.classList.add('theme-'+gueltig);
   Object.assign(N,THEMES[gueltig].farben);
   // Neues Design: eigenes, ruhiges Farbschema — gilt unabhaengig vom gewaehlten Theme
-  if(uiClean()){document.body.classList.add('ui-clean');Object.assign(N,CLEAN_FARBEN);}
+  if(uiClean()){
+    document.body.classList.add('ui-clean');
+    // Das Light-Theme bringt seine eigene, auf hellen Grund abgestimmte Palette mit
+    if(!THEMES[gueltig].hell)Object.assign(N,CLEAN_FARBEN);
+  }
   state.currentTheme='theme-'+gueltig;
   saveState();
 }
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+// Anlageklasse je ISIN. Zuvor stand im Feld `klasse` lediglich der Positionsindex (0,1,2,…),
+// weshalb die Beschriftung in den Rebalancing-Auftraegen Unsinn zeigte — ein Dividenden-ETF
+// erschien als „Tagesgeld", ein Anleihen-ETF als „Dividenden/Covered". Massgeblich ist jetzt
+// die ISIN; das alte Indexfeld wird nur noch als Rueckfall genutzt.
+const ISIN_KLASSE={
+  // Globale Aktien
+  'IE000BI8OT95':0,  // Amundi Core MSCI World
+  'IE00BF4G6Y48':0,  // JPMorgan Global Research Enhanced Index Equity
+  'IE000M8F3JA6':0,  // Xtrackers Global Growth Leaders Active
+  'IE000GA3D489':0,  // ARK Innovation
+  'IE00BF4RFH31':0,  // iShares MSCI World Small Cap
+  'IE00BKS7L097':0,  // Invesco S&P 500 Scored & Screened
+  'IE00BP3QZ601':0,  // iShares Edge MSCI World Quality Factor
+  // Schwellenlaender
+  'IE00BKM4GZ66':1,  // iShares Core MSCI EM IMI
+  'IE00BFNM3P36':1,  // iShares MSCI EM IMI Screened
+  // Anleihen
+  'IE00BG47KH54':2,  // Vanguard Global Aggregate Bond
+  'IE00B3F81R35':2,  // iShares Core EUR Corporate Bond
+  // Dividenden / Covered Call
+  'LU0292095535':3,  // Xtrackers Euro Stoxx Quality Dividend
+  'DE000A0F5UH1':3,  // iShares STOXX Global Select Dividend 100
+  'IE00B9CQXS71':3,  // SPDR S&P Global Dividend Aristocrats
+  'IE00B8GKDB10':3,  // Vanguard FTSE All-World High Dividend Yield
+  'LU0292096186':3,  // Xtrackers STOXX Global Select Dividend 100 Swap
+  'NL0011683594':3,  // VanEck Morningstar Developed Markets Dividend Leaders
+  'IE00BM8R0J59':3,  // Global X Nasdaq 100 Covered Call
+  'IE0002L5QB31':3,  // Global X S&P 500 Covered Call
+  'IE0003UVYC20':3,  // JPMorgan Global Equity Premium Income
+  'IE00077FRP95':3,  // Global X SuperDividend
+  'IE00B6YX5D40':3   // SPDR S&P U.S. Dividend Aristocrats
+};
+// ===== ZWEITE UND DRITTE DIMENSION: REGION UND STRATEGIE =====
+// Die Anlageklassen-Sicht zeigt bei einem reinen Dividendendepot immer 100 % in einer Kategorie.
+// Aussagekraeftig fuer Klumpenrisiken sind der Regionenschwerpunkt und die Strategie des Fonds.
+const REGIONEN=['Welt (Industrieländer)','USA','Eurozone/Europa','Schwellenländer'];
+const STRATEGIEN=['Breiter Markt','Dividendenstrategie','Covered Call','Anleihen'];
+const ISIN_REGION={
+  'IE000BI8OT95':0,'IE00BF4G6Y48':0,'IE000M8F3JA6':0,'IE00BF4RFH31':0,'IE00BP3QZ601':0,
+  'IE0003UVYC20':0,'IE00B9CQXS71':0,'LU0292096186':0,'IE00077FRP95':0,'NL0011683594':0,
+  'IE00B8GKDB10':0,'DE000A0F5UH1':0,'IE00BG47KH54':0,
+  'IE000GA3D489':1,'IE00BM8R0J59':1,'IE0002L5QB31':1,'IE00B6YX5D40':1,'IE00BKS7L097':1,
+  'LU0292095535':2,'IE00B3F81R35':2,
+  'IE00BKM4GZ66':3,'IE00BFNM3P36':3
+};
+const ISIN_STRATEGIE={
+  'IE000BI8OT95':0,'IE00BF4G6Y48':0,'IE000M8F3JA6':0,'IE000GA3D489':0,'IE00BF4RFH31':0,
+  'IE00BKS7L097':0,'IE00BP3QZ601':0,'IE00BKM4GZ66':0,'IE00BFNM3P36':0,
+  'DE000A0F5UH1':1,'IE00B9CQXS71':1,'IE00B8GKDB10':1,'LU0292096186':1,'NL0011683594':1,
+  'IE00077FRP95':1,'IE00B6YX5D40':1,'LU0292095535':1,
+  'IE00BM8R0J59':2,'IE0002L5QB31':2,'IE0003UVYC20':2,
+  'IE00BG47KH54':3,'IE00B3F81R35':3
+};
+function posRegion(pos){const i=(pos&&pos.isin||'').trim().toUpperCase();return ISIN_REGION[i]!==undefined?ISIN_REGION[i]:null;}
+function posStrategie(pos){const i=(pos&&pos.isin||'').trim().toUpperCase();return ISIN_STRATEGIE[i]!==undefined?ISIN_STRATEGIE[i]:null;}
+
+// Verteilung des Depotwerts ueber eine Dimension — ISIN-eindeutig, damit gespiegelte
+// Positionen einmal zaehlen. Optional auf ein Portfolio begrenzt.
+function streuung(dimFn,namen,pf){
+  const quellen=pf?[pf]:(state.portfolios||[]).filter(x=>x.enabled);
+  const gesehen={},werte={},unbekannt=[];
+  let gesamt=0;
+  quellen.forEach(x=>(x.positions||[]).forEach(pos=>{
+    const isin=(pos.isin||'').trim().toUpperCase();
+    if(!isin||gesehen[isin])return;
+    gesehen[isin]=1;
+    const w=posVal(pos);if(w<=0)return;
+    gesamt+=w;
+    const k=dimFn(pos);
+    if(k===null){unbekannt.push(pos.ticker||isin);return;}
+    werte[k]=(werte[k]||0)+w;
+  }));
+  const zeilen=namen.map((n,i)=>({name:n,wert:werte[i]||0,anteil:gesamt>0?(werte[i]||0)/gesamt*100:0}))
+    .filter(z=>z.wert>0).sort((a,b)=>b.wert-a.wert);
+  return{zeilen,gesamt,unbekannt};
+}
+function streuungZeilen(res,farbe){
+  if(!res.zeilen.length)return'<p class="hint">Keine Daten.</p>';
+  return res.zeilen.map(z=>`
+    <div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span style="color:var(--t2)">${z.name}</span>
+        <span style="color:${z.anteil>50?N.orange:'var(--t)'};font-weight:600">${PCT(z.anteil)} · ${EUR0(z.wert)}</span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:var(--b);overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,z.anteil).toFixed(1)}%;background:${z.anteil>50?N.orange:farbe};border-radius:3px"></div>
+      </div>
+    </div>`).join('');
+}
+// Echte Durchschau: liegen Laenderquoten aus dem Factsheet vor, wird der Depotwert anteilig
+// auf die Regionen verteilt, statt den Fonds pauschal einem Schwerpunkt zuzuschlagen.
+function streuungDurchschau(pf){
+  const det=state.fondsDetails||{};
+  const quellen=pf?[pf]:(state.portfolios||[]).filter(x=>x.enabled);
+  const gesehen={},werte={},ohne=[];
+  let gesamt=0,abgedeckt=0;
+  quellen.forEach(x=>(x.positions||[]).forEach(pos=>{
+    const isin=(pos.isin||'').trim().toUpperCase();
+    if(!isin||gesehen[isin])return;
+    gesehen[isin]=1;
+    const w=posVal(pos);if(w<=0)return;
+    gesamt+=w;
+    const r=det[isin]&&det[isin].regionen;
+    if(!r){ohne.push(pos.ticker||isin);return;}
+    const sum=Object.values(r).reduce((a,b)=>a+(+b||0),0)||100;
+    Object.entries(r).forEach(([name,q])=>{werte[name]=(werte[name]||0)+w*(+q||0)/sum;});
+    abgedeckt+=w;
+  }));
+  const zeilen=Object.entries(werte).map(([name,wert])=>({name,wert,anteil:abgedeckt>0?wert/abgedeckt*100:0}))
+    .sort((a,b)=>b.wert-a.wert);
+  return{zeilen,gesamt,abgedeckt,unbekannt:ohne};
+}
+
+// Karte mit allen drei Dimensionen
+function streuungBlock(pf){
+  const k=streuung(posKlasse,KLASSEN,pf),r=streuung(posRegion,REGIONEN,pf),st=streuung(posStrategie,STRATEGIEN,pf);
+  if(!k.gesamt)return'';
+  const spitze=[...k.zeilen,...r.zeilen,...st.zeilen].filter(z=>z.anteil>50);
+  const unbek=[...new Set([...k.unbekannt,...r.unbekannt,...st.unbekannt])];
+  return`<div class="card card-c">
+    <div class="ctitle">STREUUNG & KLUMPENRISIKO${pf?' · '+pf.name:''}</div>
+    <p class="hint" style="margin-bottom:10px">Verteilung von ${EUR0(k.gesamt)} über drei Dimensionen, nach ISIN eindeutig — gespiegelte Positionen zählen einmal. Ein Balken über 50 % wird hervorgehoben.</p>
+    <div style="font-size:11px;color:var(--t3);letter-spacing:.06em;margin:4px 0 6px">ANLAGEKLASSE</div>
+    ${streuungZeilen(k,N.cyan)}
+    <div style="font-size:11px;color:var(--t3);letter-spacing:.06em;margin:12px 0 6px">REGION</div>
+    ${streuungZeilen(r,N.green)}
+    <div style="font-size:11px;color:var(--t3);letter-spacing:.06em;margin:12px 0 6px">STRATEGIE</div>
+    ${streuungZeilen(st,N.yellow)}
+    ${(()=>{const ds=streuungDurchschau(pf);
+      if(!ds.zeilen.length)return`<p class="hint" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--b)">Die Regionenzeile oben ist der Schwerpunkt des jeweiligen Index, nicht die echte Länderaufteilung — ein „Welt"-Dividenden-ETF hält real oft 30–40 % USA. Der Januar-Prompt fragt die Länderquoten aus den Factsheets mit ab; nach dem Einlesen erscheint hier die tatsächliche Durchschau.</p>`;
+      return`<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--b)">
+        <div style="font-size:11px;color:var(--t3);letter-spacing:.06em;margin-bottom:6px">REGION · ECHTE DURCHSCHAU (FACTSHEET)</div>
+        ${streuungZeilen(ds,N.cyan)}
+        <p class="hint">Basis ${EUR0(ds.abgedeckt)} von ${EUR0(ds.gesamt)} (${PCT(ds.gesamt>0?ds.abgedeckt/ds.gesamt*100:0)} abgedeckt).${ds.unbekannt.length?` Ohne Factsheet-Daten: ${ds.unbekannt.join(', ')}.`:''}</p>
+      </div>`;})()}
+    ${spitze.length?`<p class="hint" style="margin-top:10px;color:${N.orange}">⚠ Über 50 % in einer Kategorie: ${spitze.map(z=>z.name+' ('+PCT(z.anteil)+')').join(', ')}. Das ist bei einem gezielt gebauten Dividendendepot erwartbar — als Risikohinweis trotzdem sichtbar.</p>`:''}
+    ${unbek.length?`<p class="hint" style="margin-top:8px">Ohne Zuordnung in mindestens einer Dimension: ${unbek.join(', ')}.</p>`:''}
+  </div>`;
+}
+
+function posKlasse(pos){
+  const i=(pos&&pos.isin||'').trim().toUpperCase();
+  if(ISIN_KLASSE[i]!==undefined)return ISIN_KLASSE[i];
+  const k=pos&&pos.klasse;
+  return(typeof k==='number'&&k>=0&&k<KLASSEN.length)?k:null;
+}
+// Beschriftung fuer Listen und Auftraege — ohne gueltige Klasse lieber die ISIN als eine falsche Kategorie
+function klassenName(pos){
+  const k=posKlasse(pos);
+  return k===null?((pos&&pos.isin)||''):KLASSEN[k];
+}
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.45';
+const APP_VERSION='3.53';
 const APP_CHANGELOG=[
+  {v:'3.53',d:'2026-09-24',t:'Der Januar-Prompt fragt jetzt zusaetzlich die tatsaechliche Zusammensetzung je Fonds ab: Laender- und Regionenquoten, die fuenf groessten Sektoren, Replikationsmethode und Stichtag des Factsheets — als zweiter JSON-Block, den dieselbe Einlesemaske erkennt. Damit zeigt die Streuungs-Karte eine echte Durchschau: der Depotwert wird anteilig auf die Regionen verteilt, statt jeden Fonds pauschal einem Schwerpunkt zuzuschlagen. Bis Daten vorliegen, weist die Karte ausdruecklich darauf hin, dass die Regionenzeile nur der Index-Schwerpunkt ist und ein „Welt"-Dividenden-ETF real oft 30 bis 40 Prozent USA haelt. Nach dem Einlesen nennt sie den abgedeckten Anteil und die Fonds ohne Daten.'},
+  {v:'3.52',d:'2026-09-24',t:'Neue Uebersicht „Streuung & Klumpenrisiko": Verteilung des Depotwerts ueber drei Dimensionen — Anlageklasse, Regionenschwerpunkt und Strategie (Breiter Markt, Dividendenstrategie, Covered Call, Anleihen) — jeweils als Balken mit Anteil und Betrag, nach ISIN eindeutig, sodass gespiegelte Positionen einmal zaehlen. Hintergrund: mit den korrigierten Anlageklassen liegt das DIV-Depot zu 100 Prozent in einer Kategorie, die Klassensicht allein zeigt dort also nichts. Region und Strategie machen die tatsaechliche Konzentration sichtbar. Kategorien ueber 50 Prozent werden hervorgehoben, fehlende Zuordnungen benannt. Die Karte erscheint im Dashboard, im Depot-Reiter und als eigener Abschnitt im neuen Design.'},
+  {v:'3.51',d:'2026-09-24',t:'Anlageklassen korrigiert. Das Feld `klasse` trug in jeder Position nur den Positionsindex statt einer Anlageklasse — deshalb erschien ein Dividenden-ETF in den Rebalancing-Auftraegen als „Tagesgeld", ein Anleihen-ETF als „Dividenden/Covered" und zwei Positionen im DIV-Depot hatten mit 5 und 6 ueberhaupt keine gueltige Klasse. Neu ist eine Zuordnung ueber die ISIN fuer alle 22 ETF des Depots; eine Migration schreibt sie einmalig in die gespeicherten Daten. Fehlt eine Zuordnung, zeigt die Beschriftung die ISIN statt einer falschen Kategorie, und die Datenpruefung meldet es.'},
+  {v:'3.50',d:'2026-09-24',t:'Light Mode greift jetzt in allen Reitern. Rund zwanzig Komponenten trugen fest verdrahtete Dunkelfarben und blieben deshalb auf hellem Grund schwarz, teils mit unlesbarem Text — am auffaelligsten die Rebalancing-Auftraege im Portfolio-Reiter, deren ETF-Namen praktisch unsichtbar waren. Betroffen waren ausserdem Portfolio-Zeilen, Merker-Kacheln und -Eingaben, Sparplan-Zeilen, Eingabefelder, Akkordeons, Modale samt Hintergrund, Zurueck-Knopf, Trennlinien, Summenzeilen, Ampel-Badges und die Leuchtschrift-Klassen. Alle sind auf die Tokens gezogen; die Monatskacheln verwenden statt der festen Schriftfarbe Weiss jetzt den Textton des Themes.'},
+  {v:'3.49',d:'2026-09-24',t:'Das Dashboard im neuen Design folgt jetzt der kompakten Zusammenfassung aus der Vorlage: eine breite Wertkarte mit grosser Zahl, Soll-Abweichung und einem Flaechenverlauf ueber die volle Kartenbreite statt der kleinen Eckgrafik, darunter eine Zielkarte mit Kopfzeile und drei Ringen (Kapitalziel in Prozent, Dividende pro Monat in Euro, Prognose in Euro) samt kompakter Legendenzeile. Die zweite Kennzahlkarte entfaellt, weil die Dividende nun im Ring steht. svgLinien laesst sich jetzt ohne Legende und ohne Achse zeichnen.'},
+  {v:'3.48',d:'2026-09-24',t:'Light Mode auf die vorgegebene Palette umgestellt: Off-White #F8F9FA, Karten #FFFFFF, Raender #E5E7EB, Text #111827 / #6B7280, Smaragd #059669, Rot #DC2626, Orange #D97706, Blau #2563EB, Radius 12 px, Schatten 0 1px 3px rgba(0,0,0,.05). Fuer kleine Schrift ergaenzt um dunklere Varianten (#047857, #B45309), da Smaragd und Orange auf Weiss nur 3,8:1 bzw. 3,2:1 erreichen und damit unter der Lesbarkeitsschwelle fuer Flaechentext liegen. Das Dashboard folgt jetzt dem Aufbau der Vorlage: zwei Kennzahl-Karten mit Mini-Verlauf und Soll-Abweichung als Badge, darunter drei Ziel-Ringe (Kapitalziel, Dividendenziel, Zeithorizont), dann die einklappbaren Module. Das Balkendiagramm zeigt graue Balken mit smaragdgruenem Highlight. Sparplan-Kacheln nennen die Abweichung Delta. Einstellungen in die Gruppen Datenmanagement, Planung & Analyse, App-Design und System geordnet.'},
+  {v:'3.47',d:'2026-09-24',t:'Bildsprache der Entwuerfe uebernommen. Die Kennzahl-Kacheln im neuen Dashboard tragen einen Mini-Verlauf (Depotwert aus der Loshistorie, Dividende aus den Monatswerten). Monats-Pills unterscheiden jetzt sichtbar zwischen Monaten mit und ohne Zahlung — im Light Mode gefuellte gruene Flaeche gegen neutrale Flaeche, sonst ueber die Deckkraft. Die Kopfzeile je ETF im Dividendenblock ist eine Badge-Zeile mit Kuerzel, Zustandsmarken (pausiert, Ex-Datum) und den Kennzahlen rechts. Der Sparplan erscheint im Light Mode und im neuen Design als zweispaltiges Kachelraster mit Ist-/Ziel-Balken und grossem Betrag; im klassischen Dark Mode bleibt die bisherige Listenform.'},
+  {v:'3.46',d:'2026-09-24',t:'Light Mode als eigenes Theme nach den Screenshot-Vorlagen: heller Flaechenhintergrund (#F2F4F7), weisse Karten mit weichem Schatten statt Leuchtrahmen, Radius 16 px, Monatskacheln als weiche gruene Flaechen, heller Tab-Balken. Eigene Farbpalette mit dunkleren Werten (Gruen #15803D, Rot #D92D20, Akzent #2F6BFF), damit der Kontrast auf weissem Grund traegt — die hellen Neon-Farben waeren dort unlesbar. Die Diagramme ziehen die Palette mit. Light Mode laesst sich mit dem klassischen wie mit dem neuen Design kombinieren; die Clean-Palette ueberschreibt ihn nicht mehr.'},
   {v:'3.45',d:'2026-09-24',t:'Kohaerenz-Durchsicht. Die Ausschuettungsstammdaten wurden ueber das Kuerzel gesucht statt ueber die ISIN — dasselbe Papier heisst im DIV-Depot TDIV und in ReBal 2 VDIV, weshalb die ReBal-Kopie auf ihr veraltetes eigenes divs-Array zurueckfiel und fuer denselben ETF 2,39 EUR statt 1,69 EUR je Anteil rechnete; betroffen waren auch VGWD, ZPRG, XGSD und QYLE. Stammdaten werden jetzt ueber die ISIN aufgeloest und gelten damit fuer alle Kopien gleich. Ausserdem lasen mehrere Anzeigen (Einzelpositionen-Tabelle, gewichtete Ausschuettungsrendite, Sparplan-Zuwachs, Verkaufsvorschau) die Ausschuettung direkt aus dem divs-Array und konnten dadurch andere Werte zeigen als der Dividendenkalender; sie nutzen jetzt dieselbe Quelle. Zusaetzlich greift die Rueckfallebene nicht mehr monatsweise: liegen fuer einen ETF Stammdaten vor, ist ein Monat ohne Termin ein Monat ohne Zahlung — zuvor schlug in genau diesen Monaten das veraltete divs-Array durch, wodurch ReBal 2 fuer VGWD 3,43 EUR statt 2,02 EUR je Anteil rechnete.'},
   {v:'3.44',d:'2026-09-24',t:'Zwei Fehler in der Tabelle „Einzelpositionen — alle Portfolios" behoben. (1) Gespiegelte ETF standen doppelt in der Liste: 31 Zeilen fuer 22 ETF. Jetzt gibt es je ISIN genau eine Zeile, die Portfolio-Spalte nennt alle Toepfe und markiert sie als gespiegelt. (2) Dieselbe ISIN trug in verschiedenen Teil-Portfolios unterschiedliche Kurse — XGSD stand in ReBal 1 bei 38,78 und im DIV-Depot bei 38,92 — wodurch fuer ein und dasselbe Papier zwei Marktwerte entstanden und der Depotwert davon abhing, welche Position zuerst gelesen wurde. Die neue Funktion syncIsinKurse gleicht die Kurse nach jedem Import an den Kurs des fuehrenden Portfolios an und meldet die Zahl der Korrekturen. Der Yahoo-Abruf verteilt den Kurs jetzt auch bei abweichender Schreibweise der ISIN.'},
   {v:'3.43',d:'2026-09-24',t:'Die CSV-Karte weist jetzt deutlich aus, wie viele Kaeufe vor dem Erfassungsbeginn liegen und deshalb von „Aktualisieren" uebersprungen werden. Das war zwar immer so gewollt — Kaeufe vor dem Erfassungsbeginn stecken pauschal im Anfangsbestand — stand aber nur als fluechtige Meldung im Toast und war leicht zu uebersehen: bei einem Export mit zwei Jahren Historie und Erfassungsbeginn 01.09.2026 kamen pro ETF nur die beiden letzten Kaeufe an, was wie ein Importfehler aussah. Der orange Hinweis nennt die Zahl der betroffenen Kaeufe und ETF und verweist auf „Neu aufbauen".'},
@@ -965,7 +1304,7 @@ function loadState(){
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return;
     const saved=JSON.parse(raw);
-    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','jahresPruefungen','uiClean','cleanOffen','selectedSparIdx',
+    const allowed=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','jahresPruefungen','fondsDetails','uiClean','cleanOffen','selectedSparIdx',
                    'sparrate','portfolios','strategyV'];
     allowed.forEach(k=>{
       if(k in saved && saved[k]!==undefined && saved[k]!==null){
@@ -1028,6 +1367,18 @@ function loadState(){
     }
     syncAlleLose();
 
+    // ===== MIGRATION v5: Anlageklassen korrigieren =====
+    // Das Feld `klasse` trug bislang den Positionsindex statt der Anlageklasse.
+    if((state.strategyV||1)<5){
+      let n5=0;
+      state.portfolios.forEach(pf=>(pf.positions||[]).forEach(pos=>{
+        const k=ISIN_KLASSE[(pos.isin||'').trim().toUpperCase()];
+        if(k!==undefined&&pos.klasse!==k){pos.klasse=k;n5++;}
+      }));
+      state.strategyV=5;
+      console.log('✓ Migration v5: '+n5+' Anlageklassen korrigiert');
+    }
+
     console.log('✓ State geladen:',state.portfolios.length,'Portfolios');
   }catch(e){
     console.warn('Laden fehlgeschlagen, nutze Standardwerte:',e);
@@ -1040,7 +1391,13 @@ if(!state.currentTheme&&state.theme)state.currentTheme='theme-'+state.theme;  //
 applyTheme(state.currentTheme);
 // Sicherstellen, dass auch ein frischer Standard-State Lose besitzt
 initLose();syncAlleLose();
-if(!state.strategyV||state.strategyV<4)state.strategyV=4;
+if(!state.strategyV||state.strategyV<5){
+  state.portfolios.forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    const k=ISIN_KLASSE[(pos.isin||'').trim().toUpperCase()];
+    if(k!==undefined)pos.klasse=k;
+  }));
+  state.strategyV=5;
+}
 
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
@@ -1218,7 +1575,7 @@ function svgIstZiel(zeilen,opt){
 
 // Linie mit Flaeche, z.B. Depotwert gegen kumulierten Einstand.
 function svgLinien(serien,labels,opt){
-  const o=Object.assign({h:170,einheit:'€'},opt||{});
+  const o=Object.assign({h:170,einheit:'€',legende:true,achse:true},opt||{});
   const n=labels.length; if(n<2)return '';
   const alle=serien.flatMap(s=>s.werte);
   const max=Math.max(...alle,1),min=Math.min(...alle,0);
@@ -1233,11 +1590,11 @@ function svgLinien(serien,labels,opt){
   const schritt=Math.max(1,Math.ceil(n/6));
   const achse=labels.map((l,i)=>i%schritt===0||i===n-1
     ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" fill="var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
-  const legende=serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;color:var(--t2)">
-    <span style="width:9px;height:3px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join('');
-  return`<svg viewBox="0 0 100 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
-    <line x1="0" y1="76" x2="100" y2="76" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${pfade}${achse}</svg>
-    <div style="margin-top:6px">${legende}</div>`;
+  const legende=o.legende?serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;color:var(--t2)">
+    <span style="width:9px;height:3px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join(''):'';
+  return`<svg viewBox="0 0 ${o.achse?100:100} 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
+    ${o.achse?`<line x1="0" y1="76" x2="100" y2="76" stroke="var(--b)" stroke-width="0.3"/>`:''}${pfade}${o.achse?achse:''}</svg>
+    ${legende?`<div style="margin-top:6px">${legende}</div>`:''}`;
 }
 
 // Gestapelte Flaechen, z.B. Ausschuettungsprognose je ETF ueber die Jahre.
@@ -1295,6 +1652,33 @@ function divZuwachsProKauf(){
     jahr+=(o.buyShares||0)*divStk;
   });
   return{pfName:pf.name,sp,jahr,monat:jahr/12,rendite:jahr/sp*100};
+}
+
+// Ring-Gauge fuer die Zielanzeige (Kapital, Dividende, Zeithorizont)
+function svgRing(prozent,farbe,wert,label,sub){
+  const pr=Math.max(0,Math.min(100,prozent||0));
+  const u=2*Math.PI*42;
+  return`<div style="text-align:center;flex:1;min-width:0">
+    <svg viewBox="0 0 100 100" style="width:84px;height:84px" role="img">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--b)" stroke-width="9"/>
+      <circle cx="50" cy="50" r="42" fill="none" stroke="${farbe}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${(u*pr/100).toFixed(1)} ${u.toFixed(1)}" transform="rotate(-90 50 50)"/>
+      <text x="50" y="54" text-anchor="middle" font-size="19" font-weight="700" fill="var(--t)">${wert}</text>
+    </svg>
+    <div style="font-size:11px;font-weight:600;color:var(--t2);margin-top:2px">${label}</div>
+    <div style="font-size:10px;color:var(--t3);line-height:1.3">${sub||''}</div>
+  </div>`;
+}
+
+// Mini-Verlauf fuer Kennzahl-Kacheln (Sparkline) — ohne Achsen, nur die Linie.
+function svgSpark(werte,farbe){
+  const w=(werte||[]).filter(v=>typeof v==='number');
+  if(w.length<2)return '';
+  const max=Math.max(...w),min=Math.min(...w),sp=(max-min)||1;
+  const d=w.map((v,i)=>`${i?'L':'M'}${(i/(w.length-1)*100).toFixed(1)},${(18-((v-min)/sp)*16).toFixed(1)}`).join(' ');
+  return`<svg class="kpi-spark" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${d} L100,20 L0,20 Z" fill="${farbe}" opacity=".12"/>
+    <path d="${d}" fill="none" stroke="${farbe}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
 }
 
 // ===== VERMOEGENSVERLAUF =====
@@ -1393,9 +1777,10 @@ function monatlicheDividendenBlock(){
       <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
       <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
     </div>
-    ${svgBalken(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,klick:'divSetMonth',h:150})}
+    ${svgBalken(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,klick:'divSetMonth',h:150,
+      farbe:istHell()?'#9CA3AF':N.cyan,hervor:N.green})}
     <p class="hint" style="margin-top:4px;margin-bottom:8px">Balken antippen wählt den Monat. Höhe zeigt den Betrag — sichtbar wird so, wie ungleich sich die Ausschüttungen über das Jahr verteilen.</p>
-    <div class="mog dup-clean">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+    <div class="mog dup-clean">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}${v>0?'':' mob-0'}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'var(--t)'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
       <div class="kz-tile"><div class="kz-lbl">${MNF[sel]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[sel])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivMonatNetto(state.divCalYear,sel))}</div></div>
       <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(zDivJahrNetto(state.divCalYear)/12)} · Jahr ${EUR0(divSum)}</div></div>
@@ -1453,16 +1838,18 @@ function dividendeJeEtfBlock(){
       const sum=md.reduce((a,b)=>a+b,0);
       const kipp=exDatumHatKipppunkt(stammTicker(p),state.divCalYear);
       return`<div style="margin-bottom:12px;opacity:${paused?.5:1}">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-          <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}${kipp?` <span title="Sparplan-Kauf am ${KAUFTAG}. fällt in mind. einem Monat auf/nach den Ex-Tag — Zukauf zählt dann erst zur Folgeausschüttung." style="color:${N.orange};font-weight:400;font-size:11px">⚠ Ex-Datum-Kipppunkt</span>`:''}</span>
-          <span style="font-size:12px;color:var(--t2)">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
+        <div class="etf-kopf">
+          <span class="etf-tick">${p.ticker||p.name}</span>
+          ${paused?`<span class="badge">pausiert</span>`:''}
+          ${kipp?`<span class="badge badge-warn" title="Sparplan-Kauf am ${KAUFTAG}. fällt in mind. einem Monat auf/nach den Ex-Tag — Zukauf zählt dann erst zur Folgeausschüttung.">⚠ Ex-Datum</span>`:''}
+          <span class="etf-kz">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
         </div>
         <div class="mog">${md.map((v,i)=>{
           const k=exDatumKipp(stammTicker(p),i+1,state.divCalYear);
           const verschoben=k.some(x=>x.ergebnis==='verschoben');
           const titel=k.map(x=>`Zahltag ${x.pay.split('-').reverse().join('.')} — Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}): Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
           const vorErf=monatVorErfassung(state.divCalYear,i,stammTicker(p));
-          return`<div class="mob${i===sel?' hi':''}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'white')}">${v>0?EUR0(v):'–'}</div></div>`;
+          return`<div class="mob${i===sel?' hi':''}${v>0?'':' mob-0'}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'var(--t)')}">${v>0?EUR0(v):'–'}</div></div>`;
         }).join('')}</div>
       </div>`;
     }).join('')}
@@ -1732,6 +2119,12 @@ function screenDashboardClean(){
   const ziel=SOLL&&SOLL.szenarioA?SOLL.szenarioA.depot:0;
   const fort=ziel>0?wert/ziel*100:0;
   const hb=handlungsbedarf(), dringend=hb.filter(x=>x.dringend).length;
+  const sollH=typeof sollDepot==='function'?sollDepot(HEUTE_J):0;
+  const divZielPr=(SOLL&&SOLL.zielReal>0)?bruttoMon/SOLL.zielReal*100:0;
+  const jahreBis=SOLL?Math.max(0,SOLL.zielJahr-HEUTE_J):0;
+  const progJahr=Math.min(PROGNOSE_BIS,HEUTE_J+15);
+  const prognoseMon=pf?zDivJahrNetto(progJahr)/12:0;
+  const prognZielPr=(SOLL&&SOLL.zielReal>0)?Math.min(100,prognoseMon/SOLL.zielReal*100):0;
   const hbFarbe=dringend?'var(--orange)':hb.length?'var(--yellow)':'var(--green)';
   // Zielteil und Planungsrechnung aus zieleBlock trennen
   const zb=pf?zieleBlock():'';
@@ -1741,13 +2134,23 @@ function screenDashboardClean(){
   const progJ=Math.min(PROGNOSE_BIS,HEUTE_J+15);
   return`<div class="screen">
     <h1 class="stitle">Dashboard</h1>
-    <div class="cz-kopf">
-      <div class="cz-kpi"><div class="l">${pf?pf.name:'Gesamtkapital'}</div><div class="v">${EUR0(wert)}</div><div class="s">Depotwert</div></div>
-      <div class="cz-kpi"><div class="l">Dividende / Monat</div><div class="v" style="color:var(--green)">${EUR0(nettoMon)}</div><div class="s">netto · brutto ${EUR0(bruttoMon)}</div></div>
-      <div class="cz-kpi"><div class="l">Ziel ${SOLL?SOLL.zielJahr:''}</div><div class="v">${PCT(fort)}</div><div class="s">von ${EUR0(ziel)}</div></div>
-      <div class="cz-kpi" style="cursor:pointer" onclick="state.hbOffen=true;render()"><div class="l">Handlungsbedarf</div>
-        <div class="v" style="color:${hbFarbe}">${hb.length?hb.length:'✓'}</div>
-        <div class="s">${hb.length?(dringend?dringend+' dringend':'nichts dringend'):'alles erledigt'}</div></div>
+    <!-- Kompakte Zusammenfassung: eine breite Wertkarte mit Flaechenverlauf, darunter die drei Ringe -->
+    <div class="card cz-wert">
+      <div class="l">Depotwert</div>
+      <div class="v">${EUR0(wert)}</div>
+      <div class="s">Soll heute ${EUR0(sollH)}${sollH>0?` · <span style="color:${wert>=sollH?'var(--green)':'var(--orange)'};font-weight:600">${wert>=sollH?'+':''}${PCT((wert/sollH-1)*100)}</span>`:''}</div>
+      ${verlauf?svgLinien([{name:'Depotwert',werte:verlauf.wert,farbe:N.green}],verlauf.labels,{h:92,legende:false,achse:false}):''}
+    </div>
+    <div class="card">
+      <div class="cz-ziel-kopf">
+        <span class="t">Ziele ${SOLL?SOLL.zielJahr:''}</span>
+        <span class="leg"><b style="color:var(--cyan)">${PCT(fort)}</b> Kapital · <b style="color:var(--green)">${EUR0(nettoMon)}</b> Dividende · <b style="color:var(--orange)">${EUR0(prognoseMon)}</b> Prognose</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:flex-start">
+        ${svgRing(fort,N.cyan,PCT(fort),'Kapitalziel',EUR0(wert)+' von '+EUR0(ziel))}
+        ${svgRing(divZielPr,N.green,EUR0(nettoMon),'Dividende/Mon',' von '+EUR0(SOLL?SOLL.zielReal:0)+' Ziel')}
+        ${svgRing(prognZielPr,N.orange,EUR0(prognoseMon),'Prognose '+progJahr,'netto pro Monat')}
+      </div>
     </div>
     ${hb.length?handlungsbedarfBlock():''}
     ${pf?cleanSektion('ziele','Ziele '+(SOLL?SOLL.zielJahr:''),PCT(fort),()=>zielKopf):''}
@@ -1756,6 +2159,7 @@ function screenDashboardClean(){
     ${pf&&verlauf?cleanSektion('verlauf','Vermögensverlauf',vGew!==null?(vGew>=0?'+':'')+PCT(vGew):'',()=>vermoegensVerlaufBlock()):''}
     ${pf?cleanSektion('kennz','Depot-Kennzahlen','',()=>depotKennzahlenBlock()):''}
     ${cleanSektion('income','Income-Ziele','',()=>zielpfadCard()+incomeKapitalCard())}
+    ${cleanSektion('streu','Streuung & Klumpenrisiko',(()=>{const r=streuung(posStrategie,STRATEGIEN);return r.zeilen.length?PCT(r.zeilen[0].anteil)+' '+r.zeilen[0].name:'';})(),()=>streuungBlock())}
     ${cleanSektion('teil','Teil-Portfolios','Score '+totalScore(),()=>teilPortfoliosCard())}
     ${cleanSektion('depot','Alle Depots & Positionen',EUR0(allTotal()),()=>depotDetailsInhalt())}
     ${zielRest?cleanSektion('plan','Planungsrechnung (Details)','',()=>zielRest):''}
@@ -1841,6 +2245,7 @@ function screenDashboard(){
     </div>`:''}
     <div class="gauge-wrap">${svgRing({progress:sc/100,color:scC,size:220,lw:16,label:String(sc),sub:'Score'})}</div>
     ${teilPortfoliosCard()}
+    ${streuungBlock()}
     <div class="card card-c">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div><div style="font-size:11px;color:var(--t2);margin-bottom:3px">Gesamtkapital</div>
@@ -2069,7 +2474,7 @@ function screenDepot(){
         <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
         <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
       </div>
-      <div class="mog">${md.map((v,i)=>`<div class="mob${i===selM?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===selM?N.cyan:'white'}">${EUR0(v)}</div></div>`).join('')}</div>
+      <div class="mog">${md.map((v,i)=>`<div class="mob${i===selM?' hi':''}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===selM?N.cyan:'var(--t)'}">${EUR0(v)}</div></div>`).join('')}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
         <div class="kz-tile"><div class="kz-lbl">${MNF[selM]} ${state.divCalYear}${state.divSelMonth!==null?' · gewählt':''}</div><div class="kz-val">${EUR0(md[selM])}</div></div>
         <div class="kz-tile"><div class="kz-lbl">Ø pro Monat</div><div class="kz-val">${EUR0(divSum/12)}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${EUR0(divSum)}</div></div>
@@ -2166,7 +2571,7 @@ function renderRebalancingCard(pf){
           <div class="order-icon ${o.isBuy?'buy-ic':'sell-ic'}">${o.isBuy?'↓':'↑'}</div>
           <div class="order-info">
             <div class="order-name">${o.isBuy?'Nachkauf':'Verkauf'}: ${o.name}</div>
-            <div class="order-sub">${KLASSEN[o.klasse]||o.isin}</div>
+            <div class="order-sub">${klassenName(o)}</div>
           </div>
           <div class="order-amt" style="color:${o.isBuy?N.green:N.red}">${EUR0(Math.abs(o.diff))}</div>
         </div>`).join('')}
@@ -2193,6 +2598,21 @@ function renderBuyOnlyCard(pf){
       <span style="font-size:22px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums">${sp} €</span>
     </div>
     <div class="sep"></div>
+    ${uiClean()||((THEMES[(state.currentTheme||'theme-neon').replace(/^theme-/,'')]||{}).hell)?`
+    <div class="spar-grid">${orders.map(o=>`
+      <div class="spar-tile">
+        <div class="spar-name" title="${o.name}">${o.name}</div>
+        <div class="spar-bars">
+          <div class="spar-bar"><div class="l"><span>Ist %</span><span>${o.ist.toFixed(1)}</span></div>
+            <div class="spar-track"><div class="spar-fill" style="width:${Math.min(100,o.ist/Math.max(o.effTgt,0.01)*100).toFixed(0)}%;background:${o.buy>0?N.green:N.red}"></div></div></div>
+          <div class="spar-bar"><div class="l"><span>Ziel %</span><span>${o.effTgt.toFixed(1)}</span></div>
+            <div class="spar-track"><div class="spar-fill" style="width:100%;background:var(--t3);opacity:.45"></div></div></div>
+        </div>
+        <div>
+          <div class="spar-amt" style="color:${o.buy>0?N.green:'var(--t3)'}">${Math.round(o.buy)} €</div>
+          <div class="spar-sub">${o.buyShares.toFixed(3)} Stück · Δ <span style="color:${o.dev>=0?N.green:N.orange}">${o.dev>=0?'+':''}${o.dev.toFixed(1)} %</span></div>
+        </div>
+      </div>`).join('')}</div>`:`
     ${orders.map(o=>`
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--b)">
         <div class="pdot" style="background:${o.buy>0?N.green:N.red};box-shadow:0 0 6px ${o.buy>0?N.green:N.red}60;margin-top:4px;flex-shrink:0"></div>
@@ -2210,7 +2630,7 @@ function renderBuyOnlyCard(pf){
           <div style="font-size:20px;font-weight:700;color:${o.buy>0?N.green:N.red};font-variant-numeric:tabular-nums">${Math.round(o.buy)} €</div>
           <div style="font-size:11px;color:var(--t2)">${o.buyShares.toFixed(3)} Stück</div>
         </div>
-      </div>`).join('')}
+      </div>`).join('')}`}
     <div class="sum-row"><span style="color:var(--t2)">Verteilt (Käufe)</span><span style="font-weight:700;color:var(--green)">${EUR0(distrib)}</span></div>
     <div class="sum-row"><span style="color:var(--t2)">Rest (unter Mindestkauf)</span><span style="font-weight:700">${EUR0(rest)}</span></div>
     <div class="sum-row"><span style="color:var(--t2)">Depotwert vorher → nachher</span><span style="font-weight:700;color:var(--cyan)">${EUR0(t)} → ${EUR0(t+distrib)}</span></div>
@@ -3032,6 +3452,7 @@ function pruefeStammdaten(){
     // Plausibilitaet
     if(!(pos.kurs>0))funde.push({stufe:'fehler',ort,text:'Kein gültiger Kurs hinterlegt.'});
     if(pos.ter===undefined||pos.ter===null)funde.push({stufe:'warn',ort,text:'Keine TER hinterlegt.'});
+    if(posKlasse(pos)===null)funde.push({stufe:'warn',ort,text:'Keine Anlageklasse zugeordnet — in der ISIN-Tabelle ergänzen.'});
   }));
   // Zielgewichte je Portfolio
   (state.portfolios||[]).forEach(pf=>{
@@ -3095,6 +3516,13 @@ Für JEDE einzelne Ausschüttung des Jahres ${j}:
 
 Wichtig: Monatlich ausschüttende Fonds haben nicht zwingend genau einen Termin pro Kalendermonat — es kann Monate mit zwei oder ohne Termin geben. Bitte liste wirklich jede einzelne Ausschüttung, nicht je Kalendermonat eine.
 
+## Zusätzlich: tatsächliche Zusammensetzung je Fonds
+Meine Streuungs-Auswertung ordnet jeden ETF bisher pauschal einem Regionenschwerpunkt zu (z. B. „Welt"). Das verdeckt, wie viel USA tatsächlich in einem global streuenden Dividenden-ETF steckt. Gib mir deshalb je ISIN die echte Aufteilung laut aktuellem Factsheet:
+- **Länder- bzw. Regionenquoten** in Prozent (mindestens USA, Eurozone, übriges Europa, Japan, Asien-Pazifik, Schwellenländer, Sonstige — Summe 100)
+- **Die fünf größten Sektoren** in Prozent
+- **Replikationsmethode** (physisch vollständig, Sampling, Swap-basiert)
+- **Stichtag** des Factsheets, aus dem die Werte stammen
+
 ## Weitere Angaben, die mein Tool aktuell halten muss
 - Aktuelle TER je ISIN (und ob sie sich geändert hat)
 - Fondsvolumen und ob der Fonds geschlossen, verschmolzen oder umbenannt wurde
@@ -3113,7 +3541,20 @@ Gib mir zuerst die Fondsbestätigung und die Zusatzangaben als normalen Text. Da
 }
 \`\`\`
 
-Regeln für das JSON: Datumsformat immer JJJJ-MM-TT, "betrag" als Zahl in EUR mit Punkt als Dezimaltrennzeichen, "status" entweder "bestaetigt" oder "prognose". Alle ${isins.length} ISIN als Schlüssel, jeweils mit der vollständigen Liste der Ausschüttungen des Jahres ${j}. Keine Kommentare im JSON, keine zusätzlichen Felder.
+Danach ein **zweiter** Codeblock mit der Fondszusammensetzung, genau in dieser Struktur:
+
+\`\`\`json
+{
+  "${beispiel}": {
+    "regionen": {"USA": 38.2, "Eurozone": 21.4, "Übriges Europa": 12.0, "Japan": 8.1, "Asien-Pazifik": 9.3, "Schwellenländer": 6.0, "Sonstige": 5.0},
+    "sektoren": {"Finanzen": 24.1, "Versorger": 13.0, "Basiskonsum": 11.2, "Energie": 9.8, "Industrie": 9.1},
+    "replikation": "physisch (Sampling)",
+    "stand": "2027-01-05"
+  }
+}
+\`\`\`
+
+Regeln für das JSON: Datumsformat immer JJJJ-MM-TT, "betrag" als Zahl in EUR mit Punkt als Dezimaltrennzeichen, "status" entweder "bestaetigt" oder "prognose". Alle ${isins.length} ISIN als Schlüssel, jeweils mit der vollständigen Liste der Ausschüttungen des Jahres ${j}. Keine Kommentare im JSON, keine zusätzlichen Felder. Im zweiten Block müssen die Regionenquoten je ISIN auf 100 summieren; runde auf eine Nachkommastelle.
 
 Wenn du für eine ISIN keine belastbaren Daten findest, gib sie mit einer leeren Liste zurück und sage es mir ausdrücklich im Text — rate keine Termine.`;
 }
@@ -3124,7 +3565,7 @@ function openDatenImport(){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modal-box">
     <div class="modal-title">Ausschüttungsdaten ${j} einlesen</div>
-    <p class="hint" style="margin-bottom:8px">JSON aus der Recherche hier einfügen. Bestehende Daten für ${j} werden ersetzt, andere Jahre bleiben unberührt.</p>
+    <p class="hint" style="margin-bottom:8px">JSON aus der Recherche hier einfügen — beide Blöcke werden erkannt: Ausschüttungstermine (Liste je ISIN) und Fondszusammensetzung (Objekt mit regionen/sektoren). Bestehende Daten für ${j} werden ersetzt, andere Jahre bleiben unberührt.</p>
     <textarea id="imp_json" style="width:100%;height:220px;background:var(--bg2);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;font-family:monospace" placeholder='{"LU0292095535":[{"ex":"2027-02-17","pay":"2027-03-04","betrag":0.16,"status":"bestaetigt"}]}'></textarea>
     <div class="field" style="margin-top:8px"><label>Jahr</label><input type="text" inputmode="numeric" id="imp_jahr" value="${j}"/></div>
     <div class="btnrow">
@@ -3143,9 +3584,18 @@ function importDaten(){
     roh=JSON.parse((gs('imp_json')||'').replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim());
   }catch(e){showToast('Kein gültiges JSON: '+e.message);return;}
   if(!roh||typeof roh!=='object'){showToast('JSON muss ein Objekt mit ISIN als Schlüssel sein');return;}
-  const sauber={};let n=0,unbekannt=[];
+  const sauber={};let n=0,unbekannt=[],details=0;
   Object.entries(roh).forEach(([isin,arr])=>{
     if(!positionenMitIsin(isin).length&&!ISIN_TICKER[isin]){unbekannt.push(isin);return;}
+    // Zweites Format: Fondszusammensetzung statt Ausschuettungsliste
+    if(arr&&!Array.isArray(arr)&&typeof arr==='object'&&(arr.regionen||arr.sektoren)){
+      if(!state.fondsDetails)state.fondsDetails={};
+      state.fondsDetails[isin]={
+        regionen:arr.regionen||null,sektoren:arr.sektoren||null,
+        replikation:arr.replikation||'',stand:arr.stand||''
+      };
+      details++;return;
+    }
     if(!Array.isArray(arr))return;
     const items=arr.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.ex||'')&&/^\d{4}-\d{2}-\d{2}$/.test(x.pay||'')&&typeof x.betrag==='number'&&x.betrag>=0)
       .map(x=>({ex:x.ex,pay:x.pay,betrag:x.betrag,status:x.status==='prognose'?'prognose':'nachgetragen'}));
@@ -3153,12 +3603,13 @@ function importDaten(){
     if(falschesJahr){showToast(isin+': '+falschesJahr+' Zahltag(e) nicht im Jahr '+jahr);}
     if(items.length){sauber[isin]=items;n+=items.length;}
   });
-  if(!n){showToast('Keine gültigen Einträge gefunden');return;}
+  if(!n&&!details){showToast('Keine gültigen Einträge gefunden');return;}
+  if(!n&&details){saveState();render();showToast(details+' Fondszusammensetzungen übernommen');closeModal();return;}
   if(!state.ausschuettungen)state.ausschuettungen={};
   state.ausschuettungen[jahr]=sauber;
   state.datenCheckQuittiert=jahr;
   closeModal();render();
-  showToast(n+' Ausschüttungen für '+jahr+' übernommen'+(unbekannt.length?' · unbekannte ISIN übersprungen: '+unbekannt.join(', '):''));
+  showToast(n+' Ausschüttungen für '+jahr+' übernommen'+(details?' · '+details+' Fondszusammensetzungen':'')+(unbekannt.length?' · unbekannte ISIN übersprungen: '+unbekannt.join(', '):''));
 }
 
 // ===== JAHRESEND-PRUEFUNG =====
@@ -3605,6 +4056,7 @@ function screenSettings(){
         <button class="btn ${state.currentTheme==='theme-analytics'?'btn-g':'btn-c'}" onclick="applyTheme('theme-analytics');render()">📊 Analytics Executive${state.currentTheme==='theme-analytics'?' ✓':''}</button>
         <button class="btn ${state.currentTheme==='theme-yield'?'btn-g':'btn-c'}" onclick="applyTheme('theme-yield');render()">💰 Yield & Cashflow Engine${state.currentTheme==='theme-yield'?' ✓':''}</button>
         <button class="btn ${state.currentTheme==='theme-neumorphic'?'btn-g':'btn-c'}" onclick="applyTheme('theme-neumorphic');render()">🌗 Neumorphic Soft UI${state.currentTheme==='theme-neumorphic'?' ✓':''}</button>
+        <button class="btn ${state.currentTheme==='theme-light'?'btn-g':'btn-c'}" onclick="applyTheme('theme-light');render()">☀️ Light Mode${state.currentTheme==='theme-light'?' ✓':''}</button>
       </div>
       ${uiClean()?`<p style="margin-top:10px;font-size:12px;color:var(--orange)">Im neuen Design gilt ein festes, ruhiges Farbschema. Die Themes wirken im klassischen Design.</p>`:''}
       <p class="hint" style="margin-top:10px">Neumorphic ändert nur Farben und Schattenwurf (weiche, „gepresste" Karten) — die Ring-Anzeige und der horizontale Monats-Slider aus der Vorlage sind nicht übernommen, s. Hinweis im Chat.</p>`},
@@ -3769,9 +4221,10 @@ function screenSettings(){
     </div>`;
   // Neues Design: zwölf gleichrangige Eintraege in drei Gruppen ordnen (IDs bleiben stabil)
   const GRUPPEN=[
-    ['Daten',  ['CSV-Import','Kurse','Datenprüfung','Export / Import']],
-    ['Planung',['Persönlicher Check','Buy Only','Teil-Portfolios Übersicht','Jahresprüfungs-Archiv']],
-    ['App',    ['Design / Vorlagen','Cloud-Sync','Wissensdatenbank','Sonstiges']]
+    ['Datenmanagement',  ['Export / Import','CSV-Import','Kurse','Datenprüfung']],
+    ['Planung & Analyse',['Jahresprüfungs-Archiv','Persönlicher Check','Buy Only','Teil-Portfolios Übersicht']],
+    ['App-Design',       ['Design / Vorlagen']],
+    ['System',           ['Cloud-Sync','Wissensdatenbank','Sonstiges']]
   ];
   const liste=clean
     ? (()=>{const benutzt=new Set();let h='';
@@ -4257,7 +4710,8 @@ function render(){
   // Neues Design: der Depot-Reiter ist ins Dashboard gewandert
   if(clean&&state.tab===1)state.tab=0;
   const tab=TABS[state.tab];
-  document.getElementById('backdrop').style.background=clean?'none':
+  const hell=!!(THEMES[(state.currentTheme||'theme-neon').replace(/^theme-/,'')]||{}).hell;
+  document.getElementById('backdrop').style.background=(clean||hell)?'none':
     `radial-gradient(ellipse 600px 400px at 50% 0%,${tab.ab} 0%,transparent 68%)`;
   const screens=[clean?screenDashboardClean:screenDashboard,screenDepot,screenPortfolio,screenSparplan,screenSettings];
   let html=screens[state.tab]();
