@@ -48,7 +48,19 @@ body.theme-neumorphic .btn{background:var(--bg0);border:none;border-radius:12px;
   box-shadow:4px 4px 10px var(--neu-dark),-4px -4px 10px var(--neu-light);color:var(--cyan)}
 body.theme-neumorphic .btn:active{box-shadow:inset 3px 3px 6px var(--neu-dark),inset -3px -3px 6px var(--neu-light)}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg0);color:var(--t);font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg0);min-height:100%}
+body{min-height:100%;background:var(--bg0);color:var(--t);font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+/* Das Theme sitzt als Klasse auf <body>; <html> sieht nur :root. Ohne diese Regeln blieb die
+   Flaeche hinter dem Inhalt (Ueberscrollen, Bereich unter dem Tab-Balken) schwarz. */
+html:has(body.theme-light){background:#F8F9FA}
+html:has(body.theme-terminal){background:#050505}
+html:has(body.theme-apple){background:#0f172a}
+html:has(body.theme-analytics){background:#0b0e14}
+html:has(body.theme-yield){background:#0c0a09}
+html:has(body.theme-neumorphic){background:#1e222b}
+html:has(body.ui-clean.theme-neon),html:has(body.ui-clean.theme-terminal),html:has(body.ui-clean.theme-apple),
+html:has(body.ui-clean.theme-analytics),html:has(body.ui-clean.theme-yield),html:has(body.ui-clean.theme-neumorphic){background:#0b0d10}
+html:has(body.ui-clean.theme-light){background:#F8F9FA}
 #backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background .4s}
 #app{position:relative;z-index:1;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:var(--tab)}
 #content{flex:1;padding:0 14px 28px;max-width:580px;margin:0 auto;width:100%}
@@ -411,6 +423,25 @@ body.theme-light .ampel-sofort{background:var(--red-bg)!important;color:var(--re
 body.theme-light .badge{background:var(--bg2)!important;border-color:var(--b)!important;color:var(--t2)!important}
 /* Textfarben, die im Dunkeldesign auf Weiss gesetzt sind */
 body.theme-light [style*="color:white"],body.theme-light [style*="color:#fff"]{color:var(--t)!important}
+
+/* ===== EINHEITLICHE KARTENSPRACHE (nach der BUY-ONLY-Karte) ===== */
+.spar-tile.sel{border-color:var(--green)!important;box-shadow:0 0 0 1px var(--green)!important}
+.spar-rate{display:flex;align-items:baseline;gap:4px;border-bottom:1px solid var(--b);padding-bottom:2px}
+.spar-rate input{width:100%;min-width:0;background:transparent!important;border:none!important;outline:none;box-shadow:none!important;
+  font-size:19px;font-weight:700;color:var(--t)!important;font-variant-numeric:tabular-nums;font-family:inherit}
+.spar-rate span{color:var(--t3);font-size:14px}
+input.rate-in{width:96px;text-align:right;font-size:22px;font-weight:700;color:var(--green)!important;
+  background:transparent!important;border:none!important;border-bottom:1px solid var(--b)!important;
+  outline:none;box-shadow:none!important;font-variant-numeric:tabular-nums;font-family:inherit;border-radius:0!important}
+.tile-tag{display:inline-flex;align-self:flex-start;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--b)}
+.tag-buy{color:var(--green-text,var(--green));background:var(--green-bg,transparent);border-color:var(--green-bd,var(--green))}
+.tag-sell{color:var(--red);background:var(--red-bg,transparent);border-color:var(--red-bd,var(--red))}
+.tile-kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.tile-kopf .spar-name{flex:1;min-height:30px}
+.tile-badges{display:flex;gap:4px;flex-wrap:wrap}
+/* Schlichter Seitentitel auch im Light Mode */
+body.theme-light .stitle{font-family:system-ui,-apple-system,sans-serif!important;font-weight:700!important;
+  font-size:24px!important;text-align:left!important;margin:14px 2px 14px!important;letter-spacing:-.01em}
 </style>
 </head>
 <body>
@@ -427,18 +458,21 @@ body.theme-light [style*="color:white"],body.theme-light [style*="color:#fff"]{c
 // brauchen und nicht einfach CSS-Variablen referenzieren können.
 const N={cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'};
 const THEMES={
-  neon:     {label:'Neon (Standard)',    farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
-  terminal: {label:'Terminal',           farben:{cyan:'#ffffff',green:'#22c55e',red:'#ef4444',yellow:'#eab308',orange:'#f97316'}},
-  apple:    {label:'Apple Clean',        farben:{cyan:'#38bdf8',green:'#4ade80',red:'#f87171',yellow:'#facc15',orange:'#fb923c'}},
-  analytics:{label:'Analytics',          farben:{cyan:'#6366f1',green:'#10b981',red:'#f43f5e',yellow:'#f59e0b',orange:'#ed8936'}},
-  yield:    {label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}},
-  neumorphic:{label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
+  neon:     {bg:'#000000',label:'Neon (Standard)',    farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
+  terminal: {bg:'#050505',label:'Terminal',           farben:{cyan:'#ffffff',green:'#22c55e',red:'#ef4444',yellow:'#eab308',orange:'#f97316'}},
+  apple:    {bg:'#0f172a',label:'Apple Clean',        farben:{cyan:'#38bdf8',green:'#4ade80',red:'#f87171',yellow:'#facc15',orange:'#fb923c'}},
+  analytics:{bg:'#0b0e14',label:'Analytics',          farben:{cyan:'#6366f1',green:'#10b981',red:'#f43f5e',yellow:'#f59e0b',orange:'#ed8936'}},
+  yield:    {bg:'#0c0a09',label:'Yield Engine',       farben:{cyan:'#f59e0b',green:'#10b981',red:'#ef4444',yellow:'#facc15',orange:'#ea580c'}},
+  neumorphic:{bg:'#1e222b',label:'Neumorphic Soft UI',farben:{cyan:'#00F0FF',green:'#39FF6A',red:'#FF1744',yellow:'#FFE600',orange:'#FF8A00'}},
   // Light Mode: dunklere Farbwerte, damit sie auf weissem Grund denselben Kontrast tragen
   light:    {label:'Light Mode',         hell:true,
              farben:{cyan:'#2563EB',green:'#059669',red:'#DC2626',yellow:'#D97706',orange:'#D97706'}}
 };
 const CLEAN_FARBEN={cyan:'#9ca3af',green:'#4ade80',red:'#f87171',yellow:'#fbbf24',orange:'#fb923c'};
 function setUiModus(clean){state.uiClean=!!clean;applyTheme(state.currentTheme);render();window.scrollTo&&window.scrollTo(0,0);}
+// Modernes Erscheinungsbild = neues Design (clean) ODER Light Mode. In beiden gilt die Kartensprache
+// der BUY-ONLY-Karte: Titel, Hinweis, Kennzahlzeile, Trennlinie, Kachelraster, Summenzeilen.
+function modernUI(){return uiClean()||istHell();}
 function istHell(){
   const id=(state.currentTheme||'theme-neon').replace(/^theme-/,'');
   return !!(THEMES[id]&&THEMES[id].hell);
@@ -457,6 +491,15 @@ function applyTheme(themeName){
     if(!THEMES[gueltig].hell)Object.assign(N,CLEAN_FARBEN);
   }
   state.currentTheme='theme-'+gueltig;
+  // Fallback fuer aeltere Browser ohne :has(): Hintergrund und Browser-Farbschema direkt setzen
+  try{
+    const hell=!!THEMES[gueltig].hell;
+    const bg=hell?'#F8F9FA':(uiClean()?'#0b0d10':(THEMES[gueltig].bg||'#000000'));
+    document.documentElement.style.background=bg;
+    document.documentElement.style.colorScheme=hell?'light':'dark';
+    const mt=document.querySelector&&document.querySelector('meta[name="theme-color"]');
+    if(mt)mt.setAttribute('content',bg);
+  }catch(e){}
   saveState();
 }
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
@@ -613,8 +656,10 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.53';
+const APP_VERSION='3.55';
 const APP_CHANGELOG=[
+  {v:'3.55',d:'2026-09-24',t:'Sparplan und Portfolios im Kartenstil der BUY-ONLY-Karte. Im Light Mode und im neuen Design folgen jetzt alle Boxen derselben Sprache: Titel, Hinweis, Kennzahlzeile, Trennlinie, Kachelraster, Summenzeilen. Sparplan: Portfolio-Raten als antippbare Kacheln mit Eingabe und Summe, empfohlene Aufteilung mit Ist-/Ziel-Balken je ETF, Rebalancing-Karte mit Kauf-/Verkauf-Kacheln. Portfolio-Reiter: Teil-Portfolios als Kachelraster mit Wert, ETF-Zahl, Score und Ampel; im Portfolio die Positionen als Kacheln mit Schalter und Wiederaufnahme-Hinweis. Der klassische Dark Mode behaelt die bisherige Listenform. Seitentitel im Light Mode schlicht wie im neuen Design.'},
+  {v:'3.54',d:'2026-09-24',t:'Zwei Fehler behoben. (1) Hintergrund wurde beim Scrollen schwarz: das Theme sitzt als Klasse auf body, html sah aber nur die Standardfarbe und blieb schwarz — sichtbar beim Ueberscrollen und im Bereich unter dem Tab-Balken. html folgt dem Theme jetzt per :has(), mit direktem Fallback ueber JavaScript und Browser-Farbschema. (2) Die Ziel-Ringe zeigten statt der Werte nur Platzhaltertext: bei der Einfuehrung der kompakten Zusammenfassung war eine zweite Funktion svgRing mit anderer Parameterform angelegt worden und hat die urspruengliche ueberschrieben — alle alten Ringe (Ziele-Dashboard, Score-Anzeigen) bekamen ihre Werte dadurch nicht mehr. Die neue Funktion heisst svgZielRing; ein Scan ueber die ganze Datei findet keine weitere doppelte Funktionsdefinition.'},
   {v:'3.53',d:'2026-09-24',t:'Der Januar-Prompt fragt jetzt zusaetzlich die tatsaechliche Zusammensetzung je Fonds ab: Laender- und Regionenquoten, die fuenf groessten Sektoren, Replikationsmethode und Stichtag des Factsheets — als zweiter JSON-Block, den dieselbe Einlesemaske erkennt. Damit zeigt die Streuungs-Karte eine echte Durchschau: der Depotwert wird anteilig auf die Regionen verteilt, statt jeden Fonds pauschal einem Schwerpunkt zuzuschlagen. Bis Daten vorliegen, weist die Karte ausdruecklich darauf hin, dass die Regionenzeile nur der Index-Schwerpunkt ist und ein „Welt"-Dividenden-ETF real oft 30 bis 40 Prozent USA haelt. Nach dem Einlesen nennt sie den abgedeckten Anteil und die Fonds ohne Daten.'},
   {v:'3.52',d:'2026-09-24',t:'Neue Uebersicht „Streuung & Klumpenrisiko": Verteilung des Depotwerts ueber drei Dimensionen — Anlageklasse, Regionenschwerpunkt und Strategie (Breiter Markt, Dividendenstrategie, Covered Call, Anleihen) — jeweils als Balken mit Anteil und Betrag, nach ISIN eindeutig, sodass gespiegelte Positionen einmal zaehlen. Hintergrund: mit den korrigierten Anlageklassen liegt das DIV-Depot zu 100 Prozent in einer Kategorie, die Klassensicht allein zeigt dort also nichts. Region und Strategie machen die tatsaechliche Konzentration sichtbar. Kategorien ueber 50 Prozent werden hervorgehoben, fehlende Zuordnungen benannt. Die Karte erscheint im Dashboard, im Depot-Reiter und als eigener Abschnitt im neuen Design.'},
   {v:'3.51',d:'2026-09-24',t:'Anlageklassen korrigiert. Das Feld `klasse` trug in jeder Position nur den Positionsindex statt einer Anlageklasse — deshalb erschien ein Dividenden-ETF in den Rebalancing-Auftraegen als „Tagesgeld", ein Anleihen-ETF als „Dividenden/Covered" und zwei Positionen im DIV-Depot hatten mit 5 und 6 ueberhaupt keine gueltige Klasse. Neu ist eine Zuordnung ueber die ISIN fuer alle 22 ETF des Depots; eine Migration schreibt sie einmalig in die gespeicherten Daten. Fehlt eine Zuordnung, zeigt die Beschriftung die ISIN statt einer falschen Kategorie, und die Datenpruefung meldet es.'},
@@ -1655,7 +1700,7 @@ function divZuwachsProKauf(){
 }
 
 // Ring-Gauge fuer die Zielanzeige (Kapital, Dividende, Zeithorizont)
-function svgRing(prozent,farbe,wert,label,sub){
+function svgZielRing(prozent,farbe,wert,label,sub){
   const pr=Math.max(0,Math.min(100,prozent||0));
   const u=2*Math.PI*42;
   return`<div style="text-align:center;flex:1;min-width:0">
@@ -2147,9 +2192,9 @@ function screenDashboardClean(){
         <span class="leg"><b style="color:var(--cyan)">${PCT(fort)}</b> Kapital · <b style="color:var(--green)">${EUR0(nettoMon)}</b> Dividende · <b style="color:var(--orange)">${EUR0(prognoseMon)}</b> Prognose</span>
       </div>
       <div style="display:flex;gap:6px;align-items:flex-start">
-        ${svgRing(fort,N.cyan,PCT(fort),'Kapitalziel',EUR0(wert)+' von '+EUR0(ziel))}
-        ${svgRing(divZielPr,N.green,EUR0(nettoMon),'Dividende/Mon',' von '+EUR0(SOLL?SOLL.zielReal:0)+' Ziel')}
-        ${svgRing(prognZielPr,N.orange,EUR0(prognoseMon),'Prognose '+progJahr,'netto pro Monat')}
+        ${svgZielRing(fort,N.cyan,PCT(fort),'Kapitalziel',EUR0(wert)+' von '+EUR0(ziel))}
+        ${svgZielRing(divZielPr,N.green,EUR0(nettoMon),'Dividende/Mon',' von '+EUR0(SOLL?SOLL.zielReal:0)+' Ziel')}
+        ${svgZielRing(prognZielPr,N.orange,EUR0(prognoseMon),'Prognose '+progJahr,'netto pro Monat')}
       </div>
     </div>
     ${hb.length?handlungsbedarfBlock():''}
@@ -2533,6 +2578,7 @@ function screenDepot(){
 function screenPortfolio(){
   if(state.view==='detail')return screenPfDetail();
   if(state.view==='etfDetail')return screenETFDetail();
+  if(modernUI())return screenPortfolioListeModern();
   return`<div class="screen">
     <h1 class="stitle gc" style="font-size:42px">Portfolio</h1>
     <div class="card">
@@ -2555,6 +2601,7 @@ function screenPortfolio(){
 
 // ===== SHARED CARD RENDERERS =====
 function renderRebalancingCard(pf){
+  if(modernUI())return renderRebalancingCardModern(pf);
   const ro=rebalancingOrders(pf);
   const amp=pfAmpel(pf);
   const totalSell=ro.filter(o=>!o.isBuy).reduce((s,o)=>s+Math.abs(o.diff),0);
@@ -2598,7 +2645,7 @@ function renderBuyOnlyCard(pf){
       <span style="font-size:22px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums">${sp} €</span>
     </div>
     <div class="sep"></div>
-    ${uiClean()||((THEMES[(state.currentTheme||'theme-neon').replace(/^theme-/,'')]||{}).hell)?`
+    ${modernUI()?`
     <div class="spar-grid">${orders.map(o=>`
       <div class="spar-tile">
         <div class="spar-name" title="${o.name}">${o.name}</div>
@@ -2671,7 +2718,7 @@ function screenPfDetail(){
         <button class="pill${pf.strategy===s?' on':''}" onclick="state.portfolios[${state.subIdx}].strategy='${s}';render()">${s==='gewinnorientiert'?'Gewinnorientiert':s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('')}
       </div>
       <div class="ctitle" style="margin-top:14px">POSITIONEN</div>
-      <div style="background:var(--bg2);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      ${modernUI()?positionenKacheln(pf):`<div style="background:var(--bg2);border-radius:10px;overflow:hidden;margin-bottom:12px">
         ${pf.positions.length===0?`<div style="padding:16px;text-align:center;color:var(--t2)">Noch keine Positionen</div>`:''}
         ${pf.positions.map((pos,pi)=>{
           const ist=pos.active?posIst(pos,pf):0;
@@ -2698,7 +2745,7 @@ function screenPfDetail(){
             </div>
           </div>`;
         }).join('')}
-      </div>
+      </div>`}
       <button class="btn btn-c" style="width:100%;margin-bottom:14px" onclick="openAddModal()">+ Neue Position</button>
       ${t>0?`<div class="sep"></div><div class="sum-row"><span style="color:var(--t2)">Depotwert</span><span style="font-weight:700;color:var(--cyan)">${EUR0(t)}</span></div>`:''}
     </div>
@@ -3816,7 +3863,154 @@ function zeigePromptFallback(txt){
   m.classList.add('open');
   m.onclick=e=>{if(e.target===m)closeModal();};
 }
-function screenSparplan(){
+// ----- Sparplan: Portfolio-Raten als Kacheln -----
+function sparMerkerModern(){
+  const pfs=state.portfolios.filter(p=>p.enabled);
+  const summe=pfs.reduce((a,pf)=>a+(pf.sparAmount||0),0);
+  return`<div class="card">
+    <div class="ctitle">SPARPLAN JE PORTFOLIO</div>
+    <p class="hint" style="margin-bottom:12px">Kachel antippen wählt das Portfolio — die Berechnung darunter aktualisiert sich. Die Rate lässt sich direkt in der Kachel ändern.</p>
+    <div class="spar-grid">${pfs.map(pf=>{
+      const idx=state.portfolios.indexOf(pf),sel=idx===state.selectedSparIdx;
+      return`<div class="spar-tile${sel?' sel':''}" onclick="selectSpar(${idx})" style="cursor:pointer">
+        <div class="spar-name" title="${pf.name}">${pf.name}</div>
+        <div class="spar-rate"><input type="text" inputmode="decimal" value="${pf.sparAmount||0}"
+          onclick="event.stopPropagation()"
+          onchange="state.portfolios[${idx}].sparAmount=+this.value.replace(',','.')||0;if(state.selectedSparIdx===${idx})render();else showToast('Gespeichert')"/><span>€</span></div>
+        <div class="spar-sub">${sel?`<b style="color:var(--green)">Ausgewählt</b>`:'Antippen zum Auswählen'} · ${pfAP(pf).length} ETF</div>
+      </div>`;}).join('')}</div>
+    <div class="sep"></div>
+    <div class="sum-row"><span style="color:var(--t2)">Summe aller Raten</span><span style="font-weight:700;color:var(--green)">${EUR0(summe)}</span></div>
+  </div>`;
+}
+// ----- Sparplan: empfohlene Aufteilung -----
+function sparAufteilungModern(apf){
+  const sp=apf.sparAmount||state.sparrate;
+  const idx=state.selectedSparIdx;
+  const aktiv=pfAP(apf);
+  const summe=aktiv.reduce((a,p)=>a+sp*effTarget(p,apf)/100,0);
+  return`<div class="card">
+    <div class="ctitle">EMPFOHLENE AUFTEILUNG · ${apf.name}</div>
+    <p class="hint" style="margin-bottom:12px">Verteilung der monatlichen Sparrate nach der Zielquote je aktivem ETF.</p>
+    <div class="sum-row" style="margin-bottom:8px;align-items:baseline">
+      <span style="color:var(--t2)">Monatliche Sparrate</span>
+      <span style="display:flex;align-items:baseline;gap:4px"><input class="rate-in" type="text" inputmode="decimal" value="${sp}"
+        onchange="state.portfolios[${idx}].sparAmount=+this.value.replace(',','.')||0;render()"/><span style="color:var(--t3)">€</span></span>
+    </div>
+    <div class="sep"></div>
+    ${aktiv.length===0?`<div class="hint" style="text-align:center;padding:12px">Keine aktiven Positionen in diesem Portfolio</div>`:`
+    <div class="spar-grid">${aktiv.map(p=>{
+      const ist=posIst(p,apf),eff=effTarget(p,apf),dev=ist-eff,betrag=sp*eff/100;
+      const fb=Math.abs(dev)<2?N.green:Math.abs(dev)<5?N.yellow:N.orange;
+      return`<div class="spar-tile">
+        <div class="spar-name" title="${p.name}">${p.name}</div>
+        <div class="spar-bars">
+          <div class="spar-bar"><div class="l"><span>Ist %</span><span>${ist.toFixed(1)}</span></div>
+            <div class="spar-track"><div class="spar-fill" style="width:${Math.min(100,eff>0?ist/eff*100:0).toFixed(0)}%;background:${fb}"></div></div></div>
+          <div class="spar-bar"><div class="l"><span>Ziel %</span><span>${eff.toFixed(1)}</span></div>
+            <div class="spar-track"><div class="spar-fill" style="width:100%;background:var(--t3);opacity:.45"></div></div></div>
+        </div>
+        <div>
+          <div class="spar-amt" style="color:${betrag>0?N.green:'var(--t3)'}">${EUR0(betrag)}</div>
+          <div class="spar-sub">Zielquote ${eff.toFixed(1)} % · Δ <span style="color:${fb}">${dev>=0?'+':''}${dev.toFixed(1)} %</span></div>
+        </div>
+      </div>`;}).join('')}</div>`}
+    <div class="sep"></div>
+    <div class="sum-row"><span style="color:var(--t2)">Summe geplant</span><span style="font-weight:700;color:var(--green)">${EUR0(summe)}</span></div>
+  </div>`;
+}
+// ----- Rebalancing-Karte (mit Verkäufen) im Kachelstil -----
+function renderRebalancingCardModern(pf){
+  const ro=rebalancingOrders(pf),amp=pfAmpel(pf);
+  const totalSell=ro.filter(o=>!o.isBuy).reduce((a,o)=>a+Math.abs(o.diff),0);
+  const totalBuy=ro.filter(o=>o.isBuy).reduce((a,o)=>a+o.diff,0);
+  return`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span class="ctitle" style="margin:0">REBALANCING (MIT VERKÄUFEN)</span>${ampelBadge(amp)}</div>
+    <p class="hint" style="margin-bottom:12px">Alle Ziel-Ist-Abweichungen, auch unter 1 % des Portfoliowerts, je aktiver Position.</p>
+    ${ro.length===0?`<div class="hint" style="text-align:center;padding:8px;color:var(--green)">✓ Portfolio im Gleichgewicht</div>`:`
+    <div class="spar-grid">${ro.map(o=>`
+      <div class="spar-tile">
+        <div class="spar-name" title="${o.name}">${o.name}</div>
+        <span class="tile-tag ${o.isBuy?'tag-buy':'tag-sell'}">${o.isBuy?'↓ Nachkauf':'↑ Verkauf'}</span>
+        <div>
+          <div class="spar-amt" style="color:${o.isBuy?N.green:N.red}">${EUR0(Math.abs(o.diff))}</div>
+          <div class="spar-sub">${klassenName(o)}</div>
+        </div>
+      </div>`).join('')}</div>
+    <div class="sep"></div>
+    <div class="sum-row"><span style="color:var(--t2)">Verkäufe</span><span style="font-weight:700;color:var(--red)">${EUR0(totalSell)}</span></div>
+    <div class="sum-row"><span style="color:var(--t2)">Käufe</span><span style="font-weight:700;color:var(--green)">${EUR0(totalBuy)}</span></div>`}
+  </div>`;
+}
+// ----- Portfolio-Übersicht als Kachelraster -----
+function screenPortfolioListeModern(){
+  return`<div class="screen">
+    <h1 class="stitle gc" style="font-size:42px">Portfolio</h1>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span class="ctitle" style="margin:0">TEIL-PORTFOLIOS</span>
+        <button class="btn btn-c" style="padding:6px 14px;font-size:14px" onclick="addPf()">+ Neu</button>
+      </div>
+      <p class="hint" style="margin-bottom:12px">Kachel antippen öffnet das Portfolio.</p>
+      <div class="spar-grid">${state.portfolios.map((pf,i)=>`
+        <div class="spar-tile" onclick="openPf(${i})" style="cursor:pointer">
+          <div class="tile-kopf">
+            <div class="spar-name" title="${pf.name}">${pf.name}</div>
+            <button class="pminus" onclick="event.stopPropagation();removePf(${i})" title="Portfolio löschen">−</button>
+          </div>
+          <div class="tile-badges">${pf.activePortfolio?'<span class="badge b-aktiv">Aktiv</span>':''}${ampelBadge(pfAmpel(pf))}</div>
+          <div>
+            <div class="spar-amt">${EUR0(pfTotal(pf))}</div>
+            <div class="spar-sub">${pfAP(pf).length} ETF · Score ${pfScore(pf)}</div>
+          </div>
+        </div>`).join('')}</div>
+      <div class="sep"></div>
+      <div class="sum-row"><span style="color:var(--t2)">Gesamtkapital (ISIN-eindeutig)</span><span style="font-weight:700;color:var(--green)">${EUR0(allTotal())}</span></div>
+    </div>
+  </div>`;
+}
+// ----- Positionen eines Portfolios als Kacheln -----
+function positionenKacheln(pf){
+  const pos=pf.positions||[];
+  if(!pos.length)return`<div class="hint" style="padding:16px;text-align:center">Noch keine Positionen</div>`;
+  return`<div class="spar-grid" style="margin-bottom:12px">${pos.map((p,pi)=>{
+    const ist=p.active?posIst(p,pf):0,eff=p.active?effTarget(p,pf):p.target,dev=ist-eff;
+    const fb=!p.active?'var(--t3)':Math.abs(dev)<2?N.green:Math.abs(dev)<5?N.yellow:N.orange;
+    const w=!p.active?wiederBesparbarNach(p,pf):null;
+    const wt=w?(w.keineRate?'Sparrate fehlt':w.monate===0?'ab sofort wieder besparbar':w.monate===1?'ab nächsten Monat besparbar':'besparbar ab '+monatsNameVersetzt(w.monate)):'';
+    return`<div class="spar-tile" onclick="openETF(${pi})" style="cursor:pointer;${p.active?'':'opacity:.75'}">
+      <div class="tile-kopf">
+        <div class="spar-name" title="${p.name}">${p.name}</div>
+        <button class="tog${p.active?' on':' off'}" onclick="event.stopPropagation();togglePos(${state.subIdx},${pi});render()"></button>
+      </div>
+      <div class="spar-bars">
+        <div class="spar-bar"><div class="l"><span>Ist %</span><span>${ist.toFixed(1)}</span></div>
+          <div class="spar-track"><div class="spar-fill" style="width:${Math.min(100,eff>0?ist/eff*100:0).toFixed(0)}%;background:${fb}"></div></div></div>
+        <div class="spar-bar"><div class="l"><span>Ziel %</span><span>${eff.toFixed(1)}</span></div>
+          <div class="spar-track"><div class="spar-fill" style="width:100%;background:var(--t3);opacity:.45"></div></div></div>
+      </div>
+      <div>
+        <div class="spar-amt" style="color:var(--t)">${EUR0(posVal(p))}</div>
+        <div class="spar-sub">${STK(p.stueck)} Stk · Δ <span style="color:${fb}">${dev>=0?'+':''}${dev.toFixed(1)} %</span></div>
+        ${w?`<div class="spar-sub" style="color:${w.monate<=1?N.green:N.orange};margin-top:2px">⏸ pausiert · ${wt}</div>`:''}
+      </div>
+    </div>`;}).join('')}</div>`;
+}
+function screenSparplanModern(){
+  if(state.selectedSparIdx>=state.portfolios.length)state.selectedSparIdx=0;
+  const apf=state.portfolios[state.selectedSparIdx]||state.portfolios[0];
+  return`<div class="screen">
+    <h1 class="stitle gg" style="font-size:50px;margin-top:16px">Sparplan</h1>
+    ${handlungsbedarfBlock()}
+    ${sparMerkerModern()}
+    ${sparAufteilungModern(apf)}
+    ${renderRebalancingCard(apf)}
+    ${renderBuyOnlyCard(apf)}
+  </div>`;
+}
+function screenSparplan(){return modernUI()?screenSparplanModern():screenSparplanKlassisch();}
+function screenSparplanKlassisch(){
   if(state.selectedSparIdx>=state.portfolios.length)state.selectedSparIdx=0;
   const apf=state.portfolios[state.selectedSparIdx]||state.portfolios[0];
   const sp=apf.sparAmount||state.sparrate;
