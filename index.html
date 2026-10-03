@@ -282,8 +282,9 @@ function applyTheme(themeName){
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.42';
+const APP_VERSION='3.43';
 const APP_CHANGELOG=[
+  {v:'3.43',d:'2026-09-24',t:'Die CSV-Karte weist jetzt deutlich aus, wie viele Kaeufe vor dem Erfassungsbeginn liegen und deshalb von „Aktualisieren" uebersprungen werden. Das war zwar immer so gewollt — Kaeufe vor dem Erfassungsbeginn stecken pauschal im Anfangsbestand — stand aber nur als fluechtige Meldung im Toast und war leicht zu uebersehen: bei einem Export mit zwei Jahren Historie und Erfassungsbeginn 01.09.2026 kamen pro ETF nur die beiden letzten Kaeufe an, was wie ein Importfehler aussah. Der orange Hinweis nennt die Zahl der betroffenen Kaeufe und ETF und verweist auf „Neu aufbauen".'},
   {v:'3.42',d:'2026-09-24',t:'Gespiegelte Positionen zaehlen konsequent einmal. Liegt dieselbe ISIN in mehreren Teil-Portfolios, ist das ein Bestand und kein zweiter ETF: die Aufschluesselung des CSV-Imports rechnet jede Transaktion genau einem fuehrenden Portfolio zu, sodass die Zeilen in Summe wieder die Gesamtzahlen ergeben, und weist die gespiegelten ISIN separat aus. Zuvor erschien jede Transaktion in jedem Portfolio, in dem die ISIN liegt — die Aufschluesselung summierte sich dadurch auf fast das Anderthalbfache der tatsaechlichen Transaktionen. Der Ausschuettungs-Abgleich kennzeichnet gespiegelte Zeilen jetzt ausdruecklich. Ausserdem vergleichen uniquePositions und uniqueValueOf die ISIN nun ohne Ruecksicht auf Gross-/Kleinschreibung, damit eine abweichend geschriebene ISIN keine Doppelzaehlung mehr ausloest.'},
   {v:'3.41',d:'2026-09-24',t:'CSV-Import erfasst jetzt alle Teil-Portfolios statt nur der sieben ETF mit Ausschuettungsstammdaten. Zugeordnet wird ueber die ISIN statt ueber das Kuerzel — dasselbe Papier traegt in verschiedenen Toepfen teils unterschiedliche Kuerzel (NL0011683594 liegt als TDIV und als VDIV im Depot), wodurch Kaeufe bisher stillschweigend nur in einem Teil ankamen. Die Uebersicht nach dem Dateiwaehlen zeigt eine Aufschluesselung je Teil-Portfolio (ETF, Kaeufe, Ausschuettungen, neue Lose) und meldet, wie viele ISIN im Export in keinem Portfolio liegen. Der Ausschuettungs-Abgleich laeuft ebenfalls ueber alle Portfolios, nach ISIN dedupliziert, und nennt je Zeile die betroffenen Toepfe.'},
   {v:'3.40',d:'2026-09-20',t:'Neues Design (clean) mit Schalter unter Einstellungen -> Darstellung; das klassische Design bleibt unveraendert erhalten. Im neuen Design: (1) Erklaertexte liegen hinter einem kleinen i statt immer sichtbar zu sein. (2) Dashboard mit Kopfzeile aus vier Kennzahlen (Depotwert, Dividende netto pro Monat, Zielfortschritt, Handlungsbedarf) und einklappbaren Abschnitten, deren Inhalt erst beim Oeffnen berechnet wird; der Monats-Check wandert in den Handlungsbedarf. (3) Farbe nur fuer Bedeutung: festes ruhiges Farbschema ohne Leuchteffekte, gruen = im Plan, orange = Handlung, rot = Fehler. (4) Doppelte Darstellungen entfallen (Monatskacheln unter dem Balkendiagramm, Monatsraster im Depot-Reiter). (5) Seitentitel schlicht statt Pacifico 50 px, Kartentitel als dezente graue Zeile. (6) Betraege ab 100 EUR ohne Cent. (7) Vier statt fuenf Reiter: der Depot-Reiter ist als Abschnitt ins Dashboard gewandert. (8) Einstellungen in die Gruppen Daten, Planung und App geordnet. Technisch: Teil-Portfolios, Zielpfad und Income-Ziel sind als eigene Funktionen ausgelagert, die beide Designs gemeinsam nutzen — keine doppelte Implementierung.'},
@@ -2675,6 +2676,10 @@ function csvUebersicht(){
   const k=r.filter(x=>x.typ==='kauf'),v=r.filter(x=>x.typ==='verkauf'),d=r.filter(x=>x.istDividende);
   const daten=r.map(x=>x.datum).sort();
   const neueLose=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(x.isin,x.datum,x.a)).length;
+  // Kaeufe vor dem Erfassungsbeginn kann „Aktualisieren" nicht einbuchen — sie steckten per
+  // Definition schon im Anfangsbestand. Nur „Neu aufbauen" holt sie als einzelne Lose herein.
+  const vorBeginn=k.filter(x=>x.datum<TRACKING_START).length;
+  const vorBeginnIsins=[...new Set(k.filter(x=>x.datum<TRACKING_START).map(x=>x.isin))].length;
   // Aufschluesselung je Teil-Portfolio: dieselbe ISIN kann in mehreren Toepfen liegen
   // Jede Transaktion zaehlt genau einmal — zugerechnet dem fuehrenden Portfolio ihrer ISIN.
   // Dadurch ergibt die Aufschluesselung in der Summe wieder die Gesamtzahlen oben.
@@ -2694,7 +2699,8 @@ function csvUebersicht(){
     .map(i=>({isin:i,ticker:reg[i].ticker,portfolios:reg[i].portfolios}));
   const unbek=[...new Set(alle.filter(x=>!isinBekannt(x.isin,reg)).map(x=>x.isin))];
   return{kaeufe:k.length,verkaeufe:v.length,divs:d.length,von:daten[0],bis:daten[daten.length-1],
-         etf:[...new Set(r.map(x=>x.isin))].length,neueLose,portfolios,unbekannt:unbek,spiegel:spiegelIsins};
+         etf:[...new Set(r.map(x=>x.isin))].length,neueLose,vorBeginn,vorBeginnIsins,
+         portfolios,unbekannt:unbek,spiegel:spiegelIsins};
 }
 // Ein Knopf fuer den Monatsablauf: neue Kaeufe ergaenzen und Ausschuettungen uebernehmen
 function csvAktualisieren(){
@@ -3610,7 +3616,11 @@ function screenSettings(){
         return`<div class="kz-tile" style="margin-top:10px">
           <div style="font-size:13px">${u.kaeufe} Käufe · ${u.verkaeufe} Verkäufe · ${u.divs} Ausschüttungen</div>
           <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} ETF aus deinen Portfolios · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
-          <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe bereits erfasst'}</div>
+          <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe ab Erfassungsbeginn bereits erfasst'}</div>
+          ${u.vorBeginn?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;border:1px solid ${N.orange};background:rgba(255,138,0,.08)">
+            <div style="font-size:12px;color:${N.orange};font-weight:700">${u.vorBeginn} Käufe aus ${u.vorBeginnIsins} ETF liegen vor dem Erfassungsbeginn ${TRACKING_START.split('-').reverse().join('.')}</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:3px">„Aktualisieren" lässt sie bewusst aus — sie stecken pauschal im Anfangsbestand. Für die vollständige Historie mit Einzeldaten einmal <b>Neu aufbauen</b> drücken; der Erfassungsbeginn wandert dann auf die erste Transaktion.</div>
+          </div>`:''}
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--b)">
             <div style="font-size:11px;color:var(--t3);margin-bottom:4px">JE TEIL-PORTFOLIO</div>
             ${u.portfolios.map(x=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
