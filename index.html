@@ -282,8 +282,10 @@ function applyTheme(themeName){
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.40';
+const APP_VERSION='3.42';
 const APP_CHANGELOG=[
+  {v:'3.42',d:'2026-09-24',t:'Gespiegelte Positionen zaehlen konsequent einmal. Liegt dieselbe ISIN in mehreren Teil-Portfolios, ist das ein Bestand und kein zweiter ETF: die Aufschluesselung des CSV-Imports rechnet jede Transaktion genau einem fuehrenden Portfolio zu, sodass die Zeilen in Summe wieder die Gesamtzahlen ergeben, und weist die gespiegelten ISIN separat aus. Zuvor erschien jede Transaktion in jedem Portfolio, in dem die ISIN liegt — die Aufschluesselung summierte sich dadurch auf fast das Anderthalbfache der tatsaechlichen Transaktionen. Der Ausschuettungs-Abgleich kennzeichnet gespiegelte Zeilen jetzt ausdruecklich. Ausserdem vergleichen uniquePositions und uniqueValueOf die ISIN nun ohne Ruecksicht auf Gross-/Kleinschreibung, damit eine abweichend geschriebene ISIN keine Doppelzaehlung mehr ausloest.'},
+  {v:'3.41',d:'2026-09-24',t:'CSV-Import erfasst jetzt alle Teil-Portfolios statt nur der sieben ETF mit Ausschuettungsstammdaten. Zugeordnet wird ueber die ISIN statt ueber das Kuerzel — dasselbe Papier traegt in verschiedenen Toepfen teils unterschiedliche Kuerzel (NL0011683594 liegt als TDIV und als VDIV im Depot), wodurch Kaeufe bisher stillschweigend nur in einem Teil ankamen. Die Uebersicht nach dem Dateiwaehlen zeigt eine Aufschluesselung je Teil-Portfolio (ETF, Kaeufe, Ausschuettungen, neue Lose) und meldet, wie viele ISIN im Export in keinem Portfolio liegen. Der Ausschuettungs-Abgleich laeuft ebenfalls ueber alle Portfolios, nach ISIN dedupliziert, und nennt je Zeile die betroffenen Toepfe.'},
   {v:'3.40',d:'2026-09-20',t:'Neues Design (clean) mit Schalter unter Einstellungen -> Darstellung; das klassische Design bleibt unveraendert erhalten. Im neuen Design: (1) Erklaertexte liegen hinter einem kleinen i statt immer sichtbar zu sein. (2) Dashboard mit Kopfzeile aus vier Kennzahlen (Depotwert, Dividende netto pro Monat, Zielfortschritt, Handlungsbedarf) und einklappbaren Abschnitten, deren Inhalt erst beim Oeffnen berechnet wird; der Monats-Check wandert in den Handlungsbedarf. (3) Farbe nur fuer Bedeutung: festes ruhiges Farbschema ohne Leuchteffekte, gruen = im Plan, orange = Handlung, rot = Fehler. (4) Doppelte Darstellungen entfallen (Monatskacheln unter dem Balkendiagramm, Monatsraster im Depot-Reiter). (5) Seitentitel schlicht statt Pacifico 50 px, Kartentitel als dezente graue Zeile. (6) Betraege ab 100 EUR ohne Cent. (7) Vier statt fuenf Reiter: der Depot-Reiter ist als Abschnitt ins Dashboard gewandert. (8) Einstellungen in die Gruppen Daten, Planung und App geordnet. Technisch: Teil-Portfolios, Zielpfad und Income-Ziel sind als eigene Funktionen ausgelagert, die beide Designs gemeinsam nutzen — keine doppelte Implementierung.'},
   {v:'3.39',d:'2026-09-20',t:'Kontrollprompt praezisiert: zeigt jetzt das genaue Datum statt nur das Jahr (\'Stand 14.03.2027\' statt \'heute (2027)\'), da der Prompt zu jedem Zeitpunkt im Folgejahr erzeugt werden kann, nicht nur im Dezember — er nutzt immer die Depotdaten des Aufrufzeitpunkts. Zusaetzlich eine Kurs-Spalte und ein Hinweis, dass der im Tool hinterlegte Kurs der zuletzt geladene Stand ist, nicht zwingend der heutige Marktkurs — Claude wird angewiesen, sich fuer die Bewertung auf eigene Recherche zu verlassen statt auf diese Spalte.'},
   {v:'3.38',d:'2026-09-20',t:'Jahresprüfungs-Archiv: Jede Dezember-Jahresprüfung (Prompt + Claudes Antwort) wird ab jetzt automatisch unter dem Jahr abgelegt, sobald der Prompt geöffnet oder kopiert wird. Über den neuen Knopf „Ergebnis speichern" laesst sich Claudes Antwort eintragen. Neue Karte „Jahresprüfungs-Archiv" in den Einstellungen listet alle Jahre mit Status. Ab dem Folgejahr erzeugt ein Kontrollprompt je archiviertem Jahr eine Gegenprüfung: Claudes damalige Antwort im Volltext plus der heutige Depotstand, mit der Aufgabe, recherchiert zu pruefen, ob die Einschaetzung zutraf und wie sich die damals vorgeschlagenen Alternativen tatsaechlich entwickelt haben. Offene Kontrollpruefungen erscheinen im Block Handlungsbedarf und in der Prompt-Zentrale unter einem eigenen Abschnitt.'},
@@ -411,7 +413,7 @@ function uniquePositions(){
     if(!pf.enabled)return;
     pf.positions.forEach(pos=>{
       if(!pos.name)return;
-      const key=pos.isin&&pos.isin.trim()?pos.isin.trim():null;
+      const key=pos.isin&&pos.isin.trim()?pos.isin.trim().toUpperCase():null;
       if(key){
         if(seen.has(key))return; // Duplikat überspringen
         seen.add(key);
@@ -429,7 +431,7 @@ function uniqueValueOf(pfNames){
     if(!pf.enabled)return; // deaktivierte Depots fließen nicht in Ziele ein
     if(!pfNames.includes(pf.name))return;
     pf.positions.forEach(pos=>{
-      const key=(pos.isin||'').trim();
+      const key=(pos.isin||'').trim().toUpperCase();
       if(key){if(seen.has(key))return;seen.add(key);}
       sum+=posVal(pos);
     });
@@ -2559,13 +2561,52 @@ function parseImportTextEinfach(text){
 }
 
 // --- Kaeufe ---
-function istLosVorhanden(ticker,datum,stueck){
-  let da=false;
+// ===== ISIN-REGISTER UEBER ALLE TEIL-PORTFOLIOS =====
+// ISIN_TICKER enthaelt nur die sieben ETF mit Ausschuettungsstammdaten. Fuer den Import zaehlt
+// dagegen jede ISIN, die irgendwo im Depot liegt — auch in ReBal, Oskar und den uebrigen Toepfen.
+// Zugeordnet wird ueber die ISIN, nicht ueber das Kuerzel: dasselbe Papier traegt in verschiedenen
+// Teil-Portfolios teils unterschiedliche Kuerzel (z.B. NL0011683594 als TDIV und als VDIV).
+function isinRegister(){
+  const reg={};
   (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
-    if(pos.ticker!==ticker)return;
-    if(posLots(pos).some(l=>l.d===datum&&Math.abs((l.stueck||0)-stueck)<1e-4))da=true;
+    const i=(pos.isin||'').trim().toUpperCase();
+    if(!i)return;
+    if(!reg[i])reg[i]={ticker:pos.ticker||pos.name,portfolios:[],name:pos.name};
+    if(!reg[i].portfolios.includes(pf.name))reg[i].portfolios.push(pf.name);
   }));
-  return da;
+  // ETF mit Stammdaten, die (noch) in keinem Portfolio liegen, trotzdem kennen
+  Object.entries(ISIN_TICKER).forEach(([i,t])=>{if(!reg[i])reg[i]={ticker:t,portfolios:[],name:t};});
+  return reg;
+}
+function isinBekannt(isin,reg){return !!(reg||isinRegister())[isin];}
+// Liegt dieselbe ISIN in mehreren Teil-Portfolios, ist das EIN Bestand, der dort gespiegelt wird —
+// kein zweiter ETF. Fuer Zaehlungen und Summen wird er deshalb genau einem Portfolio zugerechnet
+// (dem ersten in der Reihenfolge der Portfolios); die uebrigen werden nur als Spiegel ausgewiesen.
+function fuehrendesPortfolio(isin,reg){
+  const e=(reg||isinRegister())[isin];
+  if(!e||!e.portfolios.length)return null;
+  // Vorrang hat das Ziel-Depot, danach ein eingeschaltetes Portfolio, sonst das erste.
+  const ziel=e.portfolios.find(n=>ZIEL_PORTFOLIOS.includes(n));
+  if(ziel)return ziel;
+  const an=e.portfolios.find(n=>(state.portfolios||[]).some(pf=>pf.name===n&&pf.enabled));
+  return an||e.portfolios[0];
+}
+function istGespiegelt(isin,reg){
+  const e=(reg||isinRegister())[isin];
+  return !!(e&&e.portfolios.length>1);
+}
+function isinKuerzel(isin,reg){const e=(reg||isinRegister())[isin];return e?e.ticker:null;}
+// Alle Positionen zu einer ISIN — eine gespiegelte Position liegt in mehreren Teil-Portfolios
+function positionenMitIsin(isin){
+  const out=[];
+  (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    if((pos.isin||'').trim().toUpperCase()===isin)out.push({pf,pos});
+  }));
+  return out;
+}
+function istLosVorhanden(isin,datum,stueck){
+  return positionenMitIsin(isin).some(({pos})=>
+    posLots(pos).some(l=>l.d===datum&&Math.abs((l.stueck||0)-stueck)<1e-4));
 }
 function importKaeufe(){
   const alle=parseImportText(gsQuelle||gs('imp_text'));
@@ -2575,7 +2616,7 @@ function importKaeufe(){
   const r=alle.filter(x=>!x.istDividende&&!x.istBestand);
   if(!r.length){showToast('Keine Kaufdaten enthalten — für Ausschüttungen die untere Box nutzen');return;}
   const imBestand=document.getElementById('imp_kauf_bestand')?.checked;
-  let neu=0,uebersprungen=0,unbekannt=[],verkaeufe=0;
+  let neu=0,uebersprungen=0,unbekannt=[],verkaeufe=0,betroffen=[];
   let vorBeginn=0;
   r.forEach(x=>{
     if(x.typ==='verkauf'){verkaeufe++;return;}
@@ -2583,12 +2624,12 @@ function importKaeufe(){
     // nicht zusaetzlich eingebucht werden, sonst waechst der Bestand doppelt.
     // Wer die ganze Historie will, nutzt „Neu aufbauen" (zieht den Erfassungsbeginn vor).
     if(x.datum<TRACKING_START){vorBeginn++;return;}
-    const t=ISIN_TICKER[x.isin];
-    if(!t){if(!unbekannt.includes(x.isin))unbekannt.push(x.isin);return;}
+    const treffer=positionenMitIsin(x.isin);
+    if(!treffer.length){if(!unbekannt.includes(x.isin))unbekannt.push(x.isin);return;}
     if(!(x.a>0)||!(x.b>0)){uebersprungen++;return;}
-    if(istLosVorhanden(t,x.datum,x.a)){uebersprungen++;return;}
-    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
-      if(pos.ticker!==t)return;
+    if(istLosVorhanden(x.isin,x.datum,x.a)){uebersprungen++;return;}
+    treffer.forEach(({pf,pos})=>{
+      if(!betroffen.includes(pf.name))betroffen.push(pf.name);
       if(!Array.isArray(pos.lots))pos.lots=[];
       if(imBestand){
         const anf=pos.lots.find(l=>l.typ==='anfang');
@@ -2596,11 +2637,11 @@ function importKaeufe(){
       }
       pos.lots.push({d:x.datum,stueck:x.a,kurs:x.b,typ:'kauf'});
       syncAusLosen(pos);
-    }));
+    });
     neu++;
   });
   render();
-  showToast(`${neu} Käufe übernommen`+(uebersprungen?`, ${uebersprungen} übersprungen`:'')+(vorBeginn?`, ${vorBeginn} vor Erfassungsbeginn übersprungen`:'')+(verkaeufe?`, ${verkaeufe} Verkäufe ignoriert (manuell buchen)`:'')+(unbekannt.length?`, unbekannte ISIN: ${unbekannt.join(', ')}`:''));
+  showToast(`${neu} Käufe übernommen`+(betroffen.length?` · ${betroffen.length} Portfolio${betroffen.length===1?'':'s'} aktualisiert (gespiegelte Bestände zählen einmal)`:'')+(uebersprungen?`, ${uebersprungen} übersprungen`:'')+(vorBeginn?`, ${vorBeginn} vor Erfassungsbeginn übersprungen`:'')+(verkaeufe?`, ${verkaeufe} Verkäufe ignoriert (manuell buchen)`:'')+(unbekannt.length?`, ${unbekannt.length} ISIN ohne Position im Depot`:''));
 }
 
 // --- CSV-Datei einlesen ---
@@ -2627,13 +2668,33 @@ function ladeCSVDatei(input){
 }
 function csvUebersicht(){
   if(!CSV_INHALT)return null;
-  const r=parseTransaktionsCSV(CSV_INHALT).filter(x=>ISIN_TICKER[x.isin]);
+  const reg=isinRegister();
+  const alle=parseTransaktionsCSV(CSV_INHALT);
+  const r=alle.filter(x=>isinBekannt(x.isin,reg));
   if(!r.length)return null;
   const k=r.filter(x=>x.typ==='kauf'),v=r.filter(x=>x.typ==='verkauf'),d=r.filter(x=>x.istDividende);
   const daten=r.map(x=>x.datum).sort();
-  const neueLose=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(ISIN_TICKER[x.isin],x.datum,x.a)).length;
+  const neueLose=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(x.isin,x.datum,x.a)).length;
+  // Aufschluesselung je Teil-Portfolio: dieselbe ISIN kann in mehreren Toepfen liegen
+  // Jede Transaktion zaehlt genau einmal — zugerechnet dem fuehrenden Portfolio ihrer ISIN.
+  // Dadurch ergibt die Aufschluesselung in der Summe wieder die Gesamtzahlen oben.
+  const proPf={};
+  r.forEach(x=>{
+    const n=fuehrendesPortfolio(x.isin,reg)||'(keinem Portfolio zugeordnet)';
+    const e=proPf[n]=proPf[n]||{kaeufe:0,verkaeufe:0,divs:0,isins:new Set(),neu:0,spiegel:new Set()};
+    if(x.typ==='kauf'){e.kaeufe++;if(x.datum>=TRACKING_START&&!istLosVorhanden(x.isin,x.datum,x.a))e.neu++;}
+    else if(x.typ==='verkauf')e.verkaeufe++;
+    else if(x.istDividende)e.divs++;
+    e.isins.add(x.isin);
+    if(istGespiegelt(x.isin,reg))e.spiegel.add(x.isin);
+  });
+  const portfolios=Object.entries(proPf).map(([name,e])=>({name,...e,etf:e.isins.size,gespiegelt:e.spiegel.size}))
+    .sort((a,b)=>b.kaeufe-a.kaeufe);
+  const spiegelIsins=[...new Set(r.map(x=>x.isin))].filter(i=>istGespiegelt(i,reg))
+    .map(i=>({isin:i,ticker:reg[i].ticker,portfolios:reg[i].portfolios}));
+  const unbek=[...new Set(alle.filter(x=>!isinBekannt(x.isin,reg)).map(x=>x.isin))];
   return{kaeufe:k.length,verkaeufe:v.length,divs:d.length,von:daten[0],bis:daten[daten.length-1],
-         etf:[...new Set(r.map(x=>ISIN_TICKER[x.isin]))].length,neueLose};
+         etf:[...new Set(r.map(x=>x.isin))].length,neueLose,portfolios,unbekannt:unbek,spiegel:spiegelIsins};
 }
 // Ein Knopf fuer den Monatsablauf: neue Kaeufe ergaenzen und Ausschuettungen uebernehmen
 function csvAktualisieren(){
@@ -2659,15 +2720,15 @@ function importVollhistorie(){
   bewegungen.sort((a,b)=>a.datum<b.datum?-1:a.datum>b.datum?1:0);
   const frueheste=bewegungen[0].datum;
   // Betroffene Ticker bestimmen
-  const ticker=[...new Set(bewegungen.map(x=>ISIN_TICKER[x.isin]).filter(Boolean))];
-  if(!ticker.length){showToast('Keine bekannten ISIN im Export');return;}
-  const abw=[];
-  ticker.forEach(t=>{
-    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
-      if(pos.ticker!==t)return;
+  const isins=[...new Set(bewegungen.map(x=>x.isin))].filter(i=>positionenMitIsin(i).length);
+  if(!isins.length){showToast('Keine der ISIN im Export liegt in deinen Portfolios');return;}
+  const abw=[],betroffen=[];
+  isins.forEach(isin=>{
+    positionenMitIsin(isin).forEach(({pf,pos})=>{
+      if(!betroffen.includes(pf.name))betroffen.push(pf.name);
       const alt=pos.stueck||0;
       const lose=[];
-      bewegungen.filter(x=>ISIN_TICKER[x.isin]===t).forEach(x=>{
+      bewegungen.filter(x=>x.isin===isin).forEach(x=>{
         if(x.typ==='kauf'){lose.push({d:x.datum,stueck:x.a,kurs:x.b,typ:'kauf'});return;}
         // Verkauf: aelteste Lose zuerst abbauen
         let rest=x.a;
@@ -2680,12 +2741,12 @@ function importVollhistorie(){
       if(!pos.lots.length)pos.lots=[{d:frueheste,stueck:0,kurs:pos.kurs||0,typ:'anfang'}];
       syncAusLosen(pos);
       const d=Math.abs((pos.stueck||0)-alt);
-      if(d>0.01)abw.push(`${t}: ${alt.toFixed(4)} → ${(pos.stueck||0).toFixed(4)}`);
-    }));
+      if(d>0.01)abw.push(`${pos.ticker||isin}: ${alt.toFixed(4)} → ${(pos.stueck||0).toFixed(4)}`);
+    });
   });
   state.trackingStart=frueheste;
   render();
-  showToast(`Historie neu aufgebaut ab ${frueheste.split('-').reverse().join('.')} · ${ticker.length} ETF`
+  showToast(`Historie neu aufgebaut ab ${frueheste.split('-').reverse().join('.')} · ${isins.length} ETF (ISIN-eindeutig) in ${betroffen.length} Portfolio${betroffen.length===1?'':'s'}`
     +(abw.length?` · Stückzahl geändert: ${abw.join(', ')}`:' · Stückzahlen unverändert'));
 }
 
@@ -2697,28 +2758,27 @@ function manuellVorschau(){
   if(!t.trim()){el.innerHTML='<div style="font-size:12px;color:var(--t3)">Vorschau erscheint beim Einfügen.</div>';return;}
   const r=parseImportText(t);
   if(r.fehler){el.innerHTML=`<div style="font-size:12px;color:${N.orange}">${r.fehler}</div>`;return;}
-  const bek=r.filter(x=>ISIN_TICKER[x.isin]);
+  const reg=isinRegister();
+  const bek=r.filter(x=>isinBekannt(x.isin,reg));
   if(!bek.length){el.innerHTML='<div style="font-size:12px;color:var(--t3)">Nichts Verwertbares erkannt. Erwartet: CSV-Export, Wertpapierabrechnung, Vermögensübersicht, Kontoauszug, JSON oder Zeilen mit Semikolon.</div>';return;}
   const k=bek.filter(x=>x.typ==='kauf'||(!x.typ&&!x.istDividende&&!x.istBestand));
   const v=bek.filter(x=>x.typ==='verkauf');
   const d=bek.filter(x=>x.istDividende);
   const b=bek.filter(x=>x.istBestand);
-  const neu=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(ISIN_TICKER[x.isin],x.datum,x.a)).length;
+  const neu=k.filter(x=>x.datum>=TRACKING_START&&!istLosVorhanden(x.isin,x.datum,x.a)).length;
   el.innerHTML=`<div style="font-size:13px">${[k.length&&`${k.length} Käufe`,v.length&&`${v.length} Verkäufe`,d.length&&`${d.length} Ausschüttungen`,b.length&&`${b.length} Bestände`].filter(Boolean).join(' · ')}</div>
-    <div style="font-size:12px;color:var(--t3);margin-top:2px">${[...new Set(bek.map(x=>ISIN_TICKER[x.isin]))].join(', ')}</div>
+    <div style="font-size:12px;color:var(--t3);margin-top:2px">${[...new Set(bek.map(x=>isinKuerzel(x.isin,reg)))].join(', ')}</div>
     ${k.length?`<div style="font-size:12px;color:${neu?N.green:'var(--t3)'};margin-top:4px">${neu?neu+' neue Käufe ab Erfassungsbeginn':'Keine neuen Käufe ab Erfassungsbeginn'}</div>`:''}`;
 }
 // Bestaende aus einer Vermoegensuebersicht uebernehmen (Stueckzahl und Kurs je ISIN)
 function importBestaende(saetze){
   let n=0;
   saetze.forEach(x=>{
-    const t=ISIN_TICKER[x.isin];if(!t)return;
-    (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
-      if(pos.ticker!==t)return;
+    positionenMitIsin(x.isin).forEach(({pos})=>{
       if(x.b>0)pos.kurs=x.b;
       if(x.a>0&&!posLots(pos).length)pos.stueck=x.a;
       n++;
-    }));
+    });
   });
   return n;
 }
@@ -2760,21 +2820,27 @@ function importDividenden(){
     n++;
   });
   render();zeigeDivAbgleich();
-  showToast(`${n} Zahlungen übernommen`+(unbekannt.length?`, unbekannte ISIN: ${unbekannt.join(', ')}`:''));
+  showToast(`${n} Zahlungen übernommen`+(unbekannt.length?`, ${unbekannt.length} ISIN ohne Position im Depot`:''));
 }
 // Vergleicht erhaltene mit erwarteten Ausschuettungen
+// Abgleich ueber ALLE Teil-Portfolios, nach ISIN dedupliziert — eine gespiegelte Position
+// darf nicht doppelt gezaehlt werden.
 function divAbgleich(jahr){
   const j=jahr||state.divCalYear;
   const erh=(state.erhalteneDivs||{})[j]||{};
-  const pf=zielPf();if(!pf)return[];
-  return(pf.positions||[]).map(pos=>{
-    const isin=pos.isin;
-    const liste=erh[isin]||[];
-    const ist=liste.reduce((a,e)=>a+e.betrag,0);
-    let soll=0;for(let i=0;i<12;i++)soll+=posDivMonat(pos,j,i);
-    return{ticker:pos.ticker,isin,ist,soll,anzahl:liste.length,
-           abw:soll>0?(ist/soll-1)*100:null};
-  }).filter(x=>x.anzahl>0||x.soll>0);
+  const gesehen={};
+  (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    const isin=(pos.isin||'').trim().toUpperCase();if(!isin)return;
+    if(!gesehen[isin]){
+      let soll=0;for(let i=0;i<12;i++)soll+=posDivMonat(pos,j,i);
+      const liste=erh[isin]||[];
+      const ist=liste.reduce((a,e)=>a+e.betrag,0);
+      gesehen[isin]={ticker:pos.ticker||pos.name,isin,ist,soll,anzahl:liste.length,
+                     portfolios:[pf.name],abw:soll>0?(ist/soll-1)*100:null};
+    }else if(!gesehen[isin].portfolios.includes(pf.name))gesehen[isin].portfolios.push(pf.name);
+  }));
+  return Object.values(gesehen).filter(x=>x.anzahl>0||x.soll>0)
+    .sort((a,b)=>b.ist-a.ist||b.soll-a.soll);
 }
 function zeigeDivAbgleich(){
   const j=state.divCalYear;
@@ -2784,7 +2850,7 @@ function zeigeDivAbgleich(){
     <div class="modal-title">Abgleich erhaltene Ausschüttungen ${j}</div>
     ${a.length?`<div style="max-height:320px;overflow-y:auto">${a.map(x=>`
       <div style="margin-bottom:8px;padding-left:10px;border-left:3px solid ${x.anzahl===0?'var(--t3)':(Math.abs(x.abw||0)>5?N.orange:N.green)}">
-        <div style="font-size:11px;color:var(--t3)">${x.isin}</div>
+        <div style="font-size:11px;color:var(--t3)">${x.isin}${x.portfolios&&x.portfolios.length>1?` · gespiegelt in ${x.portfolios.join(', ')} — zählt einmal`:x.portfolios&&x.portfolios.length?' · '+x.portfolios[0]:''}</div>
         <div style="font-size:13px">erhalten ${EUR0(x.ist)} (${x.anzahl} Zahlung${x.anzahl===1?'':'en'}) · erwartet ${EUR0(x.soll)}${x.abw!==null&&x.anzahl?` · <b style="color:${Math.abs(x.abw)>5?N.orange:N.green}">${x.abw>0?'+':''}${x.abw.toFixed(1)} %</b>`:''}</div>
       </div>`).join('')}</div>
     <p class="hint" style="margin-top:8px">Abweichungen über 5 % deuten auf falsche Beträge je Anteil, eine falsche Stückzahl zum Ex-Tag oder einen fehlenden Zahlungseingang hin. Beachte: erhaltene Beträge aus dem Kontoauszug sind netto nach Steuer, die erwarteten hier brutto — ein Abzug von rund 19 % ist normal.</p>`
@@ -3027,7 +3093,7 @@ function importDaten(){
   if(!roh||typeof roh!=='object'){showToast('JSON muss ein Objekt mit ISIN als Schlüssel sein');return;}
   const sauber={};let n=0,unbekannt=[];
   Object.entries(roh).forEach(([isin,arr])=>{
-    if(!ISIN_TICKER[isin]){unbekannt.push(isin);return;}
+    if(!positionenMitIsin(isin).length&&!ISIN_TICKER[isin]){unbekannt.push(isin);return;}
     if(!Array.isArray(arr))return;
     const items=arr.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.ex||'')&&/^\d{4}-\d{2}-\d{2}$/.test(x.pay||'')&&typeof x.betrag==='number'&&x.betrag>=0)
       .map(x=>({ex:x.ex,pay:x.pay,betrag:x.betrag,status:x.status==='prognose'?'prognose':'nachgetragen'}));
@@ -3543,8 +3609,21 @@ function screenSettings(){
         if(!u)return`<p class="hint" style="margin-top:10px">Noch keine Datei geladen.</p>`;
         return`<div class="kz-tile" style="margin-top:10px">
           <div style="font-size:13px">${u.kaeufe} Käufe · ${u.verkaeufe} Verkäufe · ${u.divs} Ausschüttungen</div>
-          <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} deiner ETF · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">${u.etf} ETF aus deinen Portfolios · ${u.von.split('-').reverse().join('.')} bis ${u.bis.split('-').reverse().join('.')}</div>
           <div style="font-size:12px;color:${u.neueLose?N.green:'var(--t3)'};margin-top:4px">${u.neueLose?u.neueLose+' neue Käufe, die noch nicht erfasst sind':'Alle Käufe bereits erfasst'}</div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--b)">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:4px">JE TEIL-PORTFOLIO</div>
+            ${u.portfolios.map(x=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+              <span style="color:var(--cyan)">${x.name}</span>
+              <span style="color:var(--t2)">${x.etf} ETF · ${x.kaeufe} Käufe${x.divs?` · ${x.divs} Aussch.`:''}${x.neu?` · <b style="color:${N.green}">${x.neu} neu</b>`:''}</span>
+            </div>`).join('')}
+            <div style="font-size:11px;color:var(--t3);margin-top:6px">Jede Transaktion ist genau einem Portfolio zugerechnet — die Zeilen ergeben in Summe die Zahlen oben.</div>
+          </div>
+          ${u.spiegel.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--b)">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:4px">IN MEHREREN PORTFOLIOS GESPIEGELT · ZÄHLT JE EINMAL</div>
+            ${u.spiegel.map(x=>`<div style="font-size:12px;color:var(--t2);padding:1px 0">${x.ticker} · ${x.isin} → ${x.portfolios.join(', ')}</div>`).join('')}
+          </div>`:''}
+          ${u.unbekannt.length?`<div style="font-size:11px;color:var(--t3);margin-top:8px">${u.unbekannt.length} weitere ISIN im Export liegen in keinem deiner Portfolios und werden übersprungen.</div>`:''}
         </div>
         <div class="btnrow" style="margin-top:10px">
           <button class="btn btn-g" style="flex:1" onclick="csvAktualisieren()">Aktualisieren</button>
