@@ -282,8 +282,10 @@ function applyTheme(themeName){
 const MN=['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
 const MNF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.43';
+const APP_VERSION='3.45';
 const APP_CHANGELOG=[
+  {v:'3.45',d:'2026-09-24',t:'Kohaerenz-Durchsicht. Die Ausschuettungsstammdaten wurden ueber das Kuerzel gesucht statt ueber die ISIN — dasselbe Papier heisst im DIV-Depot TDIV und in ReBal 2 VDIV, weshalb die ReBal-Kopie auf ihr veraltetes eigenes divs-Array zurueckfiel und fuer denselben ETF 2,39 EUR statt 1,69 EUR je Anteil rechnete; betroffen waren auch VGWD, ZPRG, XGSD und QYLE. Stammdaten werden jetzt ueber die ISIN aufgeloest und gelten damit fuer alle Kopien gleich. Ausserdem lasen mehrere Anzeigen (Einzelpositionen-Tabelle, gewichtete Ausschuettungsrendite, Sparplan-Zuwachs, Verkaufsvorschau) die Ausschuettung direkt aus dem divs-Array und konnten dadurch andere Werte zeigen als der Dividendenkalender; sie nutzen jetzt dieselbe Quelle. Zusaetzlich greift die Rueckfallebene nicht mehr monatsweise: liegen fuer einen ETF Stammdaten vor, ist ein Monat ohne Termin ein Monat ohne Zahlung — zuvor schlug in genau diesen Monaten das veraltete divs-Array durch, wodurch ReBal 2 fuer VGWD 3,43 EUR statt 2,02 EUR je Anteil rechnete.'},
+  {v:'3.44',d:'2026-09-24',t:'Zwei Fehler in der Tabelle „Einzelpositionen — alle Portfolios" behoben. (1) Gespiegelte ETF standen doppelt in der Liste: 31 Zeilen fuer 22 ETF. Jetzt gibt es je ISIN genau eine Zeile, die Portfolio-Spalte nennt alle Toepfe und markiert sie als gespiegelt. (2) Dieselbe ISIN trug in verschiedenen Teil-Portfolios unterschiedliche Kurse — XGSD stand in ReBal 1 bei 38,78 und im DIV-Depot bei 38,92 — wodurch fuer ein und dasselbe Papier zwei Marktwerte entstanden und der Depotwert davon abhing, welche Position zuerst gelesen wurde. Die neue Funktion syncIsinKurse gleicht die Kurse nach jedem Import an den Kurs des fuehrenden Portfolios an und meldet die Zahl der Korrekturen. Der Yahoo-Abruf verteilt den Kurs jetzt auch bei abweichender Schreibweise der ISIN.'},
   {v:'3.43',d:'2026-09-24',t:'Die CSV-Karte weist jetzt deutlich aus, wie viele Kaeufe vor dem Erfassungsbeginn liegen und deshalb von „Aktualisieren" uebersprungen werden. Das war zwar immer so gewollt — Kaeufe vor dem Erfassungsbeginn stecken pauschal im Anfangsbestand — stand aber nur als fluechtige Meldung im Toast und war leicht zu uebersehen: bei einem Export mit zwei Jahren Historie und Erfassungsbeginn 01.09.2026 kamen pro ETF nur die beiden letzten Kaeufe an, was wie ein Importfehler aussah. Der orange Hinweis nennt die Zahl der betroffenen Kaeufe und ETF und verweist auf „Neu aufbauen".'},
   {v:'3.42',d:'2026-09-24',t:'Gespiegelte Positionen zaehlen konsequent einmal. Liegt dieselbe ISIN in mehreren Teil-Portfolios, ist das ein Bestand und kein zweiter ETF: die Aufschluesselung des CSV-Imports rechnet jede Transaktion genau einem fuehrenden Portfolio zu, sodass die Zeilen in Summe wieder die Gesamtzahlen ergeben, und weist die gespiegelten ISIN separat aus. Zuvor erschien jede Transaktion in jedem Portfolio, in dem die ISIN liegt — die Aufschluesselung summierte sich dadurch auf fast das Anderthalbfache der tatsaechlichen Transaktionen. Der Ausschuettungs-Abgleich kennzeichnet gespiegelte Zeilen jetzt ausdruecklich. Ausserdem vergleichen uniquePositions und uniqueValueOf die ISIN nun ohne Ruecksicht auf Gross-/Kleinschreibung, damit eine abweichend geschriebene ISIN keine Doppelzaehlung mehr ausloest.'},
   {v:'3.41',d:'2026-09-24',t:'CSV-Import erfasst jetzt alle Teil-Portfolios statt nur der sieben ETF mit Ausschuettungsstammdaten. Zugeordnet wird ueber die ISIN statt ueber das Kuerzel — dasselbe Papier traegt in verschiedenen Toepfen teils unterschiedliche Kuerzel (NL0011683594 liegt als TDIV und als VDIV im Depot), wodurch Kaeufe bisher stillschweigend nur in einem Teil ankamen. Die Uebersicht nach dem Dateiwaehlen zeigt eine Aufschluesselung je Teil-Portfolio (ETF, Kaeufe, Ausschuettungen, neue Lose) und meldet, wie viele ISIN im Export in keinem Portfolio liegen. Der Ausschuettungs-Abgleich laeuft ebenfalls ueber alle Portfolios, nach ISIN dedupliziert, und nennt je Zeile die betroffenen Toepfe.'},
@@ -585,16 +587,33 @@ function nettoFaktor(pos){return 1-STEUERSATZ*(1-teilfreistellung(pos)/100);}
 // Ausschuettung je Anteil fuer einen Zahlmonat, in EUR, brutto.
 // Reihenfolge: manuell gepflegte divs -> Stammdaten (echt oder fortgeschrieben).
 // Auf fortgeschriebene Jahre wird das Dividendenwachstum angewandt, auf nachgetragene nicht.
+// Die Ausschuettungsstammdaten haengen am ETF, nicht am Kuerzel: dasselbe Papier heisst im
+// DIV-Depot TDIV und in ReBal 2 VDIV. Ueber die ISIN gefunden, gelten fuer beide dieselben Daten.
+function stammTicker(pos){
+  const i=(pos&&pos.isin||'').trim().toUpperCase();
+  return (i&&ISIN_TICKER[i])||(pos&&pos.ticker)||'';
+}
+// Jahressumme der Ausschuettung je Anteil — immer ueber dieselbe Quelle wie der Kalender.
+function divJeAnteilJahr(pos,jahr){
+  let s=0;for(let m=0;m<12;m++)s+=divJeAnteil(pos,jahr,m);
+  return s;
+}
 function divJeAnteil(pos,jahr,mIdx){
   // Vorrang haben die Ausschuettungsstammdaten: sie tragen Ex-Tag, Zahltag, Waehrung und Status.
   // Die je Position gepflegten divs-Arrays sind nur noch Rueckfallebene fuer ETF ohne Stammdaten —
   // frueher liefen beide parallel, was zu widerspruechlichen Jahressummen und Zahlmonaten fuehrte.
-  const items=ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr);
+  const st=stammTicker(pos);
+  const items=ausschuettungenZahlmonat(st,mIdx+1,jahr);
   if(!items.length){
+    // Gibt es fuer diesen ETF ueberhaupt Stammdaten in diesem Jahr, dann ist ein Monat ohne
+    // Termin schlicht ein Monat ohne Zahlung — nicht ein Fall fuer die Rueckfallebene. Sonst
+    // schlagen veraltete divs-Arrays in genau den Monaten durch, in denen die Stammdaten
+    // keine Zahlung kennen (ReBal 2 rechnete fuer VGWD so 3,43 € statt 2,02 € je Anteil).
+    if(ausschuettungenJahr(st,jahr).length)return 0;
     const arr=(pos.divs||{})[jahr];
     return(Array.isArray(arr)&&arr.some(v=>v>0))?(arr[mIdx]||0):0;
   }
-  const fx=fxKurs(fondsWaehrung(pos.ticker));
+  const fx=fxKurs(fondsWaehrung(st));
   const roh=items.reduce((a,x)=>a+x.betrag,0)*fx;
   const fortgeschrieben=items.every(x=>x.status==='fortgeschrieben');
   if(!fortgeschrieben)return roh;
@@ -709,7 +728,7 @@ function verkaufFIFO(pos,stueck,kurs,nurRechnen){
 function posDivMonat(pos,jahr,mIdx){
   const jeStk=divJeAnteil(pos,jahr,mIdx);
   if(!jeStk)return 0;
-  const items=ausschuettungenZahlmonat(pos.ticker,mIdx+1,jahr);
+  const items=ausschuettungenZahlmonat(stammTicker(pos),mIdx+1,jahr);
   if(!items.length||!posLots(pos).length)return jeStk*(pos.stueck||0);
   // Mehrere Ausschuettungen im selben Zahlmonat (QYLE): je Ex-Tag getrennt bewerten
   const summeBetrag=items.reduce((a,x)=>a+x.betrag,0);
@@ -1035,7 +1054,7 @@ function zDivMonat(y,m){return zPos().reduce((s,p)=>s+posDivMonat(p,y,m),0);}
 function zByTicker(t){return zPos().find(p=>p.ticker===t)||null;}
 function zTerGew(){const w=zWert();if(w<=0)return 0;return zPos().reduce((s,p)=>s+(p.stueck*p.kurs/w)*(p.ter||0),0);}
 function zRendGew(){const w=zWert();if(w<=0)return 0;
-  return zPos().reduce((s,p)=>{const pv=p.stueck*p.kurs;const d=((p.divs||{})[HEUTE_J]||[]).reduce((a,v)=>a+(v||0),0);
+  return zPos().reduce((s,p)=>{const pv=p.stueck*p.kurs;const d=divJeAnteilJahr(p,HEUTE_J);
     return s+(pv/w)*(p.kurs>0?d/p.kurs*100:0);},0);}
 const HEUTE_J=new Date().getFullYear(), HEUTE_M=new Date().getMonth();
 const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -1272,7 +1291,7 @@ function divZuwachsProKauf(){
   const orders=buyOnlyOrdersMitRate(pf,sp);
   let jahr=0;
   orders.forEach(o=>{
-    const divStk=((o.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    const divStk=divJeAnteilJahr(o,state.divCalYear);
     jahr+=(o.buyShares||0)*divStk;
   });
   return{pfName:pf.name,sp,jahr,monat:jahr/12,rendite:jahr/sp*100};
@@ -1402,7 +1421,7 @@ function dividendeJeEtfBlock(){
   const pos=zPos();
   // Aufstellung des gewaehlten Monats ueber alle ETFs
   const detail=pos.map(p=>{
-    const items=ausschuettungenZahlmonat(p.ticker,sel+1,state.divCalYear);
+    const items=ausschuettungenZahlmonat(stammTicker(p),sel+1,state.divCalYear);
     return{
       ticker:p.ticker||p.name,
       paused:p.active===false,
@@ -1432,17 +1451,17 @@ function dividendeJeEtfBlock(){
       const paused=p.active===false;
       const md=Array(12).fill(0).map((_,i)=>posDivMonat(p,state.divCalYear,i));
       const sum=md.reduce((a,b)=>a+b,0);
-      const kipp=exDatumHatKipppunkt(p.ticker,state.divCalYear);
+      const kipp=exDatumHatKipppunkt(stammTicker(p),state.divCalYear);
       return`<div style="margin-bottom:12px;opacity:${paused?.5:1}">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
           <span style="font-weight:700;color:var(--cyan)">${p.ticker||p.name}${paused?' · pausiert':''}${kipp?` <span title="Sparplan-Kauf am ${KAUFTAG}. fällt in mind. einem Monat auf/nach den Ex-Tag — Zukauf zählt dann erst zur Folgeausschüttung." style="color:${N.orange};font-weight:400;font-size:11px">⚠ Ex-Datum-Kipppunkt</span>`:''}</span>
           <span style="font-size:12px;color:var(--t2)">Ø ${EUR0(sum/12)}/Mon · Σ ${EUR0(sum)}/Jahr</span>
         </div>
         <div class="mog">${md.map((v,i)=>{
-          const k=exDatumKipp(p.ticker,i+1,state.divCalYear);
+          const k=exDatumKipp(stammTicker(p),i+1,state.divCalYear);
           const verschoben=k.some(x=>x.ergebnis==='verschoben');
           const titel=k.map(x=>`Zahltag ${x.pay.split('-').reverse().join('.')} — Ex-Tag ${x.ex.split('-').reverse().join('.')} (${x.status}): Kauf am ${KAUFTAG}. ${x.ergebnis==='treffer'?'zählt noch mit':'zählt erst zur nächsten Ausschüttung'}`).join(' · ');
-          const vorErf=monatVorErfassung(state.divCalYear,i,p.ticker);
+          const vorErf=monatVorErfassung(state.divCalYear,i,stammTicker(p));
           return`<div class="mob${i===sel?' hi':''}" style="cursor:pointer;${vorErf?'opacity:.55':''}" onclick="divSetMonth(${i})" title="${vorErf?'Vor Erfassungsbeginn — Näherung mit dem Anfangsbestand. ':''}${titel||MNF[i]+' '+state.divCalYear+' überall markieren'}"><div class="mon">${MN[i]}${verschoben?' ⚠':''}${vorErf?'*':''}</div><div class="moa" style="font-size:11px;color:${verschoben?N.orange:(i===sel?N.cyan:'white')}">${v>0?EUR0(v):'–'}</div></div>`;
         }).join('')}</div>
       </div>`;
@@ -1495,7 +1514,7 @@ function zieleBlock(){
   // Ausschuettungsrendite je ETF
   const rSoll=SOLL.etfs.map(e=>e.rend);
   const rIstArr=SOLL_T.map(t=>{const p=zByTicker(t);if(!p||!p.kurs)return null;
-    return ((p.divs||{})[HEUTE_J]||[]).reduce((a,v)=>a+(v||0),0)/p.kurs*100;});
+    return divJeAnteilJahr(p,HEUTE_J)/p.kurs*100;});
 
   const tblHead=s=>`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px;min-width:${s}px">`;
   const th=t=>`<th style="text-align:right;padding:5px 4px;color:var(--t3);font-weight:700;border-bottom:1px solid var(--b);white-space:nowrap">${t}</th>`;
@@ -2067,13 +2086,21 @@ function screenDepot(){
             <th>Div/Stk ${state.divCalYear}</th><th>Div gesamt</th>
           </tr></thead>
           <tbody>
-          ${state.portfolios.filter(pf=>pf.enabled).flatMap(pf=>
-            pf.positions.map(p=>{
+          ${(()=>{
+            // Je ISIN genau eine Zeile: dieselbe Position in mehreren Teil-Portfolios ist ein
+            // Bestand, kein zweiter ETF. Die Portfolio-Spalte nennt alle Toepfe, in denen er liegt.
+            const gruppen={};
+            state.portfolios.filter(pf=>pf.enabled).forEach(pf=>pf.positions.forEach(p=>{
+              const key=(p.isin||'').trim().toUpperCase()||('#'+pf.name+'/'+p.name);
+              if(!gruppen[key])gruppen[key]={p,pfs:[pf.name]};
+              else if(!gruppen[key].pfs.includes(pf.name))gruppen[key].pfs.push(pf.name);
+            }));
+            return Object.values(gruppen).map(({p,pfs})=>{
               const mw=posVal(p),kbv=posCost(p),gv=kbv>0?(mw-kbv)/kbv*100:0;
-              const divPerStk=((p.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+              const divPerStk=divJeAnteilJahr(p,state.divCalYear);
               const divTotal=divPerStk*(p.stueck||0);
               return`<tr style="opacity:${p.active?1:.45}">
-                <td style="color:var(--cyan);font-weight:600;white-space:nowrap">${pf.name}</td>
+                <td style="color:var(--cyan);font-weight:600">${pfs.join('<br>')}${pfs.length>1?`<div style="font-size:9px;color:var(--t3);font-weight:400">gespiegelt · zählt einmal</div>`:''}</td>
                 <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
                   color:${p.active?'var(--t)':'var(--t3)'}" title="${p.name}">${p.name}</td>
                 <td style="font-family:monospace;font-size:10px;color:var(--t2)">${p.isin}</td>
@@ -2085,14 +2112,14 @@ function screenDepot(){
                 <td style="color:var(--cyan)">${divPerStk>0?divPerStk.toFixed(4)+' €':'–'}</td>
                 <td style="color:var(--cyan);font-weight:700">${divTotal>0?EUR0(divTotal):'–'}</td>
               </tr>`;
-            })
-          ).join('')}
+            }).join('');
+          })()}
           </tbody>
         </table>
       </div>
       <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--b)">
-        <span class="hint">Gesamt: ${state.portfolios.filter(p=>p.enabled).reduce((s,pf)=>s+pf.positions.length,0)} Positionen (inkl. Duplikate über Portfolios)</span>
-        <span style="font-weight:700;color:var(--cyan)">${EUR0(allTotal())} (dedup.)</span>
+        <span class="hint">${uniquePositions().length} ETF (ISIN-eindeutig) aus ${state.portfolios.filter(p=>p.enabled).reduce((s,pf)=>s+pf.positions.length,0)} Portfolio-Einträgen</span>
+        <span style="font-weight:700;color:var(--cyan)">${EUR0(allTotal())}</span>
       </div>
     </div>
   </div>`;
@@ -2348,14 +2375,14 @@ function screenETFDetail(){
       <div class="edf" style="margin-top:10px"><label>Anfangsbestand per ${TRACKING_START.split('-').reverse().join('.')} korrigieren</label>
         <input type="text" inputmode="decimal" value="${STK(lotsAnfangsbestand(pos))}"
           onchange="setzeAnfangsbestand(${state.subIdx},${state.posIdx},+this.value.replace(',','.'))"/></div>
-      ${(()=>{const alt=ausschuettungenJahr(pos.ticker,state.divCalYear).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
+      ${(()=>{const alt=ausschuettungenJahr(stammTicker(pos),state.divCalYear).filter(x=>x.ex<TRACKING_START&&x.pay>=TRACKING_START);
         return alt.length?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Zahltag ${alt.map(x=>x.pay.split('-').reverse().join('.')).join(', ')} beruht auf dem Ex-Tag ${alt.map(x=>x.ex.split('-').reverse().join('.')).join(', ')} — also <b>vor</b> dem Erfassungsbeginn. Gerechnet wird dort mit dem Anfangsbestand. Falls darin Stücke stecken, die du erst nach diesem Ex-Tag gekauft hast, trage sie oben als Kauf ein (Haken „steckt bereits im Anfangsbestand" gesetzt lassen) — dann fällt der Wert korrekt niedriger aus.</p>`:'';})()}
       <div class="btnrow" style="margin-top:10px">
         <button class="btn btn-g" style="flex:1" onclick="openLotModal(${state.subIdx},${state.posIdx})">+ Kauf erfassen</button>
         <button class="btn btn-c" onclick="openVerkaufModal(${state.subIdx},${state.posIdx})">Verkauf simulieren</button>
       </div>
       ${(pos.verkaeufe||[]).length?`<div style="margin-top:10px;font-size:12px;color:var(--t3)">Gebuchte Verkäufe: ${pos.verkaeufe.map(v=>v.d.split('-').reverse().join('.')+' · '+v.stueck.toFixed(2)+' Stk · Gewinn '+EUR0(v.gewinn)+' · Steuer '+EUR0(v.steuer)).join('<br>')}</div>`:''}
-      ${exDatumHatKipppunkt(pos.ticker,state.divCalYear)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
+      ${exDatumHatKipppunkt(stammTicker(pos),state.divCalYear)?`<p class="hint" style="margin-top:8px;color:${N.orange}">⚠ Bei diesem ETF liegt mindestens ein Ex-Tag auf oder vor dem ${KAUFTAG}. — ein Kauf am ${KAUFTAG}. zählt dort erst zur Folgeausschüttung.</p>`:''}
       <div class="hint" style="margin-top:6px">Suchreihenfolge: Ticker → ISIN → WKN. Kurse kommen von Yahoo Finance (ohne API-Key).</div>
     </div>
     <div class="card" style="border-color:rgba(0,240,255,.3)">
@@ -2605,6 +2632,25 @@ function positionenMitIsin(isin){
   }));
   return out;
 }
+// Dieselbe ISIN in mehreren Teil-Portfolios muss denselben Kurs tragen — sonst zeigt die App
+// fuer ein und dasselbe Papier zwei verschiedene Marktwerte. Massgeblich ist der Kurs des
+// fuehrenden Portfolios; fehlt dort einer, der erste belegte Kurs der Gruppe.
+function syncIsinKurse(){
+  const reg=isinRegister();
+  let korrigiert=0;
+  Object.keys(reg).forEach(isin=>{
+    const treffer=positionenMitIsin(isin);
+    if(treffer.length<2)return;
+    const fuehrend=fuehrendesPortfolio(isin,reg);
+    const quelle=treffer.find(t=>t.pf.name===fuehrend&&(t.pos.kurs||0)>0)
+              || treffer.find(t=>(t.pos.kurs||0)>0);
+    if(!quelle)return;
+    treffer.forEach(({pos})=>{
+      if(Math.abs((pos.kurs||0)-quelle.pos.kurs)>1e-9){pos.kurs=quelle.pos.kurs;korrigiert++;}
+    });
+  });
+  return korrigiert;
+}
 function istLosVorhanden(isin,datum,stueck){
   return positionenMitIsin(isin).some(({pos})=>
     posLots(pos).some(l=>l.d===datum&&Math.abs((l.stueck||0)-stueck)<1e-4));
@@ -2706,12 +2752,12 @@ function csvUebersicht(){
 function csvAktualisieren(){
   if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
   const merk=gsQuelle;gsQuelle=CSV_INHALT;
-  try{importKaeufe();importDividenden();}finally{gsQuelle=merk;}
+  try{importKaeufe();importDividenden();const k=syncIsinKurse();if(k)showToast(`${k} abweichende Kurse gespiegelter Positionen angeglichen`);}finally{gsQuelle=merk;}
 }
 function csvNeuAufbauen(){
   if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
   const merk=gsQuelle;gsQuelle=CSV_INHALT;
-  try{importVollhistorie();importDividenden();}finally{gsQuelle=merk;}
+  try{importVollhistorie();importDividenden();syncIsinKurse();}finally{gsQuelle=merk;}
 }
 
 // --- Vollimport der Kaufhistorie ---
@@ -2979,7 +3025,7 @@ function pruefeStammdaten(){
       if(d>1e-6)funde.push({stufe:'fehler',ort,text:`Summe der Lose (${lotsStueck(pos).toFixed(6)}) weicht von der Stückzahl (${(pos.stueck||0).toFixed(6)}) ab.`});
     }else funde.push({stufe:'warn',ort,text:'Keine Kauflose erfasst — Ex-Datum-Logik rechnet mit dem Gesamtbestand.'});
     // Ohne Stammdaten muss wenigstens ein gepflegtes divs-Array vorliegen
-    const stamm=ausschuettungenJahr(pos.ticker,jahr);
+    const stamm=ausschuettungenJahr(stammTicker(pos),jahr);
     const arr=(pos.divs||{})[jahr];
     if(!stamm.length&&!(Array.isArray(arr)&&arr.some(v=>v>0)))
       funde.push({stufe:'warn',ort,text:`Keine Ausschüttungsdaten für ${jahr} — weder Stammdaten noch gepflegte Werte.`});
@@ -3142,7 +3188,7 @@ function jahresCheckPrompt(){
   const zeilen=(pf.positions||[]).map(p=>{
     const wert=posVal(p);
     const ist=gesamt>0?wert/gesamt*100:0;
-    const divStk=((p.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    const divStk=divJeAnteilJahr(p,state.divCalYear);
     const rend=p.kurs>0?divStk/p.kurs*100:0;
     return`| ${p.isin||'KEINE ISIN HINTERLEGT'} | ${wert.toFixed(2)} € | ${ist.toFixed(2)} % | ${(p.target||0).toFixed(2)} % | ${(ist-(p.target||0)).toFixed(2)} % | ${(p.ter??'?')} % | ${divStk.toFixed(4)} € | ${rend.toFixed(2)} % | ${p.active===false?'pausiert':'aktiv'} |`;
   }).join('\n');
@@ -3771,7 +3817,7 @@ function buildDataCheckBody(){
   });
   // 3. Unplausible Ausschüttungsrenditen
   uniquePositions().forEach(({pos})=>{
-    const s=((pos.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0);
+    const s=divJeAnteilJahr(pos,state.divCalYear);
     if(s<=0||pos.kurs<=0)return;
     const y=s/pos.kurs*100;
     if(y>16)issues.push(`<strong>${pos.name.slice(0,40)}</strong>: implizite Ausschüttungsrendite ${y.toFixed(1)} % — bitte Beträge prüfen`);
@@ -3861,7 +3907,7 @@ function confirmLot(pfI,posI){
   syncAusLosen(pos);
   closeModal();render();
   // Hinweis, falls im selben Monat ein Ex-Tag auf/nach dem Kaufdatum liegt
-  const kipp=ausschuettungenJahr(pos.ticker,+d.slice(0,4))
+  const kipp=ausschuettungenJahr(stammTicker(pos),+d.slice(0,4))
     .filter(x=>x.ex.slice(0,7)===d.slice(0,7)&&x.ex<=d);
   showToast(kipp.length
     ?'Kauf erfasst — Ex-Tag '+kipp[0].ex.split('-').reverse().join('.')+' lag bereits: zählt erst zur Folgeausschüttung'
@@ -3911,7 +3957,7 @@ function verkaufVorschau(pfI,posI){
     <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Realisierter Gewinn</span><span style="color:${r.gewinn>=0?N.green:N.orange}">${EUR0(r.gewinn)}</span></div>
     <div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>Steuer (26,375 % auf ${(100-teilfreistellung(pos)).toFixed(0)} %)</span><span style="color:${N.orange}">− ${EUR0(r.steuer)}</span></div>
     <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--line,#2a3a5a);margin-top:6px;padding-top:6px"><span>Netto-Erlös</span><span style="color:${N.green}">${EUR0(r.netto)}</span></div>
-    <div style="font-size:11px;color:var(--t3);margin-top:8px">Anteil danach: ${gesamtNach>0?(wertNach/gesamtNach*100).toFixed(2):'0.00'} % (vorher ${posIst(pos,pf).toFixed(2)} %) · entfallende Ausschüttung ${EUR0(stk*((pos.divs||{})[state.divCalYear]||[]).reduce((a,b)=>a+(b||0),0))}/Jahr</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px">Anteil danach: ${gesamtNach>0?(wertNach/gesamtNach*100).toFixed(2):'0.00'} % (vorher ${posIst(pos,pf).toFixed(2)} %) · entfallende Ausschüttung ${EUR0(stk*divJeAnteilJahr(pos,state.divCalYear))}/Jahr</div>
     <div style="font-size:11px;color:var(--t3);margin-top:4px">Verbrauchte Lose: ${r.verbraucht.map(x=>x.d.split('-').reverse().join('.')+' ('+x.stueck.toFixed(2)+' Stk à '+x.kurs.toFixed(2)+' €)').join(' · ')}</div>`;
 }
 function confirmVerkauf(pfI,posI){
@@ -4052,8 +4098,8 @@ async function loadYahoo(pfI,pI){
   showToast('⏳ Lade Kurs…');
   const r=await fetchPriceForPos(pos);
   if(r){
-    const isin=(pos.isin||'').trim();
-    state.portfolios.forEach(pf=>pf.positions.forEach(q=>{if(isin&&(q.isin||'').trim()===isin)q.kurs=r.price;}));
+    const isin=(pos.isin||'').trim().toUpperCase();
+    state.portfolios.forEach(pf=>pf.positions.forEach(q=>{if(isin&&(q.isin||'').trim().toUpperCase()===isin)q.kurs=r.price;}));
     pos.kurs=r.price;
     if(!pos.ticker&&r.symbol)pos.ticker=r.symbol;
     render();showToast(`✓ ${r.symbol}: ${r.price} €`);
