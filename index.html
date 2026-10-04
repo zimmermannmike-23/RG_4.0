@@ -108,7 +108,7 @@ html:has(body.ui-clean.theme-light){background:#F8F9FA}
 .pos-name{flex:1;font-size:14px;font-weight:700;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pos-bar{height:5px;border-radius:3px;background:var(--b);overflow:hidden;margin:4px 0;position:relative}
 .pos-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;transition:width .6s}
-.pos-bar-tgt{position:absolute;top:-3px;width:2px;height:11px;background:rgba(255,255,255,.4)}
+.pos-bar-tgt{position:absolute;top:-3px;width:2px;height:11px;background:var(--t3)}
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;border-radius:9999px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0}
 .b-sofort{border:1.5px solid var(--red);color:var(--red)}
@@ -442,6 +442,38 @@ input.rate-in{width:96px;text-align:right;font-size:22px;font-weight:700;color:v
 /* Schlichter Seitentitel auch im Light Mode */
 body.theme-light .stitle{font-family:system-ui,-apple-system,sans-serif!important;font-weight:700!important;
   font-size:24px!important;text-align:left!important;margin:14px 2px 14px!important;letter-spacing:-.01em}
+
+/* ===== Dividenden-Diagramm (HTML-Balken) ===== */
+.dv-chart{margin:0 0 4px}
+.dv-plot{position:relative;height:calc(var(--dv-h) + 34px);padding:0 0 0 30px;margin-top:58px}
+.dv-gl{position:absolute;left:30px;right:0;border-top:1px dashed var(--b);height:0;pointer-events:none}
+.dv-gl span{position:absolute;left:-30px;top:-7px;width:26px;text-align:right;font-size:10px;color:var(--t3);font-variant-numeric:tabular-nums}
+.dv-cols{position:relative;display:flex;gap:3px;height:100%;align-items:stretch}
+.dv-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.dv-val{height:16px;font-size:9px;color:var(--t3);font-variant-numeric:tabular-nums;line-height:16px;white-space:nowrap}
+.dv-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.dv-bar{width:72%;max-width:22px;border-radius:5px 5px 2px 2px;background:var(--dv-bar,var(--cyan));opacity:.5;transition:height .25s ease,background .15s,opacity .15s}
+.dv-bar.leer{background:var(--b);opacity:1;height:3px!important;border-radius:2px}
+.dv-col.sel .dv-bar{background:var(--green);opacity:1}
+.dv-col.sel .dv-val{color:var(--green);font-weight:700}
+.dv-lbl{height:18px;font-size:10px;color:var(--t3);line-height:18px}
+.dv-col.sel .dv-lbl{color:var(--t);font-weight:700}
+.dv-tip{position:absolute;bottom:calc(100% - 4px);left:50%;transform:translateX(-50%);z-index:3;
+  background:var(--bg1);color:var(--t);border:1px solid var(--b);border-radius:10px;padding:7px 10px;
+  box-shadow:0 4px 14px rgba(0,0,0,.16);white-space:nowrap;font-size:11px;display:flex;flex-direction:column;gap:1px;pointer-events:none}
+.dv-tip b{font-size:11px}
+.dv-tip span{color:var(--t2);font-variant-numeric:tabular-nums}
+.dv-col:first-child .dv-tip{left:0;transform:none}
+.dv-col:last-child .dv-tip{left:auto;right:0;transform:none}
+body.theme-light{--dv-bar:#9CA3AF}
+body.theme-light .dv-bar{opacity:.5}
+/* Jahres-Reiter */
+.yr-tabs{display:flex;align-items:center;gap:6px;margin:4px 0 10px}
+.yr-tab{flex:1;border:1px solid var(--b);background:var(--bg2);color:var(--t2);border-radius:10px;padding:8px 0;
+  font-size:14px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums;font-family:inherit}
+.yr-tab.on{background:var(--t);color:var(--bg1);border-color:var(--t)}
+.yr-arrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--b);background:var(--bg1);color:var(--t2);
+  font-size:18px;line-height:1;cursor:pointer;flex-shrink:0;font-family:inherit}
 </style>
 </head>
 <body>
@@ -656,8 +688,9 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.55';
+const APP_VERSION='3.56';
 const APP_CHANGELOG=[
+  {v:'3.56',d:'2026-09-24',t:'Ringe und Dividenden-Diagramm. (1) Die Werte in den Ringen fehlten im Light Mode: der urspruengliche Ring zeichnete Zahl und Spur fest in Weiss und Dunkelblau, auf heller Karte war die Zahl unsichtbar. Beschriftung und Spur kommen jetzt aus dem Theme, der Leuchteffekt gilt nur im dunklen Design, im modernen Design nutzen die Ringe die Systemschrift statt Pacifico. Die Ringe der kompakten Zusammenfassung passen die Schriftgroesse an die Textlaenge an. (2) Das Dividenden-Diagramm ist neu als HTML-Balkendiagramm: scharfer Text (der SVG-Entwurf war durch preserveAspectRatio=none verzerrt), Wert ueber jedem Balken, gestrichelte Gitterlinien mit Skala, graue Balken mit gruenem Highlight und Sprechblase mit Brutto und Netto fuer den gewaehlten Monat, Jahres-Reiter statt Plus/Minus. Ausserdem die Farben der Planungs-Diagramme (Gitter, Achsentext, Ist-Punkt) und aller SVG-Attribute mit var() auf style umgestellt, damit sie auch in Browsern ohne var() in Praesentationsattributen dem Theme folgen.'},
   {v:'3.55',d:'2026-09-24',t:'Sparplan und Portfolios im Kartenstil der BUY-ONLY-Karte. Im Light Mode und im neuen Design folgen jetzt alle Boxen derselben Sprache: Titel, Hinweis, Kennzahlzeile, Trennlinie, Kachelraster, Summenzeilen. Sparplan: Portfolio-Raten als antippbare Kacheln mit Eingabe und Summe, empfohlene Aufteilung mit Ist-/Ziel-Balken je ETF, Rebalancing-Karte mit Kauf-/Verkauf-Kacheln. Portfolio-Reiter: Teil-Portfolios als Kachelraster mit Wert, ETF-Zahl, Score und Ampel; im Portfolio die Positionen als Kacheln mit Schalter und Wiederaufnahme-Hinweis. Der klassische Dark Mode behaelt die bisherige Listenform. Seitentitel im Light Mode schlicht wie im neuen Design.'},
   {v:'3.54',d:'2026-09-24',t:'Zwei Fehler behoben. (1) Hintergrund wurde beim Scrollen schwarz: das Theme sitzt als Klasse auf body, html sah aber nur die Standardfarbe und blieb schwarz — sichtbar beim Ueberscrollen und im Bereich unter dem Tab-Balken. html folgt dem Theme jetzt per :has(), mit direktem Fallback ueber JavaScript und Browser-Farbschema. (2) Die Ziel-Ringe zeigten statt der Werte nur Platzhaltertext: bei der Einfuehrung der kompakten Zusammenfassung war eine zweite Funktion svgRing mit anderer Parameterform angelegt worden und hat die urspruengliche ueberschrieben — alle alten Ringe (Ziele-Dashboard, Score-Anzeigen) bekamen ihre Werte dadurch nicht mehr. Die neue Funktion heisst svgZielRing; ein Scan ueber die ganze Datei findet keine weitere doppelte Funktionsdefinition.'},
   {v:'3.53',d:'2026-09-24',t:'Der Januar-Prompt fragt jetzt zusaetzlich die tatsaechliche Zusammensetzung je Fonds ab: Laender- und Regionenquoten, die fuenf groessten Sektoren, Replikationsmethode und Stichtag des Factsheets — als zweiter JSON-Block, den dieselbe Einlesemaske erkennt. Damit zeigt die Streuungs-Karte eine echte Durchschau: der Depotwert wird anteilig auf die Regionen verteilt, statt jeden Fonds pauschal einem Schwerpunkt zuzuschlagen. Bis Daten vorliegen, weist die Karte ausdruecklich darauf hin, dass die Regionenzeile nur der Index-Schwerpunkt ist und ein „Welt"-Dividenden-ETF real oft 30 bis 40 Prozent USA haelt. Nach dem Einlesen nennt sie den abgedeckten Anteil und die Fonds ohne Daten.'},
@@ -1217,19 +1250,26 @@ function svgRing({progress=0,color=N.cyan,size=100,lw=6,label='',sub=''}={}){
   const r=(size-lw*2)/2,c=size/2,ci=2*Math.PI*r;
   const off=ci*(1-Math.min(1,Math.max(0,progress)));
   const id='r'+(++uid);
-  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">
-    <defs><filter id="gf${id}"><feGaussianBlur stdDeviation="${size*.03}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#1a2a2e" stroke-width="${lw}"/>
+  // Spur und Beschriftung kommen aus dem Theme: vorher stand der Wert fest in Weiss und die Spur in
+  // Dunkelblau, auf hellem Grund war die Zahl im Ring unsichtbar. Der Leuchteffekt gehoert nur zum
+  // dunklen Design; auf Weiss wirkt er verschmiert.
+  const modern=modernUI(), glow=!istHell();
+  const fontLabel=modern?"system-ui,-apple-system,sans-serif":"monospace";
+  const fontSub=modern?"system-ui,-apple-system,sans-serif":"'Pacifico',serif";
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible" role="img">
+    ${glow?`<defs><filter id="gf${id}"><feGaussianBlur stdDeviation="${size*.03}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`:''}
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" style="stroke:var(--b)" stroke-width="${lw}"/>
     <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${lw}"
       stroke-linecap="round" stroke-dasharray="${ci}" stroke-dashoffset="${off}"
-      transform="rotate(-90 ${c} ${c})" filter="url(#gf${id})"
+      transform="rotate(-90 ${c} ${c})" ${glow?`filter="url(#gf${id})"`:''}
       style="animation:ringA .8s ease forwards"/>
     ${label?`<text x="${c}" y="${sub?c-4:c+1}" text-anchor="middle" dominant-baseline="middle"
-      fill="white" font-size="${size*.22}px" font-weight="700" font-family="monospace">${label}</text>`:''}
+      style="fill:var(--t);font-variant-numeric:tabular-nums" font-size="${size*.22}px" font-weight="700" font-family="${fontLabel}">${label}</text>`:''}
     ${sub?`<text x="${c}" y="${c+size*.16}" text-anchor="middle" dominant-baseline="middle"
-      fill="${color}" font-size="${size*.11}px" font-family="'Pacifico',serif">${sub}</text>`:''}
+      fill="${color}" font-size="${size*(modern?.115:.11)}px" ${modern?'font-weight="600"':''} font-family="${fontSub}">${sub}</text>`:''}
   </svg><style>@keyframes ringA{from{stroke-dashoffset:${ci}}to{stroke-dashoffset:${off}}}</style>`;
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DEFAULT STATE — Stand: TR-Vermögensübersicht 27.07.2026, geprüft & korrigiert
@@ -1506,12 +1546,12 @@ function svgPfad(rows,valIdx,istJahr,istWert,titel){
   const line=pts.map((p,i)=>`${i?'L':'M'}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(' ');
   const area=`${line} L${X(x1).toFixed(1)},${H-pb} L${X(pts[0].x).toFixed(1)},${H-pb} Z`;
   let grid='';
-  for(let i=0;i<=3;i++){const v=y1*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" stroke="#1a2a2e" stroke-width="1"/>
-    <text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#6B7280">${v>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0)}</text>`;}
+  for(let i=0;i<=3;i++){const v=y1*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" style="stroke:var(--b)" stroke-width="1"/>
+    <text x="${pl-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" style="fill:var(--t3)">${v>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0)}</text>`;}
   let xlab='';
-  pts.forEach((p,i)=>{if(i%3===0||i===pts.length-1)xlab+=`<text x="${X(p.x)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#6B7280">${p.x}</text>`;});
+  pts.forEach((p,i)=>{if(i%3===0||i===pts.length-1)xlab+=`<text x="${X(p.x)}" y="${H-8}" text-anchor="middle" font-size="10" style="fill:var(--t3)">${p.x}</text>`;});
   const ist=(istWert!=null&&istJahr!=null)?
-    `<circle cx="${X(istJahr).toFixed(1)}" cy="${Y(istWert).toFixed(1)}" r="5" fill="#00F0FF" stroke="#000" stroke-width="2"/>
+    `<circle cx="${X(istJahr).toFixed(1)}" cy="${Y(istWert).toFixed(1)}" r="5" fill="#00F0FF" style="stroke:var(--bg1)" stroke-width="2"/>
      <text x="${X(istJahr).toFixed(1)}" y="${(Y(istWert)-11).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#00F0FF">Ist</text>`:'';
   return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:320px;height:auto">
     <defs><linearGradient id="gp${valIdx}" x1="0" y1="0" x2="0" y2="1">
@@ -1530,8 +1570,8 @@ function svgEtfBars(labels,sollArr,istArr,titel,einheit){
   const bw=(W-pl-pr)/n, bar=bw*0.32;
   const Y=v=>H-pb-(v/max)*(H-pt-pb);
   let grid='';
-  for(let i=0;i<=3;i++){const v=max*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" stroke="#1a2a2e"/>
-    <text x="${pl-5}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#6B7280">${max>=1000?(v/1000).toFixed(0)+'k':v.toFixed(v<10?1:0)}</text>`;}
+  for(let i=0;i<=3;i++){const v=max*i/3;grid+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" style="stroke:var(--b)"/>
+    <text x="${pl-5}" y="${Y(v)+4}" text-anchor="end" font-size="10" style="fill:var(--t3)">${max>=1000?(v/1000).toFixed(0)+'k':v.toFixed(v<10?1:0)}</text>`;}
   let bars='';
   labels.forEach((lb,i)=>{
     const cx=pl+bw*i+bw/2, s=sollArr[i]||0, ist=istArr[i];
@@ -1576,24 +1616,32 @@ function depotKennzahlenBlock(){
 const SERIENFARBEN=['#00F0FF','#39FF6A','#FFE600','#FF8A00','#FF1744','#B388FF','#64FFDA'];
 function svgEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// Senkrechte Balken, z.B. Ausschuettungen je Monat. markiert = Index hervorheben.
-function svgBalken(werte,labels,opt){
-  const o=Object.assign({h:150,markiert:-1,farbe:N.cyan,hervor:N.green,einheit:'€',klick:null},opt||{});
-  const n=werte.length; if(!n)return '';
+// Monatsbalken als HTML statt SVG: Text bleibt scharf (der fruehere SVG-Entwurf wurde mit
+// preserveAspectRatio=none verzerrt), Hoehe und Farbe folgen dem Theme, Balken sind gut antippbar.
+// Der gewaehlte Monat bekommt eine Sprechblase mit Brutto und Netto.
+function balkenChart(werte,labels,opt){
+  const o=Object.assign({markiert:-1,klick:'divSetMonth',hoehe:132,titelFn:null,infoFn:null},opt||{});
+  const n=werte.length;if(!n)return'';
   const max=Math.max(...werte,0.0001);
-  const B=100/n, pad=B*0.18, bw=B-2*pad;
-  const balken=werte.map((v,i)=>{
-    const hh=max>0?(v/max)*72:0;                    // 72 % der Hoehe fuer Balken, Rest fuer Beschriftung
-    const x=i*B+pad, y=78-hh;
-    const f=i===o.markiert?o.hervor:o.farbe;
-    const klick=o.klick?` onclick="${o.klick}(${i})" style="cursor:pointer"`:'';
-    return`<g${klick}><rect x="${x}" y="0" width="${bw}" height="78" fill="transparent"/>`
-      +`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(hh,v>0?0.8:0)}" rx="0.6" fill="${f}" opacity="${i===o.markiert?1:.72}"/>`
-      +(v>0?`<text x="${x+bw/2}" y="${Math.max(y-1.6,3)}" font-size="3" fill="${f}" text-anchor="middle">${Math.round(v)}</text>`:'')
-      +`<text x="${x+bw/2}" y="84" font-size="3.2" fill="${i===o.markiert?o.hervor:'var(--t3)'}" text-anchor="middle">${svgEsc(labels[i]||'')}</text></g>`;
+  // Skala auf eine runde Obergrenze legen, damit die Gitterlinien lesbare Werte tragen
+  const roh=max*1.12, mag=Math.pow(10,Math.floor(Math.log10(roh))), obergrenze=Math.ceil(roh/mag*2)/2*mag;
+  const teile=[1,.5,0];
+  const fmt=v=>v>=1000?(v/1000).toFixed(1).replace('.',',')+'k':(v>0&&v<0.5?'<1':String(Math.round(v)));
+  const spalten=werte.map((v,i)=>{
+    const sel=i===o.markiert, h=v>0?Math.max(3,v/obergrenze*100):0;
+    const info=sel&&o.infoFn?o.infoFn(i):null;
+    return`<div class="dv-col${sel?' sel':''}" onclick="${o.klick}(${i})" title="${o.titelFn?o.titelFn(i):''}">
+      ${info?`<div class="dv-tip"><b>${info.titel}</b><span>brutto ${info.brutto}</span><span>netto ${info.netto}</span></div>`:''}
+      <div class="dv-val">${v>0?fmt(v):''}</div>
+      <div class="dv-bar-wrap"><div class="dv-bar${v>0?'':' leer'}" style="height:${h}%"></div></div>
+      <div class="dv-lbl">${svgEsc(labels[i]||'')}</div>
+    </div>`;
   }).join('');
-  return`<svg viewBox="0 0 100 88" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">`
-    +`<line x1="0" y1="78" x2="100" y2="78" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${balken}</svg>`;
+  // Balkenflaeche = Plot-Hoehe minus 16 px (Wertzeile) und 18 px (Monatszeile) = genau --dv-h
+  const gitter=teile.map(t=>`<div class="dv-gl" style="bottom:calc(18px + ${t} * var(--dv-h))"><span>${fmt(obergrenze*t)}</span></div>`).join('');
+  return`<div class="dv-chart" style="--dv-h:${o.hoehe}px">
+    <div class="dv-plot">${gitter}<div class="dv-cols">${spalten}</div></div>
+  </div>`;
 }
 
 // Waagerechte Balken mit Ziel-Markierung, z.B. Ist gegen Ziel je ETF.
@@ -1611,9 +1659,9 @@ function svgIstZiel(zeilen,opt){
         <span style="color:${farbe}">${z.ist.toFixed(2)} % <span style="color:var(--t3)">/ ${z.ziel.toFixed(2)} %</span></span>
       </div>
       <svg viewBox="0 0 100 6" preserveAspectRatio="none" style="width:100%;height:12px;display:block">
-        <rect x="0" y="1.4" width="100" height="3.2" rx="1.6" fill="var(--bg2,#12203a)"/>
+        <rect x="0" y="1.4" width="100" height="3.2" rx="1.6" style="fill:var(--bg2)"/>
         <rect x="0" y="1.4" width="${Math.min(bi,100)}" height="3.2" rx="1.6" fill="${farbe}" opacity="${z.pausiert?.45:.9}"/>
-        <line x1="${Math.min(bz,100)}" y1="0.2" x2="${Math.min(bz,100)}" y2="5.8" stroke="var(--t)" stroke-width="0.7"/>
+        <line x1="${Math.min(bz,100)}" y1="0.2" x2="${Math.min(bz,100)}" y2="5.8" style="stroke:var(--t)" stroke-width="0.7"/>
       </svg></div>`;
   }).join('');
 }
@@ -1634,11 +1682,11 @@ function svgLinien(serien,labels,opt){
   }).join('');
   const schritt=Math.max(1,Math.ceil(n/6));
   const achse=labels.map((l,i)=>i%schritt===0||i===n-1
-    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" fill="var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
+    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" style="fill:var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
   const legende=o.legende?serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;color:var(--t2)">
     <span style="width:9px;height:3px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join(''):'';
   return`<svg viewBox="0 0 ${o.achse?100:100} 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
-    ${o.achse?`<line x1="0" y1="76" x2="100" y2="76" stroke="var(--b)" stroke-width="0.3"/>`:''}${pfade}${o.achse?achse:''}</svg>
+    ${o.achse?`<line x1="0" y1="76" x2="100" y2="76" style="stroke:var(--b)" stroke-width="0.3"/>`:''}${pfade}${o.achse?achse:''}</svg>
     ${legende?`<div style="margin-top:6px">${legende}</div>`:''}`;
 }
 
@@ -1663,11 +1711,11 @@ function svgGestapelt(serien,labels,opt){
   }).join('');
   const schritt=Math.max(1,Math.ceil(n/6));
   const achse=labels.map((l,i)=>i%schritt===0||i===n-1
-    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" fill="var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
+    ?`<text x="${X(i).toFixed(2)}" y="83" font-size="3.2" style="fill:var(--t3)" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${svgEsc(l)}</text>`:'').join('');
   const legende=serien.map((s,si)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:var(--t2)">
     <span style="width:9px;height:9px;border-radius:2px;background:${s.farbe||SERIENFARBEN[si%SERIENFARBEN.length]};display:inline-block"></span>${svgEsc(s.name)}</span>`).join('');
   return`<svg viewBox="0 0 100 86" preserveAspectRatio="none" style="width:100%;height:${o.h}px;overflow:visible" role="img">
-    <line x1="0" y1="76" x2="100" y2="76" stroke="var(--line,#2a3a5a)" stroke-width="0.3"/>${flaechen}${achse}</svg>
+    <line x1="0" y1="76" x2="100" y2="76" style="stroke:var(--b)" stroke-width="0.3"/>${flaechen}${achse}</svg>
     <div style="margin-top:6px;line-height:1.7">${legende}</div>`;
 }
 
@@ -1703,12 +1751,16 @@ function divZuwachsProKauf(){
 function svgZielRing(prozent,farbe,wert,label,sub){
   const pr=Math.max(0,Math.min(100,prozent||0));
   const u=2*Math.PI*42;
+  const t=String(wert==null?'':wert);
+  // Lange Werte („75,52 €") verkleinern, damit sie im Ring bleiben
+  const fs=t.length<=5?21:t.length<=7?17:14;
   return`<div style="text-align:center;flex:1;min-width:0">
     <svg viewBox="0 0 100 100" style="width:84px;height:84px" role="img">
-      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--b)" stroke-width="9"/>
+      <circle cx="50" cy="50" r="42" fill="none" style="stroke:var(--b)" stroke-width="9"/>
       <circle cx="50" cy="50" r="42" fill="none" stroke="${farbe}" stroke-width="9" stroke-linecap="round"
         stroke-dasharray="${(u*pr/100).toFixed(1)} ${u.toFixed(1)}" transform="rotate(-90 50 50)"/>
-      <text x="50" y="54" text-anchor="middle" font-size="19" font-weight="700" fill="var(--t)">${wert}</text>
+      <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="700"
+        style="fill:var(--t);font-variant-numeric:tabular-nums">${t}</text>
     </svg>
     <div style="font-size:11px;font-weight:600;color:var(--t2);margin-top:2px">${label}</div>
     <div style="font-size:10px;color:var(--t3);line-height:1.3">${sub||''}</div>
@@ -1817,13 +1869,14 @@ function monatlicheDividendenBlock(){
   return`<div class="card card-c">
     <div class="ctitle">MONATLICHE DIVIDENDEN NACH ZAHLTAG · DIV ETF DEPOT</div>
     <p class="hint" style="margin-bottom:8px">Die Monate zeigen, wann das Geld <b>ankommt</b> (Zahltag). Wer eine Ausschüttung bekommt, entscheidet dagegen der Ex-Tag — beides steht je ETF in der Aufstellung unten und in den Tooltips.</p>
-    <div class="yr-pick">
-      <span>Jahr:</span><span style="font-size:26px;color:var(--t)">${state.divCalYear}</span>
-      <button class="yp-btn" onclick="state.divCalYear--;render()">−</button>
-      <button class="yp-btn" onclick="state.divCalYear++;render()">+</button>
+    <div class="yr-tabs">
+      <button class="yr-arrow" onclick="state.divCalYear--;state.divSelMonth=null;render()" aria-label="Vorjahr">‹</button>
+      ${[state.divCalYear-1,state.divCalYear,state.divCalYear+1].map(j=>`<button class="yr-tab${j===state.divCalYear?' on':''}" onclick="state.divCalYear=${j};state.divSelMonth=null;render()">${j}</button>`).join('')}
+      <button class="yr-arrow" onclick="state.divCalYear++;state.divSelMonth=null;render()" aria-label="Folgejahr">›</button>
     </div>
-    ${svgBalken(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,klick:'divSetMonth',h:150,
-      farbe:istHell()?'#9CA3AF':N.cyan,hervor:N.green})}
+    ${balkenChart(md,MN.map(m=>m.slice(0,1)+m.slice(1,3).toLowerCase()),{markiert:sel,hoehe:132,
+      titelFn:i=>MNF[i]+' '+state.divCalYear,
+      infoFn:i=>({titel:MNF[i]+' '+state.divCalYear,brutto:EUR0(md[i]),netto:EUR0(zDivMonatNetto(state.divCalYear,i))})})}
     <p class="hint" style="margin-top:4px;margin-bottom:8px">Balken antippen wählt den Monat. Höhe zeigt den Betrag — sichtbar wird so, wie ungleich sich die Ausschüttungen über das Jahr verteilen.</p>
     <div class="mog dup-clean">${md.map((v,i)=>`<div class="mob${i===sel?' hi':''}${v>0?'':' mob-0'}" style="cursor:pointer" onclick="divSetMonth(${i})" title="${MNF[i]} ${state.divCalYear} überall markieren"><div class="mon">${MN[i]}</div><div class="moa" style="color:${i===sel?N.cyan:'var(--t)'}">${EUR0(v)}</div></div>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
@@ -2670,7 +2723,7 @@ function renderBuyOnlyCard(pf){
             <div style="position:absolute;left:0;top:0;height:100%;border-radius:3px;
               width:${Math.min(100,o.effTgt>0?o.ist/o.effTgt*100:0).toFixed(0)}%;
               background:${o.buy>0?N.green:N.red}"></div>
-            <div style="position:absolute;top:-3px;left:${Math.min(100,o.effTgt)}%;width:2px;height:11px;background:rgba(255,255,255,.4)"></div>
+            <div style="position:absolute;top:-3px;left:${Math.min(100,o.effTgt)}%;width:2px;height:11px;background:var(--t3)"></div>
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0;padding-left:8px">
