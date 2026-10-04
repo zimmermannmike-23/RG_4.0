@@ -688,8 +688,10 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.56';
+const APP_VERSION='3.58';
 const APP_CHANGELOG=[
+  {v:'3.58',d:'2026-10-04',t:'Prompt-Auswahl: Jahrespruefung Depot und Ausschuettungstermine holen haben jetzt eine aufklappbare Erklaerung (Wann, Wozu, Was mitgeschickt wird, Was zurueckkommt, Was danach zu tun ist, Warnhinweise). Besonders vermerkt: Das Einlesen der Ausschuettungsdaten ersetzt alle Eintraege des gewaehlten Jahres.'},
+  {v:'3.57',d:'2026-10-04',t:'Jahrespruefung: Alternativen werden jetzt nach einem festen Kennzahlen-Katalog verglichen (29 Kennzahlen, darunter Auflage, NAV, TER, Ausschuettungsrendite, Monatscashflow mit staerkstem und schwaechstem Monat, Kurswert ohne Wiederanlage, kumulierte Ausschuettungen, Gesamtvermoegen, CAGR, Max. Drawdown, Holdings, Top 10, Laender, Sektoren, Overlap mit ISPA und dem uebrigen Depot, Cashflow-Quelle, Tracking Difference). Spielregeln machen die Zahlen vergleichbar: gemeinsamer Zeitraum ab Auflage des juengsten Fonds, EUR, ohne Wiederanlage, normiert auf 10.000 EUR Einmalanlage, Quelle und Stichtag je Zahl, n. v. statt Schaetzung. Der Bestands-ETF steht in jeder Tabelle mit drin. Der Kontrollprompt im Folgejahr prueft die Alternativen nach denselben Kernkennzahlen.'},
   {v:'3.56',d:'2026-09-24',t:'Ringe und Dividenden-Diagramm. (1) Die Werte in den Ringen fehlten im Light Mode: der urspruengliche Ring zeichnete Zahl und Spur fest in Weiss und Dunkelblau, auf heller Karte war die Zahl unsichtbar. Beschriftung und Spur kommen jetzt aus dem Theme, der Leuchteffekt gilt nur im dunklen Design, im modernen Design nutzen die Ringe die Systemschrift statt Pacifico. Die Ringe der kompakten Zusammenfassung passen die Schriftgroesse an die Textlaenge an. (2) Das Dividenden-Diagramm ist neu als HTML-Balkendiagramm: scharfer Text (der SVG-Entwurf war durch preserveAspectRatio=none verzerrt), Wert ueber jedem Balken, gestrichelte Gitterlinien mit Skala, graue Balken mit gruenem Highlight und Sprechblase mit Brutto und Netto fuer den gewaehlten Monat, Jahres-Reiter statt Plus/Minus. Ausserdem die Farben der Planungs-Diagramme (Gitter, Achsentext, Ist-Punkt) und aller SVG-Attribute mit var() auf style umgestellt, damit sie auch in Browsern ohne var() in Praesentationsattributen dem Theme folgen.'},
   {v:'3.55',d:'2026-09-24',t:'Sparplan und Portfolios im Kartenstil der BUY-ONLY-Karte. Im Light Mode und im neuen Design folgen jetzt alle Boxen derselben Sprache: Titel, Hinweis, Kennzahlzeile, Trennlinie, Kachelraster, Summenzeilen. Sparplan: Portfolio-Raten als antippbare Kacheln mit Eingabe und Summe, empfohlene Aufteilung mit Ist-/Ziel-Balken je ETF, Rebalancing-Karte mit Kauf-/Verkauf-Kacheln. Portfolio-Reiter: Teil-Portfolios als Kachelraster mit Wert, ETF-Zahl, Score und Ampel; im Portfolio die Positionen als Kacheln mit Schalter und Wiederaufnahme-Hinweis. Der klassische Dark Mode behaelt die bisherige Listenform. Seitentitel im Light Mode schlicht wie im neuen Design.'},
   {v:'3.54',d:'2026-09-24',t:'Zwei Fehler behoben. (1) Hintergrund wurde beim Scrollen schwarz: das Theme sitzt als Klasse auf body, html sah aber nur die Standardfarbe und blieb schwarz — sichtbar beim Ueberscrollen und im Bereich unter dem Tab-Balken. html folgt dem Theme jetzt per :has(), mit direktem Fallback ueber JavaScript und Browser-Farbschema. (2) Die Ziel-Ringe zeigten statt der Werte nur Platzhaltertext: bei der Einfuehrung der kompakten Zusammenfassung war eine zweite Funktion svgRing mit anderer Parameterform angelegt worden und hat die urspruengliche ueberschrieben — alle alten Ringe (Ziele-Dashboard, Score-Anzeigen) bekamen ihre Werte dadurch nicht mehr. Die neue Funktion heisst svgZielRing; ein Scan ueber die ganze Datei findet keine weitere doppelte Funktionsdefinition.'},
@@ -3725,6 +3727,63 @@ function quittiereJahresCheck(){
   render();showToast('Bis Dezember '+(new Date().getFullYear()+1)+' ausgeblendet');
 }
 
+// ===== PFLICHT-KENNZAHLEN FUER ALTERNATIVEN (seit 3.57) =====
+// Jede Alternative wird gegen den ETF, den sie ersetzen soll, mit denselben Kennzahlen
+// verglichen. Die Spielregeln (gemeinsamer Zeitraum, EUR, Normierung auf 10.000 EUR,
+// ohne Wiederanlage) machen die Zahlen erst vergleichbar.
+const ALT_KENNZAHLEN=[
+  ['ISIN / WKN','eindeutige Identifikation','verhindert Verwechslungen'],
+  ['Auflage','exaktes Auflagedatum (TT.MM.JJJJ)','bestimmt den belastbaren Vergleichszeitraum'],
+  ['Index / Strategie','Indexname und Methodik in einem Satz (Auswahl, Gewichtung, Kappung)','echte Alternative statt gleicher Index'],
+  ['NAV aktuell','NAV je Anteil in Fondswährung mit Stichtag','Wert des Fondsvermögens pro Anteil'],
+  ['NAV seit Auflage','Veränderung des NAV je Anteil in % seit Auflage (ohne Ausschüttungen)','Entwicklung des zugrunde liegenden Fonds'],
+  ['TER','laufende Kosten p. a. laut aktuellem KID/Factsheet','Kostenbelastung'],
+  ['Ausschüttungsrendite','TTM: Summe der Ausschüttungen der letzten 12 Monate / aktueller NAV; zusätzlich Durchschnitt seit Auflage','Höhe des Cashflows'],
+  ['Ausschüttung je Monat','tatsächlich gezahlter Betrag je Monat der letzten 12 Monate, je Anteil in Fondswährung und normiert auf 10.000 €','wichtig für meinen Cashflow'],
+  ['Ø Monatscashflow','Summe aller Ausschüttungen der letzten 12 Monate / 12, normiert auf 10.000 €','zeigt die reale laufende Einnahme'],
+  ['Stärkster Ausschüttungsmonat','Kalendermonat (nach Zahltag) mit dem höchsten Betrag, normiert auf 10.000 €','Cashflow-Spitze'],
+  ['Schwächster Ausschüttungsmonat','Kalendermonat (nach Zahltag) mit dem niedrigsten Betrag, normiert auf 10.000 € — 0 € ausdrücklich ausweisen','Cashflow-Lücke'],
+  ['Ausschüttungsmonate','Zahlmonate, z. B. Jan/Apr/Jul/Okt; Ex-Monat in Klammern, wenn abweichend; Frequenz','Planbarkeit'],
+  ['Kurswertentwicklung','reine Kursentwicklung in % im Vergleichszeitraum, ohne Wiederanlage','für mich besonders wichtig'],
+  ['Kumulierte Ausschüttungen','im Vergleichszeitraum ausgezahlter Cash, nicht reinvestiert, normiert auf 10.000 €','tatsächlich ausgezahlter Ertrag'],
+  ['Gesamtvermögen','Kurswert + kumulierte Ausschüttungen am Ende des Vergleichszeitraums, ausgehend von 10.000 €','entscheidende Anlegerperspektive'],
+  ['CAGR','annualisiert im Vergleichszeitraum, zweimal: Gesamtvermögen (ohne Wiederanlage) und reiner Kurswert','Vergleichbarkeit'],
+  ['Max. Drawdown','größter Peak-to-Trough-Verlust auf Basis Gesamtvermögen mit Hoch- und Tiefdatum; zusätzlich reiner Kurswert','Risikomaß'],
+  ['Holdings','Anzahl Positionen mit Stichtag','Diversifikation'],
+  ['Top 10','Anteil der zehn größten Positionen in %','Konzentrationsrisiko'],
+  ['Größte Position','Name und Gewichtung in %','Einzelwertrisiko'],
+  ['Länder / Regionen','Gewichtungen in % (mindestens USA, Eurozone, übriges Europa, Japan, Asien-Pazifik, Schwellenländer)','geografische Diversifikation'],
+  ['Sektoren','die fünf größten Sektoren in %','Branchenrisiko'],
+  ['Overlap mit __ISPA__','gemeinsame Titel (Anzahl) und gewichtsbasierte Überschneidung (Summe der kleineren Gewichte je gemeinsamem Titel); entfällt für __ISPA__ selbst','echte Diversifikation'],
+  ['Overlap mit übrigem Depot','höchste gewichtsbasierte Überschneidung mit einer anderen ISIN meines Depots, mit Angabe der ISIN','kein doppeltes Exposure mit doppelter TER'],
+  ['Cashflow-Quelle','Anteile aus Dividenden / Optionsprämien / Zinsen / Kapitalrückzahlung, soweit ausgewiesen','Qualität des Ertrags'],
+  ['Tracking Difference','jährliche Abweichung ETF vs. Net-Total-Return-Index für die letzten bis zu 5 Kalenderjahre und deren Durchschnitt','tatsächliche Kosteneffizienz'],
+  ['Fondsvolumen / Replikation / Domizil','Volumen in Mio. EUR, physisch/Sampling/Swap, Domizil','Schließungs- und Steuerrisiko (Ergänzung)'],
+  ['Steuer DE','Teilfreistellungssatz und Fondsart (Aktienfonds ja/nein)','Nettoertrag (Ergänzung)'],
+  ['Trade Republic','handelbar und sparplanfähig ja/nein','umsetzbar über meinen Broker (Ergänzung)']
+];
+function altKennzahlenBlock(){
+  const ispa=TICKER_ISIN.ISPA||'DE000A0F5UH1';
+  const tab=ALT_KENNZAHLEN.map(([k,w,g])=>`| ${k.replace('__ISPA__',ispa)} | ${w.split('__ISPA__').join(ispa)} | ${g} |`).join('\n');
+  return`## Pflicht-Kennzahlen für jede Alternative
+Für jede vorgeschlagene Alternative UND für den ETF aus meinem Depot, den sie ersetzen oder ergänzen soll, lieferst du alle Kennzahlen der Tabelle unten. Ohne den Bestands-ETF in derselben Tabelle ist der Vergleich wertlos.
+
+Spielregeln, damit die Zahlen vergleichbar sind:
+- **Gemeinsamer Vergleichszeitraum:** vom Auflagedatum des jüngsten Fonds im Vergleich bis zum letzten verfügbaren Monatsende. Nenne Start- und Enddatum. Wenn verfügbar, zusätzlich die letzten 5 Jahre.
+- **Ohne Wiederanlage:** Ausschüttungen werden als Cash gesammelt, nicht reinvestiert. Gesamtvermögen = Kurswert + kumulierte Ausschüttungen.
+- **Normierung:** Alle Euro-Beträge (Monatsausschüttung, Monatscashflow, kumulierte Ausschüttungen, Gesamtvermögen) beziehen sich auf eine Einmalanlage von 10.000 € am Starttag des Vergleichszeitraums. Beträge je Anteil allein sind zwischen Fonds nicht vergleichbar.
+- **Währung:** alles in EUR aus Sicht eines deutschen Anlegers; bei Fremdwährungsfonds umrechnen und die Kursquelle nennen.
+- **Keine Schätzung als Fakt:** jede Zahl mit Quelle und Stichtag. Nicht auffindbare Werte als „n. v." markieren, nicht interpolieren. Selbst berechnete Werte (z. B. CAGR oder Drawdown aus einer NAV-Reihe) als „berechnet" kennzeichnen.
+- **Nur ausschüttende Fonds.** Fonds mit weniger als 12 Monaten tatsächlicher Ausschüttungshistorie kommen nur auf eine Beobachtungsliste, nicht in die Empfehlung.
+- **Recherche:** Das Emittenten-Factsheet hat Vorrang. Direktaufrufe von Fondsseiten über die ISIN in der URL liefern bei Vergleichsportalen teils falsche oder veraltete Seiten — suche stattdessen mit der ISIN in Anführungszeichen.
+
+| Kennzahl | Was genau | Warum wichtig |
+|---|---|---|
+${tab}
+
+Ausgabe je ETF meines Depots: eine Vergleichstabelle mit den Kennzahlen als Zeilen und den Spalten „Mein ETF (ISIN)", „Alternative 1 (ISIN)", „Alternative 2 (ISIN)" — höchstens zwei Alternativen je ETF. Darunter die Quellen mit Stichtag und ein Urteil in zwei bis drei Sätzen, inklusive Steuerfolge (künftige Sparraten umlenken oder bestehende Position verkaufen). Findest du für einen ETF keine echte Alternative, sag das in einem Satz mit Begründung, statt eine Tabelle aufzufüllen. Wird die Antwort zu lang, liefere sie ETF für ETF und warte auf mein „weiter".`;
+}
+
 // Baut aus dem echten Depotbestand einen vollstaendigen Prompt fuer Claude.
 function jahresCheckPrompt(){
   const pf=zielPf();
@@ -3753,7 +3812,7 @@ Ebenso gilt für alle Alternativvorschläge: nenne immer die ISIN, nicht nur den
 ## Aufgabe
 1. Prüfe die Gewichtung der ETF untereinander: Ist die Aufteilung für ein Dividenden-Depot sinnvoll, oder gibt es Klumpenrisiken (Regionen, Sektoren, Einzeltitel-Überschneidungen zwischen den ETF)?
 2. Prüfe Überschneidungen: Welche ETF halten weitgehend dieselben Titel? Wo zahle ich doppelt TER für dasselbe Exposure?
-3. Suche nach besseren Alternativen zu den einzelnen ETF: niedrigere TER, größeres Fondsvolumen, bessere Replikationsqualität, sinnvollere Index-Methodik, steuerlich günstigere Domizilierung. Nenne konkrete ISINs und begründe jeden Vorschlag.
+3. Suche nach besseren Alternativen zu den einzelnen ETF: niedrigere TER, größeres Fondsvolumen, bessere Replikationsqualität, sinnvollere Index-Methodik, steuerlich günstigere Domizilierung. Nenne konkrete ISINs und begründe jeden Vorschlag. Vergleiche jede Alternative mit den Pflicht-Kennzahlen weiter unten.
 4. Bewerte kritisch, ob Covered-Call-Produkte (in meinem Depot: IE00BM8R0J59) in dieser Gewichtung sinnvoll sind — insbesondere das Verhältnis von Ausschüttungshöhe zu Substanzverzehr und Kursentwicklung.
 5. Sage mir klar, wenn du etwas für einen Fehler hältst. Wenn du etwas nicht weißt, sag es, statt zu schätzen.
 
@@ -3776,6 +3835,8 @@ ${zeilen}
 - Ziel ist ein wachsender, planbarer Ausschüttungsstrom bis zum Ruhestand; Kurssteigerung ist zweitrangig, aber Substanzverzehr soll vermieden werden
 - Ein Umschichten bestehender Positionen löst Abgeltungsteuer auf Buchgewinne aus — berücksichtige das bei Empfehlungen und unterscheide zwischen "künftige Sparraten umlenken" und "bestehende Position verkaufen"
 - Du bist kein Anlageberater und ich erwarte keine Anlageberatung, sondern eine fachliche Einschätzung, die ich selbst prüfe
+
+${altKennzahlenBlock()}
 
 ## Format
 Antworte strukturiert: erst die aus deiner Sicht gravierendsten Befunde, dann die Detailanalyse je ETF, zum Schluss eine priorisierte Liste konkreter Handlungsoptionen mit jeweiliger Begründung und Gegenargument. Recherchiere aktuelle Daten (TER, Fondsvolumen, Ausschüttungshistorie), statt dich auf dein Gedächtnis zu verlassen.`;
@@ -3842,7 +3903,7 @@ ${a.ergebnis}
 ## Was ich wissen möchte
 1. Recherchiere die seither tatsächlich eingetretene Entwicklung: TER-Änderungen, Fondsvolumen, Ausschüttungsverlauf, Kursverlauf der damals genannten ISIN — sowohl meiner bestehenden Positionen als auch der von dir damals vorgeschlagenen Alternativen. Die Kurse in meiner Tabelle unten sind der zuletzt im Tool hinterlegte Stand, nicht zwingend der heutige Marktkurs — verlasse dich für die eigentliche Bewertung auf deine eigene Recherche, nicht auf diese Spalte.
 2. Waren deine damaligen Warnungen (Klumpenrisiken, Überschneidungen, Substanzverzehr bei Covered-Call-Produkten) im Rückblick berechtigt? Was ist tatsächlich passiert?
-3. Hätten die damals vorgeschlagenen Alternativ-ISIN im Rückblick tatsächlich besser abgeschnitten als das, was ich hielt — nach TER, Ausschüttung und Kursentwicklung?
+3. Hätten die damals vorgeschlagenen Alternativ-ISIN im Rückblick tatsächlich besser abgeschnitten als das, was ich hielt? Vergleiche Bestand und Alternative im selben Zeitraum (seit deiner damaligen Antwort, in EUR, ohne Wiederanlage, normiert auf 10.000 €) mindestens nach: Kurswertentwicklung, kumulierte Ausschüttungen, Gesamtvermögen (Kurswert + Ausschüttungen), Ø Monatscashflow mit stärkstem und schwächstem Monat, Max. Drawdown, TER und Tracking Difference — jeweils mit Quelle und Stichtag, fehlende Werte als „n. v.".
 4. Was von deiner damaligen Einschätzung würdest du heute anders bewerten, und warum?
 5. Sei dabei selbstkritisch, aber nicht pauschal — wenn etwas zutraf, sag das auch klar.
 
@@ -3858,8 +3919,10 @@ function offenePruefungen(){
   return Object.keys(a).map(Number).filter(j=>j<jetzt&&a[j].ergebnis&&!a[j].geprueftAm).sort((x,y)=>y-x);
 }
 const PROMPTS=[
-  {id:'jahr',  titel:'Jahresprüfung Depot',        info:'Gewichtung, Überschneidungen und ETF-Alternativen prüfen lassen', fn:()=>jahresCheckPrompt()},
-  {id:'daten', titel:'Ausschüttungstermine holen', info:'Ex-Tage, Zahltage und Beträge für ein Jahr recherchieren, Rückgabe als JSON', fn:()=>datenCheckPrompt()},
+  {id:'jahr',  titel:'Jahresprüfung Depot',        info:'Gewichtung, Überschneidungen und ETF-Alternativen prüfen lassen', fn:()=>jahresCheckPrompt(),
+    erkl:`<b>Wann:</b> Der Hinweis im Dashboard erscheint im Dezember (einmal je Jahr). Der Prompt lässt sich jederzeit hier öffnen.<br><b>Wozu:</b> Claude soll dein Depot kritisch prüfen: Gewichtung, Überschneidungen zwischen den ETF, Alternativen und ob Covered Call in dieser Gewichtung sinnvoll ist. Er verlangt Widerspruch statt Bestätigung.<br><b>Was mitgeschickt wird:</b> Depotwert, Sparrate, Ausschüttung und Rendite des Jahres sowie je Position ISIN, Wert, Ist- und Ziel-Prozent, TER, Ausschüttung je Anteil und Status. Fonds werden nur über die ISIN identifiziert, keine Namen oder Kürzel.<br><b>Was zurückkommt:</b> Fondsbestätigung je ISIN, die gravierendsten Befunde, je ETF eine Vergleichstabelle mit deinem Bestand und höchstens zwei Alternativen (29 Kennzahlen, gleicher Zeitraum, in EUR, ohne Wiederanlage, normiert auf 10.000 €) und eine priorisierte Liste mit Handlungsoptionen samt Gegenargument.<br><b>Danach:</b> Antwort kopieren und mit „Ergebnis speichern“ ablegen. Der Prompt wird beim Öffnen automatisch im Jahresprüfungs-Archiv gespeichert. Im Folgejahr erscheint die Kontrollprüfung.<br><b>Wichtig:</b> Nichts wird automatisch geändert. Ein Verkauf bestehender Positionen löst Abgeltungsteuer aus, darum trennt der Prompt „Sparraten umlenken“ von „Position verkaufen“. Zahlen von Claude vor einer Umschichtung selbst gegenprüfen.`},
+  {id:'daten', titel:'Ausschüttungstermine holen', info:'Ex-Tage, Zahltage und Beträge für ein Jahr recherchieren, Rückgabe als JSON', fn:()=>datenCheckPrompt(),
+    erkl:`<b>Wann:</b> Der Hinweis im Dashboard erscheint im Januar ab 2027, solange das Jahr noch mit fortgeschriebenen Werten rechnet. Der Prompt lässt sich jederzeit hier öffnen.<br><b>Wozu:</b> Bis echte Daten vorliegen, schreibt das Tool die Termine und Beträge aus 2026 fort. Dividendenkalender, Ex-Datum-Log und Prognose beruhen dann auf Schätzungen. Der Prompt holt die tatsächlichen Ex-Tage, Zahltage und Beträge.<br><b>Was mitgeschickt wird:</b> nur die ISINs der sieben ETF mit Ausschüttungsstammdaten und ein Beispiel im erwarteten Format.<br><b>Was zurückkommt:</b> als Text die Fondsbestätigung und Änderungen (TER, Index, Domizil, Fusion, neue ISIN, Steuer). Dazu zwei JSON-Blöcke: die Ausschüttungen je ISIN (Ex, Zahltag, Betrag, Status) und die Fondszusammensetzung (Regionen, Sektoren, Replikation, Stichtag) für die Streuungs-Karte.<br><b>Danach:</b> unter Einstellungen „Einlesen“ öffnen (oder im Dashboard-Hinweis „Einlesen“), das JSON einfügen, Jahr prüfen, einlesen.<br><b>Wichtig:</b> Das Einlesen ersetzt alle Ausschüttungen des gewählten Jahres. Fehlt im JSON eine ISIN, verliert sie ihre Einträge für dieses Jahr. Vor dem Einlesen die Vollständigkeit prüfen. Eine Vorschau gibt es nicht, nur eine Meldung danach. Unbekannte ISINs werden übersprungen.`},
   {id:'kauf',  titel:'Beleg → Käufe',              info:'Wertpapierabrechnung in das Importformat umwandeln (nur nötig ohne CSV-Export)', fn:()=>belegPrompt('kauf')},
   {id:'div',   titel:'Beleg → Ausschüttungen',     info:'Kontoauszug in das Importformat umwandeln (nur nötig ohne CSV-Export)', fn:()=>belegPrompt('div')}
 ];
@@ -3879,6 +3942,7 @@ function openPromptWahl(){
         </span>
       </div>
       <div style="font-size:11px;color:var(--t3);margin-top:3px">${x.info}</div>
+      ${x.erkl?`<details style="margin-top:6px"><summary style="font-size:11px;color:var(--cyan);cursor:pointer">Erklärung</summary><div style="font-size:11px;color:var(--t2);line-height:1.55;margin-top:6px">${x.erkl}</div></details>`:''}
     </div>`).join('')}
     ${offen.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#2a3a5a)">
       <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Kontrollprüfungen — trafen die Einschätzungen zu?</div>
