@@ -118,6 +118,9 @@ html:has(body.ui-clean.theme-light){background:#F8F9FA}
 /* TOGGLE */
 .tog{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0}
 .tog.on{background:var(--cyan)}.tog.off{background:rgba(255,255,255,.15)}
+body.theme-light .tog.off{background:#B8BEC9}
+body.theme-light .tog::after{box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.tog.off{box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
 .tog::after{content:'';position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:white;transition:left .25s}
 .tog.on::after{left:21px}.tog.off::after{left:3px}
 /* PILLS */
@@ -450,9 +453,11 @@ body.theme-light .stitle{font-family:system-ui,-apple-system,sans-serif!importan
 .dv-gl span{position:absolute;left:-30px;top:-7px;width:26px;text-align:right;font-size:10px;color:var(--t3);font-variant-numeric:tabular-nums}
 .dv-cols{position:relative;display:flex;gap:3px;height:100%;align-items:stretch}
 .dv-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
-.dv-val{height:16px;font-size:9px;color:var(--t3);font-variant-numeric:tabular-nums;line-height:16px;white-space:nowrap}
+.dv-sp{height:16px;flex-shrink:0}
+.dv-stack{position:relative;width:100%;transition:height .25s ease}
+.dv-val{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:2px;font-size:9px;color:var(--t3);font-variant-numeric:tabular-nums;line-height:12px;white-space:nowrap;pointer-events:none}
 .dv-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
-.dv-bar{width:72%;max-width:22px;border-radius:5px 5px 2px 2px;background:var(--dv-bar,var(--cyan));opacity:.5;transition:height .25s ease,background .15s,opacity .15s}
+.dv-bar{width:72%;max-width:22px;height:100%;margin:0 auto;border-radius:5px 5px 2px 2px;background:var(--dv-bar,var(--cyan));opacity:.5;transition:background .15s,opacity .15s}
 .dv-bar.leer{background:var(--b);opacity:1;height:3px!important;border-radius:2px}
 .dv-col.sel .dv-bar{background:var(--green);opacity:1}
 .dv-col.sel .dv-val{color:var(--green);font-weight:700}
@@ -688,8 +693,9 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.58';
+const APP_VERSION='3.59';
 const APP_CHANGELOG=[
+  {v:'3.59',d:'2026-10-06',t:'Zwei Korrekturen: (1) Der Schalter zum Aktivieren/Deaktivieren einer Position blieb im Light Mode nach dem Ausschalten unsichtbar (weiss auf weiss) und ist jetzt in allen Themes sichtbar. (2) Dashboard, Monatliche Dividenden nach Zahltag: Die Zahlen stehen nicht mehr in einer Reihe ueber den Balken, sondern direkt am Ende des jeweiligen Balkens.'},
   {v:'3.58',d:'2026-10-04',t:'Prompt-Auswahl: Jahrespruefung Depot und Ausschuettungstermine holen haben jetzt eine aufklappbare Erklaerung (Wann, Wozu, Was mitgeschickt wird, Was zurueckkommt, Was danach zu tun ist, Warnhinweise). Besonders vermerkt: Das Einlesen der Ausschuettungsdaten ersetzt alle Eintraege des gewaehlten Jahres.'},
   {v:'3.57',d:'2026-10-04',t:'Jahrespruefung: Alternativen werden jetzt nach einem festen Kennzahlen-Katalog verglichen (29 Kennzahlen, darunter Auflage, NAV, TER, Ausschuettungsrendite, Monatscashflow mit staerkstem und schwaechstem Monat, Kurswert ohne Wiederanlage, kumulierte Ausschuettungen, Gesamtvermoegen, CAGR, Max. Drawdown, Holdings, Top 10, Laender, Sektoren, Overlap mit ISPA und dem uebrigen Depot, Cashflow-Quelle, Tracking Difference). Spielregeln machen die Zahlen vergleichbar: gemeinsamer Zeitraum ab Auflage des juengsten Fonds, EUR, ohne Wiederanlage, normiert auf 10.000 EUR Einmalanlage, Quelle und Stichtag je Zahl, n. v. statt Schaetzung. Der Bestands-ETF steht in jeder Tabelle mit drin. Der Kontrollprompt im Folgejahr prueft die Alternativen nach denselben Kernkennzahlen.'},
   {v:'3.56',d:'2026-09-24',t:'Ringe und Dividenden-Diagramm. (1) Die Werte in den Ringen fehlten im Light Mode: der urspruengliche Ring zeichnete Zahl und Spur fest in Weiss und Dunkelblau, auf heller Karte war die Zahl unsichtbar. Beschriftung und Spur kommen jetzt aus dem Theme, der Leuchteffekt gilt nur im dunklen Design, im modernen Design nutzen die Ringe die Systemschrift statt Pacifico. Die Ringe der kompakten Zusammenfassung passen die Schriftgroesse an die Textlaenge an. (2) Das Dividenden-Diagramm ist neu als HTML-Balkendiagramm: scharfer Text (der SVG-Entwurf war durch preserveAspectRatio=none verzerrt), Wert ueber jedem Balken, gestrichelte Gitterlinien mit Skala, graue Balken mit gruenem Highlight und Sprechblase mit Brutto und Netto fuer den gewaehlten Monat, Jahres-Reiter statt Plus/Minus. Ausserdem die Farben der Planungs-Diagramme (Gitter, Achsentext, Ist-Punkt) und aller SVG-Attribute mit var() auf style umgestellt, damit sie auch in Browsern ohne var() in Praesentationsattributen dem Theme folgen.'},
@@ -1634,12 +1640,12 @@ function balkenChart(werte,labels,opt){
     const info=sel&&o.infoFn?o.infoFn(i):null;
     return`<div class="dv-col${sel?' sel':''}" onclick="${o.klick}(${i})" title="${o.titelFn?o.titelFn(i):''}">
       ${info?`<div class="dv-tip"><b>${info.titel}</b><span>brutto ${info.brutto}</span><span>netto ${info.netto}</span></div>`:''}
-      <div class="dv-val">${v>0?fmt(v):''}</div>
-      <div class="dv-bar-wrap"><div class="dv-bar${v>0?'':' leer'}" style="height:${h}%"></div></div>
+      <div class="dv-sp"></div>
+      <div class="dv-bar-wrap"><div class="dv-stack" style="height:${v>0?h+'%':'3px'}">${v>0?`<span class="dv-val">${fmt(v)}</span>`:''}<div class="dv-bar${v>0?'':' leer'}"></div></div></div>
       <div class="dv-lbl">${svgEsc(labels[i]||'')}</div>
     </div>`;
   }).join('');
-  // Balkenflaeche = Plot-Hoehe minus 16 px (Wertzeile) und 18 px (Monatszeile) = genau --dv-h
+  // Balkenflaeche = Plot-Hoehe minus 16 px (Platzhalter fuer die Zahl ueber dem hoechsten Balken) und 18 px (Monatszeile) = genau --dv-h. Die Zahl steht seit 3.59 direkt am Balkenende.
   const gitter=teile.map(t=>`<div class="dv-gl" style="bottom:calc(18px + ${t} * var(--dv-h))"><span>${fmt(obergrenze*t)}</span></div>`).join('');
   return`<div class="dv-chart" style="--dv-h:${o.hoehe}px">
     <div class="dv-plot">${gitter}<div class="dv-cols">${spalten}</div></div>
