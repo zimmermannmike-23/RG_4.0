@@ -693,8 +693,9 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.59';
+const APP_VERSION='3.60';
 const APP_CHANGELOG=[
+  {v:'3.60',d:'2026-10-07',t:'Dividendenprognose 2027-2041 eingetragen. Grundlage: Ausschuettung der letzten 12 Monate je Anteil laut justETF (Stand 10/2026) und ein geglaettetes Wachstum p.a.: DXSA 3 · ISPA 2 · ZPRG 2 · VGWD 3 · XGSD 2 · TDIV/VDIV 3 · QYLE 0 %. Die Jahresbetraege stehen je Position in „Dividenden je Stueck" — nur in den Zahlmonaten (Zahltag, nicht Ex-Tag), verteilt nach dem Muster der 2026er Ausschuettungen. Fuer fortgeschriebene Jahre haben diese Felder jetzt Vorrang vor der automatischen Fortschreibung; nachgetragene Echtdaten haben weiterhin Vorrang vor allem. Einmalige Migration (strategyV 6), auch beim Backup-Import und bei Cloud-Daten.'},
   {v:'3.59',d:'2026-10-06',t:'Zwei Korrekturen: (1) Der Schalter zum Aktivieren/Deaktivieren einer Position blieb im Light Mode nach dem Ausschalten unsichtbar (weiss auf weiss) und ist jetzt in allen Themes sichtbar. (2) Dashboard, Monatliche Dividenden nach Zahltag: Die Zahlen stehen nicht mehr in einer Reihe ueber den Balken, sondern direkt am Ende des jeweiligen Balkens.'},
   {v:'3.58',d:'2026-10-04',t:'Prompt-Auswahl: Jahrespruefung Depot und Ausschuettungstermine holen haben jetzt eine aufklappbare Erklaerung (Wann, Wozu, Was mitgeschickt wird, Was zurueckkommt, Was danach zu tun ist, Warnhinweise). Besonders vermerkt: Das Einlesen der Ausschuettungsdaten ersetzt alle Eintraege des gewaehlten Jahres.'},
   {v:'3.57',d:'2026-10-04',t:'Jahrespruefung: Alternativen werden jetzt nach einem festen Kennzahlen-Katalog verglichen (29 Kennzahlen, darunter Auflage, NAV, TER, Ausschuettungsrendite, Monatscashflow mit staerkstem und schwaechstem Monat, Kurswert ohne Wiederanlage, kumulierte Ausschuettungen, Gesamtvermoegen, CAGR, Max. Drawdown, Holdings, Top 10, Laender, Sektoren, Overlap mit ISPA und dem uebrigen Depot, Cashflow-Quelle, Tracking Difference). Spielregeln machen die Zahlen vergleichbar: gemeinsamer Zeitraum ab Auflage des juengsten Fonds, EUR, ohne Wiederanlage, normiert auf 10.000 EUR Einmalanlage, Quelle und Stichtag je Zahl, n. v. statt Schaetzung. Der Bestands-ETF steht in jeder Tabelle mit drin. Der Kontrollprompt im Folgejahr prueft die Alternativen nach denselben Kernkennzahlen.'},
@@ -988,7 +989,55 @@ function fxKurs(w){
 // waechst also mit dem Anteilspreis). Grundlage sind gemessene Gesamtrenditen ab 2016 abzueglich
 // Ausschuettungsrendite und TER. QYLE liegt bei rund null: eine Optionspraemie kann je Anteil
 // nicht wachsen, historisch ist der Anteilspreis leicht ruecklaeufig.
-const WACHSTUM_STANDARD={DXSA:5.33,ISPA:4.33,ZPRG:2.43,VGWD:5.96,XGSD:3.77,TDIV:8.00,QYLE:0};
+// v3.60: ersetzt durch die geglaetteten Raten der Dividendenprognose vom 07.10.2026
+// (vorher aus ZC-K 15.09.2026: DXSA 5,33 · ISPA 4,33 · ZPRG 2,43 · VGWD 5,96 · XGSD 3,77 · TDIV 8,00).
+const WACHSTUM_STANDARD={DXSA:3,ISPA:2,ZPRG:2,VGWD:3,XGSD:2,TDIV:3,QYLE:0};
+
+// ===== DIVIDENDENPROGNOSE 2027-2041 (07.10.2026) =====
+// basis = Ausschuettung je Anteil der letzten 12 Monate in EUR (justETF, Stand 10/2026),
+// g = Wachstum p.a. in %. Jahr Y = basis x (1+g)^(Y-2026). Verteilt wird nur auf die Zahlmonate
+// (Zahltag, nicht Ex-Tag) und zwar im Verhaeltnis der 2026er Einzelausschuettungen aus den
+// Stammdaten — so bleibt z. B. das schwere September-Quartal bei DXSA erhalten.
+// Die Werte landen als EUR je Anteil in pos.divs und sind im ETF-Detail editierbar.
+const DIV_PROGNOSE_STAND='2026-10-07';
+const DIV_PROGNOSE={
+  'LU0292095535':{basis:1.33,g:3},   // DXSA
+  'DE000A0F5UH1':{basis:1.52,g:2},   // ISPA
+  'IE00B9CQXS71':{basis:1.34,g:2},   // ZPRG (EUR, zum heutigen Wechselkurs)
+  'IE00B8GKDB10':{basis:2.03,g:3},   // VGWD
+  'LU0292096186':{basis:1.53,g:2},   // XGSD
+  'NL0011683594':{basis:1.69,g:3},   // TDIV / VDIV
+  'IE00BM8R0J59':{basis:1.42,g:0}    // QYLE
+};
+function prognoseDivsJahr(isin,jahr){
+  const p=DIV_PROGNOSE[isin];const st=ISIN_TICKER[isin];
+  const arr=Array(12).fill(0);
+  if(!p||!st)return arr;
+  const muster=Array(12).fill(0);
+  (AUSSCHUETTUNGEN_2026[st]?.items||[]).forEach(x=>{muster[+x.pay.slice(5,7)-1]+=x.betrag;});
+  const summe=muster.reduce((a,b)=>a+b,0);
+  if(summe<=0)return arr;
+  const jahresBetrag=p.basis*Math.pow(1+p.g/100,jahr-2026);
+  return muster.map(w=>Math.round(jahresBetrag*w/summe*10000)/10000);
+}
+// Einmalige Uebernahme in alle Positionen dieser ETF (alle Depots). Laeuft nur bis strategyV 6,
+// spaetere Aenderungen in den Feldern bleiben also erhalten.
+function migriereDivPrognose(st){
+  st=st||state;
+  if(!st||!Array.isArray(st.portfolios)||(st.strategyV||1)>=6)return 0;
+  let n=0;
+  st.portfolios.forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    const isin=(pos.isin||'').trim().toUpperCase();
+    const p=DIV_PROGNOSE[isin];if(!p)return;
+    if(!pos.divs)pos.divs={};
+    for(let j=2027;j<=PROGNOSE_BIS;j++)pos.divs[j]=prognoseDivsJahr(isin,j);
+    pos.divWachstum=p.g;
+    n++;
+  }));
+  st.strategyV=6;
+  console.log('✓ Migration v6: Dividendenprognose 2027-'+PROGNOSE_BIS+' in '+n+' Positionen eingetragen');
+  return n;
+}
 function divWachstum(pos){
   return pos.divWachstum!==undefined&&pos.divWachstum!==null
     ? pos.divWachstum
@@ -1042,6 +1091,10 @@ function divJeAnteil(pos,jahr,mIdx){
   const roh=items.reduce((a,x)=>a+x.betrag,0)*fx;
   const fortgeschrieben=items.every(x=>x.status==='fortgeschrieben');
   if(!fortgeschrieben)return roh;
+  // v3.60: Sind fuer dieses Jahr Werte in „Dividenden je Stueck" gepflegt (Prognose 2027-2041),
+  // gelten diese — in EUR je Anteil, Wachstum und Waehrung sind darin bereits enthalten.
+  const gepflegt=(pos.divs||{})[jahr];
+  if(Array.isArray(gepflegt)&&gepflegt.some(v=>v>0))return gepflegt[mIdx]||0;
   return roh*Math.pow(1+divWachstum(pos)/100,jahr-2026);
 }
 // Netto nach Abgeltungsteuer und Teilfreistellung
@@ -1491,6 +1544,7 @@ if(!state.strategyV||state.strategyV<5){
   }));
   state.strategyV=5;
 }
+if(migriereDivPrognose(state))saveState();
 
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
@@ -4943,6 +4997,7 @@ document.getElementById('json-file').addEventListener('change',function(e){
           if(pf.sparAmount===undefined)pf.sparAmount=0;
           if(pf.enabled===undefined)pf.enabled=true;
         });
+        migriereDivPrognose(state);
         state.view='list';saveState();render();showToast('Import erfolgreich (Web-Format)!');return;
       }
       // Natives RebalGold-Format (entries + __avd_data)
@@ -5049,7 +5104,7 @@ render();
 
 // ===== BRÜCKE für Cloud-Sync-Modul =====
 window.__getState=()=>state;
-window.__setState=(newState)=>{state=newState;};
+window.__setState=(newState)=>{state=newState;migriereDivPrognose(state);};
 window.render=render;
 
 // ===== UPDATE-CHECK =====
