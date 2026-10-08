@@ -990,8 +990,9 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.63';
+const APP_VERSION='3.64';
 const APP_CHANGELOG=[
+  {v:'3.64',d:'2026-10-08',t:'Datenqualitaet und Entnahme. (A1) Eine Prognosezahl: Ziele zeigen die Live-Prognose, die Bestandsrechnung heisst „Ausschuettung aus heutigem Bestand“. (A2) Sparerpauschbetrag je Jahr, 2026 = 2.000 €, ab 2027 Standard. (A3) Teilfreistellung QYLE und XYLU einheitlich 30 % (justETF), umschaltbar. (A4) Ueberschriften in normaler Schreibweise. (B1) Gemessene Wertentwicklung je Monat mit Modified-Dietz-Rendite. (B2) Kurse zum 1. Januar gespeichert/eintragbar, Vorabpauschale nach Gesetz inkl. Zwoelftelung. (B3) Import brutto oder netto, mit Empfehlung. (B4) Plausibilitaetspruefung vor dem Buchen und Kurssprung-Hinweis. (C1) Entnahmephase: Puffer, Kontoverlauf, rollierender 12-Monats-Schnitt. (D2) Tastatur auf dem Mac, Befehlssuche mit ⌘K. (D4) Selbsttest um zwoelf Pruefungen erweitert.'},
   {v:'3.63',d:'2026-10-08',t:'Design und Werkzeuge. (D1) Zimmermann-Capital-Design in Navy/Gold, hell und dunkel; „Automatisch“ folgt iPhone und Mac. Die sieben alten Themes bleiben vorerst waehlbar. (D2) Dashboard beginnt mit Heute, Ziel (Prognose gegen 1.345,87 € real, Luecke als Sparrate) und naechster Aktion. (D3) Ab 1024 px Seitenleiste statt Tab-Balken, breiteres Raster, zweispaltige Abschnitte; Tippflaechen 44 px auf Touch, Safe-Area fuer Notch. (D4) Ein Diagrammsystem: Achsen als Text statt verzerrter SVG-Schrift, Werte beim Antippen/Ueberfahren, Soll gestrichelt. (D5) Kontraste WCAG AA, Mindestschrift, Ampel mit Symbol. (D6) Suche in den Einstellungen. (F1) Monatsroutine in fuenf Schritten. (F2) Kaufliste Buy-Only auf ganze Euro. (F3) Dividenden-Kalender Ist gegen Erwartung mit 10-%-Markierung. (F4) Stresstest: Kurseinbruch, Dividendenkuerzung, Sparpause. (F5) Vierteljaehrliche Warnung bei mehr als 5 % unter Soll. (F6) Steueruebersicht je Jahr, als PDF druckbar. (F7) Konsolidierungsplan 2027 mit Rueckgaengig. (T1) Offline ueber sw.js. (T2) Hinweis „Neu in dieser Version“. (T3) Stammdaten JEQP, JGPI, SDIV, XYLU, USDV (Termine 2026, Teilfreistellung 30 %, Prognosebasis justETF). QYLE-Basis 1,42 € (justETF) bestaetigt.'},
   {v:'3.62',d:'2026-10-08',t:'Zwoelf Verbesserungen. (1) Backup-Import uebernimmt jetzt alle Felder (vorher gingen u. a. Erfassungsbeginn, nachgetragene Ausschuettungsdaten, Wechselkurs und Jahrespruefungen verloren) und laeuft durch dieselben Migrationen wie das Laden. (2) Prognose 2027-2041 wird aus Basis 12M und Wachstum gerechnet; aendert sich eines davon, rechnen die Jahre neu. Von Hand geaenderte Jahre werden markiert und bleiben stehen; Aenderungen gelten fuer alle Spiegel derselben ISIN. (3) Live-Prognose im Ziele-Bereich mit Reglern fuer Sparrate, Sparende, Wachstum, Wiederanlage und US-Dollar. (4) Ziel-Luecke: noetige Sparrate, Wiederanlage oder Wachstum fuer das Ziel. (5) Rendite p. a. als XIRR aus Kaeufen und erhaltenen Ausschuettungen; die Szenario-Einordnung nutzt sie, sobald ein Jahr Historie vorliegt. (6) Bestand je ISIN mit Spiegel-Abgleich. (7) Stammdaten-Pruefung meldet fehlende Termine, ungeklaerte Teilfreistellung und abweichende 12M-Basis. (8) Kursdatum je ISIN, Hinweis bei Kursen aelter als 7 Tage. (9) Steuer-Annahmen: Pauschbetrag und Vorabpauschale (Basiszins 2026: 3,20 %). (10) Verrechnungskonto nach Sparende: noetiger Puffer und tiefster Stand. (11) Selbsttest in den Einstellungen. (12) Kurs-CAGR je ETF getrennt vom Dividendenwachstum einstellbar.'},
   {v:'3.61',d:'2026-10-07',t:'Zwei Aenderungen. (1) ZC-K-Soll neu gerechnet (Bericht 07.10.2026): Start mit dem tatsaechlichen Bestand des DIV ETF Depot vom 07.10.2026 und Kursen aus justETF (12M-Ausschuettung / aktuelle Rendite), Ausschuettung je Anteil aus der Dividendenprognose 3.60, Kurs-CAGR im Basisfall gleich dem Dividendenwachstum (konstante Ausschuettungsrendite). Raten: 2 x 600 EUR (11-12/2026), danach 177 x 1.430 EUR bis 09/2041, Kauf am 3., Buy-Only auf die Zielgewichte, Ex-Tag entscheidet, Zahltag bestimmt den Monat. Steuer voll ab 2027 (Pauschbetrag ausgeschoepft), Teilfreistellung 30 %, QYLE 0 %. Vier Szenarien: Basis, Vorsichtig -1,5 pp, Historisch (alte ZC-K-Raten), Optimistisch +1,5 pp; Szenario W mit Wiederanlage. Die Szenario-Einordnung nimmt jetzt das Szenario mit der naechstliegenden gewichteten Gesamtrendite. (2) JSON-Export: statt eines stillen Teilen-Versuchs oeffnet sich ein Dialog mit „Datei speichern" (Mac/PC: Speichern-Dialog bzw. Downloads), „Teilen / In Dateien sichern" (iPhone/iPad), „Kopieren" und einer Textansicht als Rueckfallebene. Vorher landete der Export auf dem Mac im Teilen-Menue ohne Speicheroption, und der Download-Link wurde nach 2 s widerrufen, bevor Safari speichern konnte.'},
@@ -1418,7 +1419,8 @@ function divWachstum(pos){
 // Einstufung nicht selbstverstaendlich — Standard 0 %, im ETF-Detail aenderbar.
 // Der Sparerpauschbetrag gilt laut Vorgabe ab 2027 als voll ausgeschoepft.
 const STEUERSATZ=0.26375;
-const TFS_STANDARD={DXSA:30,ISPA:30,ZPRG:30,VGWD:30,XGSD:30,TDIV:30,QYLE:0,
+const TFS_STANDARD={DXSA:30,ISPA:30,ZPRG:30,VGWD:30,XGSD:30,TDIV:30,QYLE:30,   // v3.64: QYLE wie justETF 30 % (vorher vorsorglich 0 %)
+
   // v3.63: Aktienfonds laut Prospekt (JPM) bzw. justETF-Steuerstatus
   JEQP:30,JGPI:30,SDIV:30,XYLU:30,USDV:30};
 function teilfreistellung(pos){
@@ -1818,7 +1820,7 @@ function saveState(){
 // v3.62: eine Feldliste fuer Laden UND Backup-Import — vorher uebernahm der Import nur sechs Felder.
 const STATE_KEYS=['tab','view','subIdx','posIdx','divCalYear','divSelMonth','jeEtfOffen','hbOffen','jahresCheckQuittiert','datenCheckQuittiert','ausschuettungen','erhalteneDivs','fx','trackingStart','currentTheme','theme','jahresPruefungen','fondsDetails','uiClean','cleanOffen','selectedSparIdx',
                   'sparrate','portfolios','strategyV','steuer','kursDatum','prog',
-                  'themeAuto','designV8','routine','kaufErledigt','kauflistePf','hmQuittiert','stress','alarmQuittiert','steuerJahr','kons','gesehenVersion','wertHistorie'];
+                  'themeAuto','designV8','routine','kaufErledigt','kauflistePf','hmQuittiert','stress','alarmQuittiert','steuerJahr','kons','gesehenVersion','wertHistorie','verlaufM','kursJan','importArt','kursQuittiert'];
 function loadState(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
@@ -1924,6 +1926,7 @@ if(!state.strategyV||state.strategyV<5){
 if(migriereDivPrognose(state))saveState();
 if(migriereV7(state))saveState();
 {const v8=(state.strategyV||1)<8;migriereV8(state);if(v8){saveState();applyTheme(state.currentTheme);}}
+if(migriereV9(state))saveState();
 
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
@@ -2244,7 +2247,8 @@ function prognoseBlock(){
   const netto=jahre.map(j=>zDivJahrNetto(j));
   const wachstum=summe[0]>0?(Math.pow(summe[summe.length-1]/summe[0],1/(jahre.length-1))-1)*100:0;
   return`<div class="card card-c">
-    <div class="ctitle">AUSSCHÜTTUNGSPROGNOSE ${vonJ}–${bisJ}</div>
+    <div class="ctitle">AUSSCHÜTTUNG AUS HEUTIGEM BESTAND ${vonJ}–${bisJ}</div>
+    <p class="hint" style="margin:-4px 0 8px">Nur die heute gehaltenen Anteile, ohne künftige Sparraten. Die Zielprognose mit Sparplan steht im Dashboard unter „Ziel“.</p>
     ${svgGestapelt(serien,jahre.map(j=>String(j).slice(2)),{h:180})}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
       <div class="kz-tile"><div class="kz-lbl">${vonJ} brutto</div><div class="kz-val">${EUR0(summe[0])}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">netto ${EUR0(netto[0])} · ${EUR0(netto[0]/12)}/Mon</div></div>
@@ -2633,9 +2637,11 @@ function screenDashboardClean(){
     ${heuteZielAktionBlock()}
     ${hb.length>1?handlungsbedarfBlock():''}
     <div class="zc-cols">
-    ${pf?cleanSektion('ziele','Ziele '+(SOLL?SOLL.zielJahr:''),PCT(fort),()=>zielKopf):''}
+    ${pf?cleanSektion('ziele','Ziele '+(SOLL?SOLL.zielJahr:''),(()=>{const p=progParam();const a=zcAuswertung(zcSimulation(p));return a?'Prognose '+EUR0(a.monNetto)+' · '+zcZahl(a.monNetto/zcZielWert(p)*100,0)+' %':PCT(fort);})(),()=>zielKopf):''}
     ${pf?cleanSektion('div','Dividenden '+state.divCalYear,EUR0(nettoMon)+' netto/Mon',()=>monatlicheDividendenBlock()+dividendeJeEtfBlock()):''}
-    ${pf?cleanSektion('prog','Prognose bis '+progJ,EUR0(zDivJahrNetto(progJ)/12)+'/Mon',()=>prognoseBlock()):''}
+    ${pf?cleanSektion('wert','Wertentwicklung (gemessen)',(()=>{const z=wertentwicklung();const l=z[z.length-1];return l&&l.kum!=null?(l.kum>=0?'+':'−')+zcZahl(Math.abs(l.kum*100),2)+' %':'seit '+(z[0]?MON[+z[0].k.slice(5,7)-1]+' '+z[0].k.slice(0,4):'heute');})(),()=>`<div class="card">${wertentwicklungInhalt()}</div>`):''}
+    ${pf?cleanSektion('entnahme','Entnahmephase ab '+(()=>{const p=progParam();const[y,m]=p.sparEnde.split('-').map(Number);return MON[m%12]+' '+(m===12?y+1:y);})(),'Puffer '+(()=>{try{const e=entnahmeDaten();return e?EUR0(e.empf):'—';}catch(x){return'—';}})(),()=>`<div class="card">${entnahmeInhalt()}</div>`):''}
+    ${pf?cleanSektion('prog','Ausschüttung aus heutigem Bestand',EUR0(zDivJahrNetto(progJ)/12)+'/Mon '+progJ,()=>prognoseBlock()):''}
     ${pf&&verlauf?cleanSektion('verlauf','Vermögensverlauf',vGew!==null?(vGew>=0?'+':'')+PCT(vGew):'',()=>vermoegensVerlaufBlock()):''}
     ${pf?cleanSektion('kennz','Depot-Kennzahlen','',()=>depotKennzahlenBlock()):''}
     ${cleanSektion('income','Income-Ziele','',()=>zielpfadCard()+incomeKapitalCard())}
@@ -3579,6 +3585,7 @@ function importKaeufe(){
   let neu=0,uebersprungen=0,unbekannt=[],verkaeufe=0,betroffen=[];
   let vorBeginn=0;
   r.forEach(x=>{
+    if(_plausiSkip.has(plausiKey(x)))return;
     if(x.typ==='verkauf'){verkaeufe++;return;}
     // Kaeufe vor dem Erfassungsbeginn stecken bereits im Anfangsbestand — sie duerfen hier
     // nicht zusaetzlich eingebucht werden, sonst waechst der Bestand doppelt.
@@ -3662,12 +3669,14 @@ function csvUebersicht(){
          portfolios,unbekannt:unbek,spiegel:spiegelIsins};
 }
 // Ein Knopf fuer den Monatsablauf: neue Kaeufe ergaenzen und Ausschuettungen uebernehmen
-function csvAktualisieren(){
+function csvAktualisieren(){return plausiTor(CSV_INHALT,csvAktualisierenRoh);}
+function csvAktualisierenRoh(){
   if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
   const merk=gsQuelle;gsQuelle=CSV_INHALT;
   try{importKaeufe();importDividenden();const k=syncIsinKurse();if(k)showToast(`${k} abweichende Kurse gespiegelter Positionen angeglichen`);}finally{gsQuelle=merk;}
 }
-function csvNeuAufbauen(){
+function csvNeuAufbauen(){return plausiTor(CSV_INHALT,csvNeuAufbauenRoh);}
+function csvNeuAufbauenRoh(){
   if(!CSV_INHALT){showToast('Erst eine CSV-Datei auswählen');return;}
   const merk=gsQuelle;gsQuelle=CSV_INHALT;
   try{importVollhistorie();importDividenden();syncIsinKurse();}finally{gsQuelle=merk;}
@@ -3747,7 +3756,8 @@ function importBestaende(saetze){
   });
   return n;
 }
-function manuellUebernehmen(){
+function manuellUebernehmen(){return plausiTor(gs('imp_text'),manuellUebernehmenRoh);}
+function manuellUebernehmenRoh(){
   const t=gs('imp_text');
   const r=parseImportText(t);
   if(r.fehler){showToast(r.fehler);return;}
@@ -3773,6 +3783,7 @@ function importDividenden(){
   if(!state.erhalteneDivs)state.erhalteneDivs={};
   let n=0,unbekannt=[];
   r.forEach(x=>{
+    if(_plausiSkip.has(plausiKey(x)))return;
     if(!ISIN_TICKER[x.isin]){if(!unbekannt.includes(x.isin))unbekannt.push(x.isin);return;}
     if(!(x.a>0))return;
     const jahr=+x.datum.slice(0,4);
@@ -3780,8 +3791,8 @@ function importDividenden(){
     if(!state.erhalteneDivs[jahr][x.isin])state.erhalteneDivs[jahr][x.isin]=[];
     const liste=state.erhalteneDivs[jahr][x.isin];
     const vorhanden=liste.find(e=>e.pay===x.datum);
-    if(vorhanden){vorhanden.betrag=x.a;vorhanden.steuer=x.steuer||0;}
-    else liste.push({pay:x.datum,betrag:x.a,steuer:x.steuer||0});
+    if(vorhanden){vorhanden.betrag=x.a;vorhanden.steuer=x.steuer||0;vorhanden.art=importArt();}
+    else liste.push({pay:x.datum,betrag:x.a,steuer:x.steuer||0,art:importArt()});
     n++;
   });
   render();zeigeDivAbgleich();
@@ -3799,7 +3810,7 @@ function divAbgleich(jahr){
     if(!gesehen[isin]){
       let soll=0;for(let i=0;i<12;i++)soll+=posDivMonat(pos,j,i);
       const liste=erh[isin]||[];
-      const ist=liste.reduce((a,e)=>a+e.betrag,0);
+      const ist=liste.reduce((a,e)=>a+divBrutto(e,isin),0);
       gesehen[isin]={ticker:pos.ticker||pos.name,isin,ist,soll,anzahl:liste.length,
                      portfolios:[pf.name],abw:soll>0?(ist/soll-1)*100:null};
     }else if(!gesehen[isin].portfolios.includes(pf.name))gesehen[isin].portfolios.push(pf.name);
@@ -4917,7 +4928,7 @@ function screenSettings(){
   // Neues Design: zwölf gleichrangige Eintraege in drei Gruppen ordnen (IDs bleiben stabil)
   const GRUPPEN=[
     ['Monatlich',        ['Monatsroutine & Werkzeuge']],
-    ['Datenmanagement',  ['Export / Import','CSV-Import','Kurse','Datenprüfung','Bestand je ISIN','Selbsttest']],
+    ['Datenmanagement',  ['Export / Import','CSV-Import','Ausschüttungen: Brutto oder Netto','Kurse','Datenprüfung','Bestand je ISIN','Selbsttest']],
     ['Planung & Analyse',['Jahresprüfungs-Archiv','Persönlicher Check','Buy Only','Teil-Portfolios Übersicht','Steuer-Annahmen']],
     ['App-Design',       ['Design / Vorlagen']],
     ['System',           ['Cloud-Sync','Offline & Version','Wissensdatenbank','Sonstiges']]
@@ -5303,7 +5314,7 @@ function importiereStateObjekt(raw){
   state=defaultState();
   uebernimmGespeichert(sauber);
   initLose();syncAlleLose();
-  migriereDivPrognose(state);migriereV7(state);migriereV8(state);applyTheme(state.currentTheme);
+  migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);applyTheme(state.currentTheme);
   saveState();
   return Object.keys(sauber).length;
 }
@@ -5534,9 +5545,13 @@ function steuerSetze(k,v){
 }
 function steuerBody(){
   const s=steuerParam();
-  return`<p class="hint" style="margin-bottom:10px">Gilt für die Live-Prognose im Ziele-Bereich. Dashboard und Dividendenkalender rechnen netto weiter mit 26,375 % auf den nicht teilfreigestellten Teil, ohne Pauschbetrag.</p>
-    <div class="field"><label>Sparerpauschbetrag für dieses Depot €/Jahr</label><input type="text" inputmode="decimal" value="${s.pauschbetrag}" onchange="steuerSetze('pauschbetrag',this.value)"/></div>
-    <p class="hint">0 = schon durch andere Erträge ausgeschöpft (bisherige Annahme). 2.000 € = gemeinsam veranlagt und nur für dieses Depot genutzt.</p>
+  return`<p class="hint" style="margin-bottom:10px">Gilt für die Live-Prognose und die Steuerübersicht. Dashboard und Dividendenkalender rechnen netto weiter mit 26,375 % auf den nicht teilfreigestellten Teil, ohne Pauschbetrag.</p>
+    <div class="field"><label>Sparerpauschbetrag Standard €/Jahr</label><input type="text" inputmode="decimal" value="${s.pauschbetrag}" onchange="steuerSetze('pauschbetrag',this.value)"/></div>
+    ${[HEUTE_J,HEUTE_J+1,HEUTE_J+2].map(y=>`<div class="field"><label>davon abweichend ${y} €</label><input type="text" inputmode="decimal" value="${(s.pauschJahr||{})[y]!=null?(s.pauschJahr||{})[y]:''}" placeholder="Standard (${s.pauschbetrag})" onchange="setzePauschJahr(${y},this.value)"/></div>`).join('')}
+    <p class="hint">0 = schon durch andere Erträge ausgeschöpft. 2.000 € = gemeinsam veranlagt und nur für dieses Depot genutzt. Leere Jahresfelder nutzen den Standard; voreingestellt ist 2.000 € für 2026, ab 2027 der Standard 0 €.</p>
+    <div class="ctitle" style="margin-top:12px">Teilfreistellung Covered Call (QYLE, XYLU)</div>
+    <div class="ui-schalter"><button class="${coveredCallTfs()===30?'on':''}" onclick="setzeCoveredTfs(30)">30 % · Aktienfonds (justETF)</button><button class="${coveredCallTfs()===0?'on':''}" onclick="setzeCoveredTfs(0)">0 % · vorsichtig</button></div>
+    <div class="btnrow"><button class="btn btn-c" onclick="zeigeJanuarkurse(HEUTE_J)">Kurse am 1. Januar ${HEUTE_J}</button></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:10px 0">
       <input type="checkbox" ${s.vorab?'checked':''} onchange="steuerSetze('vorab',this.checked)"/> Vorabpauschale berücksichtigen</label>
     <div class="field"><label>Basiszins % (2026: 3,20 %)</label><input type="text" inputmode="decimal" value="${s.basiszins}" onchange="steuerSetze('basiszins',this.value)"/></div>
@@ -5670,7 +5685,7 @@ function zcSimulation(o){
     for(let i=0;i<n;i++)divJahr[i]+=dps[i];
     const bSum=brutto.reduce((a,b)=>a+b,0);
     const basis=brutto.reduce((a,b,i)=>a+b*pflichtig[i],0)+vpBasis;
-    const pb=stP.pauschbetrag||0;
+    const pb=pauschbetragJahr(y);
     const vor=Math.max(0,jahrBasis-pb);jahrBasis+=basis;const nach=Math.max(0,jahrBasis-pb);
     const steuer=STEUERSATZ*(nach-vor);steuerSum+=steuer;
     const netto=bSum-steuer;
@@ -5884,6 +5899,7 @@ function selbsttest(){
   });
   sicher('Spiegel je ISIN identisch',()=>{const f=bestandJeIsin().filter(x=>x.abw.length);return{ok:!f.length,info:f.length?f.map(x=>x.ticker).join(', '):'ok'};});
   sicher('Backup-Export erzeugbar',()=>{const{json}=exportDaten();JSON.parse(json);return{ok:true,info:Math.round(json.length/1024)+' KB'};});
+  selbsttestV364(add,sicher);
   const nachher=JSON.stringify(state);
   add('Test hat keine Daten verändert',nachher===snapshot,nachher===snapshot?'':'Achtung: Zustand geändert');
   _selbsttest={datum:new Date(),erg};
@@ -6071,11 +6087,6 @@ if(typeof document!=='undefined'){
 }
 
 // ---------- Dashboard: Heute · Ziel · Naechste Aktion ----------
-function zcWertSnapshot(wert){
-  if(!(wert>0))return;
-  state.wertHistorie=state.wertHistorie||{};
-  state.wertHistorie[zcMonKey()]=Math.round(wert*100)/100;
-}
 function zcVormonat(){
   const h=state.wertHistorie||{},k=zcMonKey();
   const vor=Object.keys(h).filter(x=>x<k).sort();
@@ -6148,6 +6159,7 @@ function heuteZielAktionBlock(){
       <div class="zeile"><span>Netto-Ausschüttung ${MNF[new Date().getMonth()]}</span><b>${zcEur(divMon,2)}</b></div>
       <div class="zeile"><span>Nächste Zahlung</span><b>${nz?`${zcEsc(nz.ticker)} · ${zcDatum(nz.pay).slice(0,6)} · ${zcEur(nz.betrag,2)}`:'—'}</b></div>
       <div class="zeile"><span>Alle Depots</span><b>${zcEur(gesamt)}</b></div>
+      <div class="zeile" style="cursor:pointer" onclick="zeigeWertentwicklung()"><span>Wertentwicklung gemessen</span><b>${(()=>{const z=wertentwicklung();const l=z[z.length-1];return l&&l.kum!=null?(l.kum>=0?'+':'−')+zcZahl(Math.abs(l.kum*100),2)+' % ›':'ab '+(z[0]?MON[+z[0].k.slice(5,7)-1]:'heute')+' ›';})()}</b></div>
       ${verlauf&&verlauf.wert.length>2?`<div class="zc-spark">${zcChart([{name:'Wert',werte:verlauf.wert,farbe:N.cyan,gestrichelt:false}],verlauf.labels,{h:70,achse:false,legende:false})}</div>`:''}
     </section>
     <section class="zc-k" aria-label="Ziel">
@@ -6167,7 +6179,7 @@ function heuteZielAktionBlock(){
       </div>
       ${abwSoll!=null?`<div class="zeile" style="margin-top:10px"><span>Depot gegen Soll-Pfad</span><b class="${abwSoll>=0?'zc-plus':'zc-minus'}">${abwSoll>=0?'+':'−'}${zcZahl(Math.abs(abwSoll),1)} %</b></div>`:''}
       ${lu?`<div class="zc-luecke">${lu.nichtErreichbar?'Die Lücke lässt sich allein über die Sparrate nicht schließen (über '+zcEur(lu.max)+').':`Lücke schließen: Sparrate <b>${zcEur(lu.wert)}</b> statt ${zcEur(p.sparrate)} im Monat.`}</div>`:''}
-      <div class="zc-knopfzeile"><button class="hb-btn" onclick="zeigeStresstest()">Stresstest</button><button class="hb-btn leise" onclick="zcZuAnnahmen()">Annahmen</button></div>
+      <div class="zc-knopfzeile"><button class="hb-btn" onclick="zeigeStresstest()">Stresstest</button><button class="hb-btn" onclick="zeigeEntnahme()">Entnahme</button><button class="hb-btn leise" onclick="zcZuAnnahmen()">Annahmen</button></div>
     </section>
     <section class="zc-k zc-aktion" aria-label="Nächste Aktion">
       <h2>Nächste Aktion</h2>
@@ -6216,7 +6228,7 @@ async function routineKurse(){
   try{await autoFetchAllPrices();}catch(e){}
   routineHaken('kurse');render();
 }
-function routineImport(){csvAktualisieren();routineHaken('import');}
+function routineImport(){if(csvAktualisieren()!=='wartet')routineHaken('import');}
 async function routineBackup(){try{await doExport();}catch(e){}routineHaken('backup');}
 function zeigeRoutine(){
   const st=routineStatus(),r=routineMonat();
@@ -6256,12 +6268,12 @@ function kaufliste(pfArg){
   ganz.slice().sort((a,b)=>b.r-a.r).forEach(x=>{if(rest>0){x.b++;rest--;}});
   const orders=ganz.filter(x=>x.b>0).map(({o,b})=>({isin:(o.isin||'').trim().toUpperCase(),ticker:o.ticker||'',name:o.name||'',betrag:b,kurs:o.kurs||0,stueck:o.kurs>0?b/o.kurs:0,ist:o.ist,ziel:o.effTgt}))
     .sort((a,b)=>b.betrag-a.betrag);
-  state.kaufErledigt=state.kaufErledigt||{};
   const key=zcMonKey()+'|'+pf.name;
-  return{pf,sp,orders,erledigt:state.kaufErledigt[key]||{},key};
+  return{pf,sp,orders,erledigt:(state.kaufErledigt||{})[key]||{},key};
 }
 function kaufHaken(isin,an){
   const kl=kaufliste();if(!kl)return;
+  state.kaufErledigt=state.kaufErledigt||{};
   state.kaufErledigt[kl.key]=state.kaufErledigt[kl.key]||{};
   if(an)state.kaufErledigt[kl.key][isin]=heuteISO();else delete state.kaufErledigt[kl.key][isin];
   saveState();zeigeKaufliste();
@@ -6306,7 +6318,7 @@ function heatmapDaten(jahr){
     const zellen=[];let sSoll=0,sIst=0;
     for(let m=0;m<12;m++){
       const soll=posDivMonat(pos,j,m);
-      const ist=liste.filter(e=>+String(e.pay).slice(5,7)===m+1).reduce((a,e)=>a+(e.betrag||0),0);
+      const ist=liste.filter(e=>+String(e.pay).slice(5,7)===m+1).reduce((a,e)=>a+divBrutto(e,isin),0);
       sSoll+=soll;sIst+=ist;
       const vergangen=j<hJ||(j===hJ&&m<hM),laufend=j===hJ&&m===hM;
       let st='leer',abw=null;
@@ -6349,7 +6361,8 @@ function zeigeHeatmap(jahr){
       <span><i style="background:var(--accent-bg);color:var(--cyan)">?</i>unerwartet</span>
       <span><i style="background:var(--bg2);color:var(--t3)">12</i>Plan</span></div>
     <p class="hint" id="hm-info" style="min-height:20px">Feld antippen für Details.</p>
-    <p class="hint">Erhaltene Beträge kommen aus dem Trade-Republic-Import. Enthält der Export Nettobeträge, liegt das Ist systematisch rund 18–26 % unter der Erwartung — dann bitte im Import den Bruttobetrag verwenden.</p>
+    <p class="hint">Erhaltene Beträge kommen aus dem Trade-Republic-Import, verglichen wird brutto. Ob der Export brutto oder netto liefert, stellst du unten ein.</p>
+    <div class="kein-druck">${importArtBody()}</div>
     <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal();render()">Schließen</button></div>`,true);
 }
 // Hinweise fuer „Naechste Aktion": deutliche Unterschreitungen der letzten drei Monate
@@ -6431,7 +6444,7 @@ function istSollPruefung(){
   if(row&&hM>0){
     const isins=new Set(zPos().map(p=>(p.isin||'').trim().toUpperCase()));
     const erh=(state.erhalteneDivs||{})[y]||{};
-    Object.entries(erh).forEach(([i,l])=>{if(isins.has(i))(l||[]).forEach(e=>{if(+String(e.pay).slice(5,7)<=hM)divIst+=e.betrag||0;});});
+    Object.entries(erh).forEach(([i,l])=>{if(isins.has(i))(l||[]).forEach(e=>{if(+String(e.pay).slice(5,7)<=hM)divIst+=divBrutto(e,i);});});
     for(let m=1;m<=hM;m++)divSoll+=row[m]||0;
     if(divSoll>0&&divIst>0)divAbw=(divIst/divSoll-1)*100;
   }
@@ -6452,6 +6465,7 @@ function istSollHinweise(){
 function zcZusatzHinweise(){
   const l=[];
   try{l.push(...istSollHinweise());}catch(e){}
+  try{l.push(...kurssprungHinweise());}catch(e){}
   try{heatmapHinweise().slice(0,3).forEach(h=>l.push({dringend:false,text:h.text,knopf:'Kalender',aktion:'zeigeHeatmap()',spaeter:`quittiereHeatmap('${h.k}')`}));}catch(e){}
   return l;
 }
@@ -6465,21 +6479,20 @@ function steuerJahr(jahr){
   uniquePositions().forEach(({pos})=>{
     const isin=(pos.isin||'').trim().toUpperCase();if(!isin)return;
     const liste=erh[isin]||[];
-    let ist=0,steuerIst=0;liste.forEach(e=>{ist+=e.betrag||0;steuerIst+=e.steuer||0;});
+    let ist=0,steuerIst=0;liste.forEach(e=>{ist+=divBrutto(e,isin);steuerIst+=e.steuer||0;});
     let soll=0,rest=0;
     for(let m=0;m<12;m++){const v=posDivMonat(pos,j,m);soll+=v;if(j>hJ||(j===hJ&&m>=hM))rest+=v;}
     const brutto=j<hJ?(liste.length?ist:soll):j===hJ?ist+rest:soll;
     if(brutto<0.005&&ist<0.005)return;
     const tfs=teilfreistellung(pos);
-    const wert=(pos.stueck||0)*(pos.kurs||0);
-    const basisErtrag=wert*(stP.basiszins||0)/100*0.7;
-    const vp=stP.vorab?Math.max(0,basisErtrag-brutto):0;
-    zeilen.push({ticker:stammTicker(pos)||pos.ticker||pos.name,isin,brutto,tfs,pflichtig:brutto*(1-tfs/100),vp,vpPflichtig:vp*(1-tfs/100),steuerIst,quelle:j<hJ?(liste.length?'Import':'Prognose'):j===hJ?(liste.length?'Import + Rest':'Prognose'):'Prognose'});
+    const vpr=stP.vorab?vpPosition(pos,j,stP.basiszins||0):{vp:0,exakt:true};
+    const vp=vpr.vp;
+    zeilen.push({exakt:vpr.exakt,ticker:stammTicker(pos)||pos.ticker||pos.name,isin,brutto,tfs,pflichtig:brutto*(1-tfs/100),vp,vpPflichtig:vp*(1-tfs/100),steuerIst,quelle:j<hJ?(liste.length?'Import':'Prognose'):j===hJ?(liste.length?'Import + Rest':'Prognose'):'Prognose'});
   });
   const s=k=>zeilen.reduce((a,z)=>a+z[k],0);
   const pflichtig=s('pflichtig')+s('vpPflichtig');
-  const pb=stP.pauschbetrag||0;
-  return{jahr:j,zeilen:zeilen.sort((a,b)=>b.brutto-a.brutto),brutto:s('brutto'),frei:s('brutto')-s('pflichtig'),pflichtig:s('pflichtig'),
+  const pb=pauschbetragJahr(j);
+  return{jahr:j,exakt:zeilen.every(z=>z.exakt),zeilen:zeilen.sort((a,b)=>b.brutto-a.brutto),brutto:s('brutto'),frei:s('brutto')-s('pflichtig'),pflichtig:s('pflichtig'),
     vp:s('vp'),vpPflichtig:s('vpPflichtig'),pausch:pb,steuer:STEUERSATZ*Math.max(0,pflichtig-pb),steuerIst:s('steuerIst'),basiszins:stP.basiszins};
 }
 function zeigeSteuer(jahr){
@@ -6498,11 +6511,12 @@ function zeigeSteuer(jahr){
       <tr><td>Ausschüttungen brutto</td><td>${zcEur(t.brutto,2)}</td></tr>
       <tr><td>davon steuerfrei (Teilfreistellung)</td><td>${zcEur(t.frei,2)}</td></tr>
       <tr><td>Vorabpauschale steuerpflichtig* (fällig Januar ${t.jahr+1})</td><td>${zcEur(t.vpPflichtig,2)}</td></tr>
-      <tr><td>Sparerpauschbetrag angesetzt</td><td>${zcEur(t.pausch,2)}</td></tr>
+      <tr><td>Sparerpauschbetrag genutzt (verfügbar ${zcEur(t.pausch)})</td><td>${zcEur(Math.min(t.pausch,t.pflichtig+t.vpPflichtig),2)}</td></tr>
       <tr class="summe"><td>Abgeltungsteuer + Soli (26,375 %)</td><td>${zcEur(t.steuer,2)}</td></tr>
       ${t.steuerIst>0?`<tr><td>laut Import einbehalten</td><td>${zcEur(t.steuerIst,2)}</td></tr>`:''}
     </tbody></table>
-    <p class="hint" style="margin-top:10px">* Vorabpauschale als Obergrenze: Basiszins ${zcZahl(t.basiszins,2)} % × 70 % auf den Kurswert, abzüglich Ausschüttung. Der Kurswert zum 1. Januar ist mit dem heutigen Kurs angenähert, eine Kursentwicklung unter dem Basisertrag senkt den Betrag. Schätzung zur Planung, kein Ersatz für die Jahressteuerbescheinigung. Pauschbetrag und Basiszins unter Einstellungen → Steuer-Annahmen.</p>
+    <p class="hint" style="margin-top:10px">* Vorabpauschale nach Gesetz: Kurs am 1. Januar × Basiszins ${zcZahl(t.basiszins,2)} % × 70 %, höchstens Wertzuwachs plus Ausschüttung, abzüglich Ausschüttung; im Jahr gekaufte Anteile je Monat vor dem Kauf um ein Zwölftel gekürzt. ${t.exakt?'Gerechnet mit gespeicherten Kursen zum Jahresanfang und Jahresende.':'<b>Für einige ETF fehlt der Kurs zum Jahresanfang oder -ende — dort gilt der heutige Kurs als Näherung.</b>'} Schätzung zur Planung, kein Ersatz für die Jahressteuerbescheinigung.</p>
+    <div class="btnrow kein-druck"><button class="btn btn-c" style="flex:1" onclick="zeigeJanuarkurse(${t.jahr})">Kurse 1. Januar ${t.jahr}</button></div>
     <div class="btnrow kein-druck"><button class="btn btn-c" style="flex:1" onclick="zcDrucken()">Als PDF sichern</button>
       <button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>`,true);
 }
@@ -6516,9 +6530,9 @@ function zcDrucken(){
 
 // ---------- F7 · Konsolidierungsplan Januar 2027 ----------
 function konsState(){state.kons=Object.assign({behalten:{},eigner:{}},state.kons||{});return state.kons;}
-function konsBehalten(name){const k=konsState();return k.behalten[name]!==false;}
+function konsBehalten(name){const k=state.kons||{};return !(k.behalten&&k.behalten[name]===false);}
 function konsPlan(){
-  const k=konsState(),reg=isinRegister();
+  const k=Object.assign({behalten:{},eigner:{}},state.kons||{}),reg=isinRegister();
   const pfs=(state.portfolios||[]).filter(p=>p.enabled);
   const bleibend=pfs.filter(p=>konsBehalten(p.name));
   const spiegel=[],verkauf=[];
@@ -6602,7 +6616,15 @@ function konsRueckgaengig(){
 }
 
 // ---------- T2 · Neu in dieser Version ----------
-const NEU_IN={v:'3.63',punkte:[
+const NEU_IN={v:'3.64',punkte:[
+  'Eine Prognosezahl im Dashboard; Teilfreistellung QYLE und XYLU 30 %.',
+  'Sparerpauschbetrag je Jahr (2026: 2.000 €).',
+  'Wertentwicklung je Monat, gemessen ab Oktober 2026.',
+  'Vorabpauschale exakt mit Kursen zum 1. Januar.',
+  'Import prüft vor dem Buchen auf Ausreißer; Brutto/Netto einstellbar.',
+  'Entnahmephase mit Puffer und Kontoverlauf.',
+  'Mac: ⌘K sucht alles, 1–4 wechseln die Reiter, ? zeigt alle Kürzel.',
+  '— aus v3.63: —',
   'Neues Design in Navy und Gold, hell und dunkel. „Automatisch" folgt iPhone und Mac.',
   'Auf dem Mac: Seitenleiste statt Tab-Balken, breiteres Layout, zwei Spalten.',
   'Dashboard beginnt mit Heute, Ziel und nächster Aktion.',
@@ -6642,8 +6664,9 @@ const SET_STICHWORTE={
   'Steuer-Annahmen':'pauschbetrag basiszins vorabpauschale teilfreistellung',
   'Kurse':'preis yahoo abruf aktualisieren',
   'Cloud-Sync':'firebase synchronisieren konto anmelden',
-  'Monatsroutine & Werkzeuge':'kaufliste stresstest kalender heatmap steuer pdf konsolidierung',
-  'Offline & Version':'service worker offline changelog version neu'
+  'Monatsroutine & Werkzeuge':'kaufliste stresstest kalender heatmap steuer pdf konsolidierung wertentwicklung rendite entnahme puffer verrechnungskonto tastatur kuerzel',
+  'Offline & Version':'service worker offline changelog version neu',
+  'Ausschüttungen: Brutto oder Netto':'import netto brutto steuer export trade republic'
 };
 function settingsFilter(q){
   _setSuche=String(q||'');
@@ -6674,8 +6697,13 @@ function einstellungenV363(){
       <button class="btn btn-c" onclick="zeigeHeatmap()">Dividenden-Kalender</button>
       <button class="btn btn-c" onclick="zeigeStresstest()">Stresstest</button>
       <button class="btn btn-c" onclick="zeigeSteuer()">Steuerübersicht</button>
-      <button class="btn btn-c" onclick="zeigeKonsolidierung()">Konsolidierung 2027</button></div>
+      <button class="btn btn-c" onclick="zeigeKonsolidierung()">Konsolidierung 2027</button>
+      <button class="btn btn-c" onclick="zeigeWertentwicklung()">Wertentwicklung</button>
+      <button class="btn btn-c" onclick="zeigeEntnahme()">Entnahmephase</button>
+      <button class="btn btn-c" onclick="zeigePalette()">Suchen (⌘K)</button>
+      <button class="btn btn-c" onclick="zeigeKuerzel()">Tastaturkürzel</button></div>
       <p class="hint" style="margin-top:10px">Die Monatsroutine führt durch Kurse, Import, Kauf, Ausschüttungen und Backup. Erledigte Schritte werden je Monat gespeichert.</p>`},
+    {t:'Ausschüttungen: Brutto oder Netto',ic:'⚖',body:`${importArtBody()}`},
     {t:'Offline & Version',ic:'📶',body:`<div class="sum-row"><span>Version</span><b>v${APP_VERSION}</b></div>
       <div class="sum-row"><span>Offline-Modus</span><b>${zcEsc(_swStatus)}</b></div>
       <p class="hint" style="margin-top:6px">Offline arbeitet die App mit der zuletzt geladenen Fassung. Dafür muss <b>sw.js</b> neben der index.html auf GitHub Pages liegen.</p>
@@ -6684,6 +6712,19 @@ function einstellungenV363(){
 }
 
 // ---------- Migration v8: Stammdaten-Nachtrag und neues Design ----------
+function migriereV9(st){
+  st=st||state;
+  if(!st||!Array.isArray(st.portfolios)||(st.strategyV||1)>=9)return 0;
+  st.steuer=Object.assign({pauschbetrag:0,vorab:true,basiszins:3.20},st.steuer||{});
+  if(!st.steuer.pauschJahr)st.steuer.pauschJahr={2026:2000};
+  st.portfolios.forEach(pf=>(pf.positions||[]).forEach(q=>{
+    const i=(q.isin||'').trim().toUpperCase();
+    if(i==='IE00BM8R0J59'||i==='IE0002L5QB31')q.tfs=30;
+  }));
+  st.strategyV=9;
+  console.log('✓ Migration v9: Pauschbetrag 2026, Teilfreistellung Covered Call 30 %');
+  return 1;
+}
 function migriereV8(st){
   // Liste lokal: die Migration laeuft beim Start, bevor Konstanten weiter unten initialisiert sind
   const NEUE_STAMM_ISINS=['IE000U9J8HX9','IE0003UVYC20','IE00077FRP95','IE0002L5QB31','IE00B6YX5D40'];
@@ -6705,6 +6746,414 @@ function migriereV8(st){
   st.strategyV=8;
   console.log('✓ Migration v8: Stammdaten fuer '+n+' Positionen, ZC-Design aktiv');
   return n;
+}
+
+
+// ===== v3.64 · DATENQUALITAET, ENTNAHME, TASTATUR (Modul) =====
+
+// ---------- A2 · Sparerpauschbetrag je Jahr ----------
+function pauschbetragJahr(y){
+  const s=steuerParam();
+  const m=s.pauschJahr||{};
+  if(m[y]!==undefined&&m[y]!==null&&m[y]!=='')return +m[y]||0;
+  return s.pauschbetrag||0;
+}
+function setzePauschJahr(y,v){
+  const s=steuerParam();s.pauschJahr=s.pauschJahr||{};
+  const x=parseFloat(String(v).replace(/\./g,'').replace(',','.'));
+  if(String(v).trim()===''){delete s.pauschJahr[y];}else if(!isNaN(x)&&x>=0)s.pauschJahr[y]=x;
+  render();
+}
+
+// ---------- A3 · Teilfreistellung Covered Call einheitlich ----------
+const CC_ISINS=['IE00BM8R0J59','IE0002L5QB31'];   // QYLE, XYLU (Global X Covered Call)
+function coveredCallTfs(){
+  const p=(state.portfolios||[]).flatMap(pf=>pf.positions||[]).find(q=>CC_ISINS.includes((q.isin||'').trim().toUpperCase()));
+  return p?teilfreistellung(p):30;
+}
+function setzeCoveredTfs(v){
+  (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(q=>{if(CC_ISINS.includes((q.isin||'').trim().toUpperCase()))q.tfs=v;}));
+  render();showToast('Teilfreistellung QYLE und XYLU: '+v+' %');
+}
+
+// ---------- A4 · Ueberschriften im ZC-Design in normaler Schreibweise ----------
+const TITEL_KLEIN=new Set(['und','oder','je','nach','bis','vor','pro','mit','ohne','der','die','das','des','dem','den','im','in','zum','zur','aus','für','von','als','auf','über','unter','ab','an','am','bei','seit','alle','jeder','jede','einzelne','fällig','fehlt','zu','vs','gegen','laufendes','heutiger','kumulierter','monatliche','monatlichen','aktuelle','aktueller']);
+const TITEL_BEHALTEN=new Set(['ETF','ETFS','TER','USD','EUR','ISIN','XIRR','CAGR','ZC','ZC-K','TR','PDF','CSV','JSON','KPI','DIV','AVD','TFS','MSCI','ESG','S&P','II','III','A','B','C','D','W','UCITS','ID','KW']);
+function zcTitel(t){
+  const tickers=new Set(Object.values(ISIN_TICKER));
+  (state.portfolios||[]).forEach(pf=>(pf.positions||[]).forEach(p=>{if(p.ticker)tickers.add(String(p.ticker).toUpperCase());}));
+  let erstes=true;
+  return String(t).replace(/[A-Za-zÄÖÜäöüß&][A-Za-zÄÖÜäöüß&0-9.\-/]*/g,w=>{
+    const war=erstes;erstes=false;
+    if(/[a-zäöüß]/.test(w)||/[0-9.]/.test(w)||TITEL_BEHALTEN.has(w)||tickers.has(w))return w;
+    return w.split(/([\-/])/).map((teil,i)=>{
+      if(teil==='-'||teil==='/'||!teil)return teil;
+      if(TITEL_BEHALTEN.has(teil)||tickers.has(teil))return teil;
+      const k=teil.toLowerCase();
+      if(!war&&i===0&&TITEL_KLEIN.has(k))return k;
+      return k.charAt(0).toUpperCase()+k.slice(1);
+    }).join('');
+  });
+}
+function zcTitelKorrektur(root){
+  if(!root||!document.body.classList.contains('zc'))return;
+  const sel='.ctitle,.kz-lbl,.mini-lbl,.acc-t,[style*="font-weight:700"][style*="font-size:1"]';
+  root.querySelectorAll(sel).forEach(el=>{
+    el.childNodes.forEach(n=>{
+      if(n.nodeType!==3)return;
+      const t=n.nodeValue;
+      if(!/[A-ZÄÖÜ]{4,}/.test(t))return;
+      // nur echte Grossbuchstaben-Ueberschriften, keine einzelnen Kuerzel
+      const w=(t.match(/[A-ZÄÖÜ]{4,}/g)||[]).filter(x=>!TITEL_BEHALTEN.has(x));
+      if(!w.length)return;
+      n.nodeValue=zcTitel(t);
+    });
+  });
+}
+
+// ---------- B1 · Gemessene Wertentwicklung (monatliche Messpunkte) ----------
+function zcWertSnapshot(wert){
+  if(!(wert>0))return;
+  const k=zcMonKey();
+  state.wertHistorie=state.wertHistorie||{};
+  state.wertHistorie[k]=Math.round(wert*100)/100;
+  // Messpunkt mit Einstand (Summe der Kaeufe) und Kursen — Grundlage fuer Rendite und Januarkurs
+  state.verlaufM=state.verlaufM||{};
+  const kurse={};
+  uniquePositions().forEach(({pos})=>{const i=(pos.isin||'').trim().toUpperCase();if(i&&pos.kurs>0)kurse[i]=pos.kurs;});
+  state.verlaufM[k]={d:heuteISO(),wert:Math.round(wert*100)/100,einstand:Math.round(zKosten()*100)/100,kurse};
+  // B2 · Januarkurs automatisch festhalten (erster Aufruf im Januar)
+  const j=new Date().getFullYear();
+  if(new Date().getMonth()===0){
+    state.kursJan=state.kursJan||{};
+    if(!state.kursJan[j])state.kursJan[j]={d:heuteISO(),quelle:'automatisch',kurse};
+  }
+}
+function divEingangMonat(isins,key){
+  const y=+key.slice(0,4),m=+key.slice(5,7);
+  const erh=(state.erhalteneDivs||{})[y]||{};
+  let s=0;Object.entries(erh).forEach(([i,l])=>{if(isins.has(i))(l||[]).forEach(e=>{if(+String(e.pay).slice(5,7)===m)s+=divBrutto(e,i);});});
+  return s;
+}
+// Modified Dietz je Monat: r = (V1 − V0 − F + D) / (V0 + F/2)
+function dietz(v0,v1,f,d){const n=v0+f/2;return n>0?(v1-v0-f+d)/n:null;}
+function wertentwicklung(){
+  const v=state.verlaufM||{};
+  const keys=Object.keys(v).sort();
+  const isins=new Set(zPos().map(p=>(p.isin||'').trim().toUpperCase()));
+  const zeilen=[];let kum=1;
+  keys.forEach((k,i)=>{
+    const x=v[k];
+    if(i===0){zeilen.push({k,wert:x.wert,einstand:x.einstand,f:null,d:null,r:null,kum:null,d0:x.d});return;}
+    const p=v[keys[i-1]];
+    const f=x.einstand-p.einstand,d=divEingangMonat(isins,k);
+    const r=dietz(p.wert,x.wert,f,d);
+    if(r!==null)kum*=1+r;
+    zeilen.push({k,wert:x.wert,einstand:x.einstand,f,d,r,kum:kum-1,d0:x.d});
+  });
+  return zeilen;
+}
+function wertentwicklungInhalt(){
+  const z=wertentwicklung();
+  if(!z.length)return'<p class="hint">Noch kein Messpunkt. Der erste wird beim nächsten Öffnen des Dashboards gesetzt.</p>';
+  const mit=z.filter(x=>x.r!==null);
+  const lbl=k=>MON[+k.slice(5,7)-1]+' '+k.slice(2,4);
+  return`${z.length>1?zcChart([{name:'Depotwert',werte:z.map(x=>x.wert),farbe:N.cyan,gestrichelt:false},{name:'Eingezahlt (Einstand)',werte:z.map(x=>x.einstand),farbe:N.green}],z.map(x=>lbl(x.k)),{h:160}):''}
+    <div class="hm-wrap" style="margin-top:10px"><table class="zc-tab2" style="min-width:520px"><thead><tr><th>Monat</th><th>Depotwert</th><th>Einzahlung</th><th>Ausschüttung</th><th>Rendite</th><th>seit Beginn</th></tr></thead><tbody>
+    ${z.slice().reverse().map(x=>`<tr><td>${lbl(x.k)}<span style="color:var(--t3);font-size:11px"> · ${zcDatum(x.d0).slice(0,6)}</span></td><td>${zcEur(x.wert)}</td><td>${x.f==null?'—':zcEur(x.f)}</td><td>${x.d==null?'—':zcEur(x.d,2)}</td>
+      <td class="${x.r==null?'':x.r>=0?'zc-plus':'zc-minus'}">${x.r==null?'Start':(x.r>=0?'+':'−')+zcZahl(Math.abs(x.r*100),2)+' %'}</td><td>${x.kum==null?'—':(x.kum>=0?'+':'−')+zcZahl(Math.abs(x.kum*100),2)+' %'}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="hint" style="margin-top:8px">${mit.length?'':'Die erste Monatsrendite erscheint, sobald zwei Monate gemessen sind. '}Gemessen wird beim Öffnen des Dashboards; gilt je Monat der letzte Stand. Rendite nach Modified Dietz: Einzahlungen zählen zur Hälfte, Ausschüttungen als Ertrag. Erfasst seit ${lbl(z[0].k)} — eine Rückrechnung ist nicht möglich, weil die App keine historischen Kurse kennt.</p>`;
+}
+function zeigeWertentwicklung(){
+  zcModal(`<div class="modal-title">Wertentwicklung ${zcEsc((zielPf()||{}).name||'')}</div>${wertentwicklungInhalt()}
+    <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>`,true);
+}
+
+// ---------- B2 · Kurse zum 1. Januar und exakte Vorabpauschale ----------
+function kursJan(y,isin){
+  const e=(state.kursJan||{})[y];
+  if(e&&e.kurse&&e.kurse[isin]>0)return{kurs:e.kurse[isin],quelle:e.quelle==='manuell'?'eingetragen':'gespeichert'};
+  const dez=(state.verlaufM||{})[(y-1)+'-12'];
+  if(dez&&dez.kurse&&dez.kurse[isin]>0)return{kurs:dez.kurse[isin],quelle:'Dezember-Stand'};
+  return null;
+}
+// Vorabpauschale je Anteil (Gesetz: Basisertrag = Kurs 1.1. × Basiszins × 0,7, gedeckelt auf Wertzuwachs + Ausschuettung)
+function vpJeAnteil(anf,ende,aussch,basiszins){
+  const basis=anf*basiszins/100*0.7;
+  return Math.max(0,Math.min(basis,Math.max(0,ende-anf+aussch))-aussch);
+}
+// Anteile mit Zwoelftelung: im Jahr gekaufte Anteile zaehlen je vollem Monat vor dem Kauf ein Zwoelftel weniger
+function vpAnteile(pos,y){
+  const lots=posLots(pos);
+  if(!lots.length)return pos.stueck||0;
+  const start=y+'-01-01';
+  let n=lotsStueckVor(pos,start);
+  lots.forEach(l=>{if(l.d>=start&&l.d<=y+'-12-31'&&(l.stueck||0)>0){const m=+l.d.slice(5,7);n+=(l.stueck)*(13-m)/12;}});
+  return n;
+}
+function vpPosition(pos,y,basiszins){
+  const isin=(pos.isin||'').trim().toUpperCase();
+  const a=kursJan(y,isin),e=kursJan(y+1,isin);
+  const anf=a?a.kurs:(pos.kurs||0),ende=e?e.kurs:(pos.kurs||0);
+  const aussch=divJeAnteilJahr(pos,y);
+  const jeAnteil=vpJeAnteil(anf,ende,aussch,basiszins);
+  return{vp:jeAnteil*vpAnteile(pos,y),exakt:!!a&&(!!e||y<HEUTE_J),quelleAnf:a?a.quelle:'heutiger Kurs',quelleEnde:e?e.quelle:'heutiger Kurs'};
+}
+function zeigeJanuarkurse(y){
+  y=y||state.steuerJahr||HEUTE_J;
+  const e=(state.kursJan||{})[y]||{};
+  const pos=uniquePositions().map(({pos})=>pos).filter(p=>(p.isin||'').trim());
+  zcModal(`<div class="modal-title">Kurse am 1. Januar ${y}</div>
+    <p class="hint">Grundlage der Vorabpauschale ist der Rücknahmepreis am ersten Börsentag des Jahres. Im Januar speichert die App ihn automatisch beim ersten Öffnen. Für ${y} kannst du ihn hier eintragen (z. B. aus justETF oder der Kursgrafik in Trade Republic).</p>
+    ${pos.map(p=>{const i=(p.isin||'').trim().toUpperCase();const k=kursJan(y,i);
+      return`<div class="field"><label>${zcEsc(stammTicker(p)||p.ticker)} <span style="color:var(--t3)">${k?k.quelle:'fehlt'}</span></label>
+        <input type="text" inputmode="decimal" id="kj-${i}" value="${e.kurse&&e.kurse[i]?String(e.kurse[i]).replace('.',','):''}" placeholder="${k?zcZahl(k.kurs,2):zcZahl(p.kurs,2)+' (heute)'}"></div>`;}).join('')}
+    <div class="btnrow"><button class="btn btn-g" style="flex:1" onclick="speichereJanuarkurse(${y})">Speichern</button>
+      <button class="btn btn-gh" style="flex:1" onclick="zeigeSteuer(${y})">Zurück</button></div>`);
+}
+function speichereJanuarkurse(y){
+  state.kursJan=state.kursJan||{};
+  const alt=state.kursJan[y]||{kurse:{}};const kurse=Object.assign({},alt.kurse||{});
+  document.querySelectorAll('[id^="kj-"]').forEach(el=>{
+    const i=el.id.slice(3),v=parseFloat(String(el.value).replace(',','.'));
+    if(String(el.value).trim()===''){return;}
+    if(!isNaN(v)&&v>0)kurse[i]=v;
+  });
+  state.kursJan[y]={d:heuteISO(),quelle:'manuell',kurse};
+  saveState();showToast('✓ Januarkurse '+y+' gespeichert');zeigeSteuer(y);
+}
+
+// ---------- B3 · Brutto oder netto im Import ----------
+function importArt(){return(state.importArt==='netto')?'netto':'brutto';}
+function setzeImportArt(a){
+  state.importArt=a==='netto'?'netto':'brutto';
+  // Bereits erfasste Zahlungen ohne eigene Kennung uebernehmen die Einstellung
+  render();showToast('Ausschüttungen im Export: '+state.importArt);
+}
+function divBrutto(e,isin){
+  const art=e.art||importArt();
+  if(art!=='netto')return e.betrag||0;
+  if((e.steuer||0)>0)return(e.betrag||0)+(e.steuer||0);
+  return e.betrag||0;   // ohne einbehaltene Steuer (Pauschbetrag) sind netto und brutto gleich
+}
+// Welche Lesart passt besser zu den Erwartungen? Nur Zahlungen mit einbehaltener Steuer sind aussagekraeftig.
+function importArtVorschlag(){
+  const y=HEUTE_J,erh=(state.erhalteneDivs||{})[y]||{};let fb=0,fn=0,n=0;
+  Object.entries(erh).forEach(([isin,l])=>{
+    const tr=positionenMitIsin(isin);if(!tr.length)return;
+    (l||[]).forEach(e=>{
+      if(!((e.steuer||0)>0))return;
+      const m=+String(e.pay).slice(5,7)-1,erw=posDivMonat(tr[0].pos,y,m);if(!(erw>0))return;
+      fb+=Math.abs(e.betrag/erw-1);fn+=Math.abs((e.betrag+e.steuer)/erw-1);n++;
+    });
+  });
+  if(n<2)return null;
+  return{art:fn<fb?'netto':'brutto',n};
+}
+function importArtBody(){
+  const v=importArtVorschlag(),a=importArt();
+  return`<div class="ctitle" style="margin-top:12px">Ausschüttungen im Export sind</div>
+    <div class="ui-schalter"><button class="${a==='brutto'?'on':''}" onclick="setzeImportArt('brutto')">Brutto (vor Steuer)</button><button class="${a==='netto'?'on':''}" onclick="setzeImportArt('netto')">Netto (nach Steuer)</button></div>
+    <p class="hint" style="margin-top:6px">Bei „Netto" rechnet die App für Vergleiche die ausgewiesene Steuer wieder hinzu. ${v?`Deine ${v.n} Zahlungen mit Steuerabzug passen eher zu <b>${v.art}</b>${v.art!==a?' — Umstellen empfohlen':''}.`:'Noch zu wenige Zahlungen mit Steuerabzug für eine Empfehlung.'}</p>`;
+}
+
+// ---------- B4 · Plausibilitaetswaechter ----------
+let _plausiSkip=new Set(),_plausiFrei=false;
+function plausiKey(x){return[x.istDividende?'D':(x.typ||'K'),x.isin,x.datum,(+x.a||0).toFixed(6)].join('|');}
+function plausiPruefen(r){
+  const f=[];const heute=new Date();
+  (r||[]).forEach(x=>{
+    const tr=positionenMitIsin(x.isin);if(!tr.length)return;
+    const pos=tr[0].pos,tk=stammTicker(pos)||pos.ticker;
+    if(x.istDividende){
+      const y=+x.datum.slice(0,4),m=+x.datum.slice(5,7)-1;
+      const erw=posDivMonat(pos,y,m);
+      const br=divBrutto({betrag:x.a,steuer:x.steuer},x.isin);
+      if(erw>0.5&&br>2*erw)f.push({k:plausiKey(x),text:`${tk} ${zcDatum(x.datum)}: Ausschüttung ${zcEur(br,2)} — mehr als doppelt so hoch wie erwartet (${zcEur(erw,2)})`});
+      else if(erw<0.01&&br>20)f.push({k:plausiKey(x),text:`${tk} ${zcDatum(x.datum)}: Ausschüttung ${zcEur(br,2)} in einem Monat ohne erwartete Zahlung`});
+      return;
+    }
+    if(x.typ==='verkauf')return;
+    if(istLosVorhanden(x.isin,x.datum,x.a))return;
+    const kaeufe=posLots(pos).filter(l=>l.typ==='kauf'&&l.stueck>0).map(l=>l.stueck).sort((a,b)=>a-b);
+    const med=kaeufe.length?kaeufe[Math.floor(kaeufe.length/2)]:0;
+    if(med>0&&x.a>5*med&&x.a>1)f.push({k:plausiKey(x),text:`${tk} ${zcDatum(x.datum)}: ${zcZahl(x.a,4)} Stück — mehr als das Fünffache eines üblichen Kaufs (${zcZahl(med,4)})`});
+    const tage=(heute-new Date(x.datum))/86400000;
+    if(pos.kurs>0&&x.b>0&&tage<=45&&Math.abs(x.b/pos.kurs-1)>0.15)
+      f.push({k:plausiKey(x),text:`${tk} ${zcDatum(x.datum)}: Kaufkurs ${zcZahl(x.b,2)} € weicht ${zcZahl(Math.abs(x.b/pos.kurs-1)*100,0)} % vom aktuellen Kurs ab`});
+  });
+  return f;
+}
+function plausiTor(text,weiter){
+  if(_plausiFrei){_plausiFrei=false;try{return weiter();}finally{_plausiSkip=new Set();}}
+  let r=[];try{r=parseImportText(text);}catch(e){}
+  const f=Array.isArray(r)?plausiPruefen(r):[];
+  if(!f.length)return weiter();
+  window._plausiWeiter=weiter;window._plausiFunde=f;
+  zcModal(`<div class="modal-title">Bitte prüfen</div>
+    <p class="hint">${f.length===1?'Ein Datensatz sieht':f.length+' Datensätze sehen'} ungewöhnlich aus. Noch ist nichts gebucht.</p>
+    ${f.map(x=>`<div style="padding:8px 0;border-top:1px solid var(--b);font-size:13px;color:var(--t2)">! ${zcEsc(x.text)}</div>`).join('')}
+    <div class="btnrow"><button class="btn btn-g" style="flex:1" onclick="plausiWeiter(false)">Ohne diese übernehmen</button>
+      <button class="btn btn-c" style="flex:1" onclick="plausiWeiter(true)">Alle übernehmen</button>
+      <button class="btn btn-gh" style="flex:1" onclick="closeModal()">Abbrechen</button></div>`);
+  return'wartet';
+}
+function plausiWeiter(alle){
+  _plausiSkip=alle?new Set():new Set((window._plausiFunde||[]).map(x=>x.k));
+  _plausiFrei=true;closeModal();
+  const w=window._plausiWeiter;window._plausiWeiter=null;
+  if(w)plausiTor('',w);
+}
+// Kurssprung gegen den letzten Messpunkt des Vormonats
+function kurssprungHinweise(){
+  const v=state.verlaufM||{},k=zcMonKey();
+  const vor=Object.keys(v).filter(x=>x<k).sort().pop();if(!vor)return[];
+  const alt=v[vor].kurse||{},q=state.kursQuittiert||{},l=[];
+  uniquePositions().forEach(({pos})=>{
+    const i=(pos.isin||'').trim().toUpperCase();
+    if(!(alt[i]>0)||!(pos.kurs>0))return;
+    const d=pos.kurs/alt[i]-1;
+    if(Math.abs(d)>0.15&&!q[k+'|'+i])l.push({dringend:false,text:`Kurssprung ${stammTicker(pos)||pos.ticker} ${d>=0?'+':'−'}${zcZahl(Math.abs(d)*100,0)} % seit ${zcDatum(v[vor].d)} — Kurs prüfen`,
+      knopf:'Kurse laden',aktion:'_autoFetchDone=false;autoFetchAllPrices()',spaeter:`state.kursQuittiert=Object.assign(state.kursQuittiert||{},{'${k}|${i}':1});render()`});
+  });
+  return l;
+}
+
+// ---------- C1 · Entnahmephase und Verrechnungskonto ----------
+function entnahmeDaten(){
+  const p=progParam();const sim=zcSimulation(p);if(!sim||sim.idxEnde<0)return null;
+  const ent=p.entnahme||1000,puffer=p.puffer||0;
+  const vk=verrechnungskonto(sim,ent,puffer);
+  const M=sim.monate.slice(sim.idxEnde+1);
+  let saldo=puffer;const saldi=[],roll=[];
+  M.forEach((x,i)=>{saldo+=x.netto-ent;saldi.push(saldo);
+    const fenster=M.slice(Math.max(0,i-11),i+1);roll.push(fenster.reduce((a,y)=>a+y.netto,0)/fenster.length);});
+  // Heute: rollierender 12-Monats-Schnitt der tatsaechlich erhaltenen Ausschuettungen (netto geschaetzt)
+  const isins=new Set(zPos().map(q=>(q.isin||'').trim().toUpperCase()));
+  let ist12=0;const d=new Date();
+  for(let i=0;i<12;i++){const dt=new Date(d.getFullYear(),d.getMonth()-i,1);const key=zcMonKey(dt);
+    const br=divEingangMonat(isins,key);ist12+=br*(1-STEUERSATZ*0.7);}
+  const mindest=3*ent;
+  return{p,ent,puffer,vk,M,saldi,roll,ist12:ist12/12,mindest,empf:Math.max(vk?vk.bedarf:0,mindest)};
+}
+function entnahmeInhalt(){
+  const e=entnahmeDaten();if(!e)return'<p class="hint">Keine Prognose — Sparende prüfen.</p>';
+  const lbl=e.M.map(x=>MON[x.m-1]+' '+String(x.y).slice(2));
+  const n=Math.min(60,e.M.length);
+  const warn=e.puffer<e.mindest||(e.vk&&e.vk.ersterMinus);
+  return`<div class="st-erg">
+      <div><div class="l">Entnahme im Monat</div><div class="v">${zcEur(e.ent)}</div><div class="d" style="color:var(--t3)">ab ${MON[(+e.p.sparEnde.slice(5,7))%12]} ${+e.p.sparEnde.slice(0,4)+(e.p.sparEnde.slice(5,7)==='12'?1:0)}</div></div>
+      <div><div class="l">Puffer nötig</div><div class="v">${zcEur(e.empf)}</div><div class="d" style="color:var(--t3)">mind. 3 Monatsentnahmen</div></div>
+      <div><div class="l">Ø netto 12 Monate heute</div><div class="v">${zcEur(e.ist12)}</div><div class="d" style="color:var(--t3)">${zcZahl(e.ist12/e.ent*100,0)} % der Entnahme</div></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>Entnahme €/Monat</label><input type="text" inputmode="decimal" value="${e.ent}" onchange="progSetze('entnahme',this.value)"></div>
+    <div class="field"><label>Puffer zu Beginn €</label><input type="text" inputmode="decimal" value="${e.puffer}" onchange="progSetze('puffer',this.value)"></div>
+    <div class="${warn?'zc-luecke':'hint'}" style="${warn?'border-left:3px solid var(--orange)':''}">${e.vk&&e.vk.ersterMinus
+      ?`Ohne zusätzlichen Puffer wird das Verrechnungskonto im ${MNF[e.vk.ersterMinus.m-1]} ${e.vk.ersterMinus.y} negativ. Tiefster Stand ${zcEur(e.vk.min)} im ${MNF[e.vk.minMon.m-1]} ${e.vk.minMon.y}.`
+      :e.puffer<e.mindest?`Der Puffer deckt weniger als drei Monatsentnahmen (${zcEur(e.mindest)}).`:`Das Konto bleibt über ${Math.round(e.M.length/12)} Jahre im Plus, tiefster Stand ${zcEur(e.vk.min)}.`}
+      Empfehlung: bis zum Sparende <b>${zcEur(e.empf)}</b> als Puffer bereitlegen.</div>
+    <div style="margin-top:12px">${zcChart([{name:'Kontostand',werte:e.saldi.slice(0,n),farbe:N.cyan,gestrichelt:false},
+      {name:'Mindestpuffer (3 Monate)',werte:Array(n).fill(e.mindest),farbe:'#eb6834',gestrichelt:true}],lbl.slice(0,n),{h:160})}</div>
+    <div style="margin-top:12px">${zcChart([{name:'Ø netto, rollierend 12 Monate',werte:e.roll.slice(0,n),farbe:N.green,gestrichelt:false},
+      {name:'Entnahme',werte:Array(n).fill(e.ent),farbe:'#8f9bb1',gestrichelt:true}],lbl.slice(0,n),{h:140})}</div>
+    <p class="hint" style="margin-top:8px">Die Ausschüttungen fließen aufs Verrechnungskonto, entnommen wird ein fester Betrag. Weil die Zahlungen sich in einigen Monaten ballen, braucht das Konto einen Puffer. Der Wert „heute" schätzt netto mit 26,375 % auf 70 % der erhaltenen Bruttobeträge.</p>`;
+}
+function zeigeEntnahme(){
+  zcModal(`<div class="modal-title">Entnahmephase</div>${entnahmeInhalt()}
+    <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal();render()">Schließen</button></div>`,true);
+}
+
+// ---------- D2 · Tastatur auf dem Mac und Befehlssuche ----------
+function zcBefehle(){
+  const b=[
+    {t:'Dashboard',k:'1',a:'goTab(0)'},{t:'Portfolio',k:'2',a:'goTab(2)'},{t:'Sparplan',k:'3',a:'goTab(3)'},{t:'Einstellungen',k:'4',a:'goTab(4)'},
+    {t:'Monatsroutine',k:'R',a:'zeigeRoutine()'},{t:'Kaufliste',k:'K',a:'zeigeKaufliste()'},{t:'Dividenden-Kalender',k:'D',a:'zeigeHeatmap()'},
+    {t:'Stresstest',k:'S',a:'zeigeStresstest()'},{t:'Wertentwicklung',k:'W',a:'zeigeWertentwicklung()'},{t:'Entnahmephase',k:'E',a:'zeigeEntnahme()'},
+    {t:'Steuerübersicht',a:'zeigeSteuer()'},{t:'Konsolidierung 2027',a:'zeigeKonsolidierung()'},{t:'Kurse laden',a:"_autoFetchDone=false;autoFetchAllPrices()"},
+    {t:'Backup speichern',a:'doExport()'},{t:'Selbsttest',a:'zeigeSelbsttest()'},{t:'Design: automatisch',a:"setzeDesign('auto')"},
+    {t:'Design: dunkel',a:"setzeDesign('zc')"},{t:'Design: hell',a:"setzeDesign('zclight')"},{t:'Tastaturkürzel',k:'?',a:'zeigeKuerzel()'}
+  ];
+  (state.portfolios||[]).forEach((pf,i)=>{if(pf.enabled)b.push({t:'Portfolio: '+pf.name,a:`openPfFromDash(${i})`});});
+  (state.portfolios||[]).forEach((pf,i)=>{if(pf.enabled)(pf.positions||[]).forEach((p,j)=>b.push({t:`ETF: ${stammTicker(p)||p.ticker} · ${p.name||''} (${pf.name})`,a:`state.tab=2;state.subIdx=${i};openETF(${j})`}));});
+  Object.keys(SET_STICHWORTE).concat(['CSV-Import','Bestand je ISIN','Selbsttest','Datenprüfung','Kurse']).forEach(t=>b.push({t:'Einstellung: '+t,a:`state.tab=4;render();settingsFilter(${JSON.stringify(t).replace(/"/g,'&quot;')})`}));
+  return b;
+}
+let _palAuswahl=0,_palListe=[];
+function zeigePalette(){
+  zcModal(`<input class="set-suche" id="pal-in" type="search" placeholder="Was möchtest du tun? (z. B. Kaufliste, ISPA, Steuer)" autocomplete="off" oninput="palFilter(this.value)" onkeydown="palTaste(event)">
+    <div id="pal-liste" role="listbox" style="max-height:52vh;overflow-y:auto"></div>
+    <p class="hint" style="margin-top:8px">↑ ↓ wählen · Enter ausführen · Esc schließen</p>`);
+  palFilter('');setTimeout(()=>{const i=document.getElementById('pal-in');if(i)i.focus();},30);
+}
+function palFilter(q){
+  const s=String(q||'').toLowerCase().trim();
+  _palListe=zcBefehle().filter(b=>!s||s.split(/\s+/).every(w=>b.t.toLowerCase().includes(w))).slice(0,40);
+  _palAuswahl=0;palZeichnen();
+}
+function palZeichnen(){
+  const el=document.getElementById('pal-liste');if(!el)return;
+  el.innerHTML=_palListe.map((b,i)=>`<div role="option" aria-selected="${i===_palAuswahl}" onclick="palAusfuehren(${i})" style="display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;${i===_palAuswahl?'background:var(--bg2);color:var(--t)':'color:var(--t2)'}"><span>${zcEsc(b.t)}</span>${b.k?`<kbd style="font:600 11px inherit;color:var(--t3);border:1px solid var(--b);border-radius:5px;padding:1px 6px">${b.k}</kbd>`:''}</div>`).join('')||'<p class="hint">Nichts gefunden.</p>';
+}
+function palTaste(e){
+  if(e.key==='ArrowDown'){_palAuswahl=Math.min(_palListe.length-1,_palAuswahl+1);palZeichnen();e.preventDefault();}
+  else if(e.key==='ArrowUp'){_palAuswahl=Math.max(0,_palAuswahl-1);palZeichnen();e.preventDefault();}
+  else if(e.key==='Enter'){palAusfuehren(_palAuswahl);e.preventDefault();}
+}
+function palAusfuehren(i){const b=_palListe[i];if(!b)return;closeModal();setTimeout(()=>{try{(new Function(b.a))();}catch(err){console.warn(err);}},0);}
+function zeigeKuerzel(){
+  const z=zcBefehle().filter(b=>b.k);
+  zcModal(`<div class="modal-title">Tastaturkürzel</div>
+    <table class="zc-tab2"><tbody><tr><td>Suchen und ausführen</td><td><kbd>⌘ K</kbd></td></tr>
+    ${z.map(b=>`<tr><td>${zcEsc(b.t)}</td><td><kbd>${b.k}</kbd></td></tr>`).join('')}
+    <tr><td>Fenster schließen</td><td><kbd>Esc</kbd></td></tr></tbody></table>
+    <p class="hint" style="margin-top:8px">Kürzel wirken nicht, solange ein Eingabefeld aktiv ist.</p>
+    <div class="btnrow"><button class="btn btn-gh" style="flex:1" onclick="closeModal()">Schließen</button></div>`);
+}
+if(typeof document!=='undefined')document.addEventListener('keydown',e=>{
+  const ziel=e.target||{},tag=(ziel.tagName||'').toLowerCase();
+  const tippt=tag==='input'||tag==='textarea'||tag==='select'||ziel.isContentEditable;
+  if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();zeigePalette();return;}
+  if(e.key==='Escape'){const m=document.getElementById('modal');if(m&&m.classList.contains('open')){closeModal();e.preventDefault();}return;}
+  if(tippt||e.metaKey||e.ctrlKey||e.altKey)return;
+  const b=zcBefehle().find(x=>x.k&&x.k.toLowerCase()===String(e.key).toLowerCase());
+  if(b){e.preventDefault();closeModal();try{(new Function(b.a))();}catch(err){}}
+});
+
+// ---------- D4 · Selbsttest fuer die Werkzeuge ab v3.63 ----------
+function selbsttestV364(add,sicher){
+  sicher('Kaufliste ergibt die Sparrate',()=>{
+    const pf=zielPf();if(!pf)return{ok:true,info:'kein Zielportfolio'};
+    const kl=kaufliste(pf);const s=kl.orders.reduce((a,o)=>a+o.betrag,0);
+    return{ok:!kl.orders.length||Math.abs(s-kl.sp)<0.5,info:`${zcEur(s)} von ${zcEur(kl.sp)}`};
+  });
+  sicher('Stresstest 0/0/0 = Basis',()=>{
+    const p=progParam(),a=zcAuswertung(zcSimulation(p)),b=zcAuswertung(zcSimulation(Object.assign({},p,{schock:0,divKuerzung:0,pauseMonate:0})));
+    return{ok:!!a&&Math.abs(a.depotEnde-b.depotEnde)<0.01&&Math.abs(a.monNetto-b.monNetto)<0.001,info:a?zcEur(a.monNetto)+' netto':'—'};
+  });
+  sicher('Sparpause senkt Einzahlung exakt',()=>{
+    const p=progParam(),a=zcAuswertung(zcSimulation(p)),b=zcAuswertung(zcSimulation(Object.assign({},p,{pauseMonate:3})));
+    const sim=zcSimulation(p);let soll=0;sim.monate.slice(0,3).forEach(x=>{soll+=x.y<2027?p.rate2026:p.sparrate;});
+    return{ok:Math.abs((a.eingezahlt-b.eingezahlt)-soll)<0.01,info:zcEur(a.eingezahlt-b.eingezahlt)};
+  });
+  sicher('Vorabpauschale Rechenweg',()=>{
+    const t1=vpJeAnteil(100,110,1,3.2),t2=vpJeAnteil(100,99,1,3.2),t3=vpJeAnteil(100,100.5,0,3.2);
+    return{ok:Math.abs(t1-1.24)<1e-9&&t2===0&&Math.abs(t3-0.5)<1e-9,info:`${zcZahl(t1,2)} · ${zcZahl(t2,2)} · ${zcZahl(t3,2)} €`};
+  });
+  sicher('Steuerübersicht plausibel',()=>{
+    const f=[HEUTE_J,HEUTE_J+1].filter(y=>{const t=steuerJahr(y);return!(t.pflichtig<=t.brutto+0.005&&t.steuer>=0&&!isNaN(t.steuer));});
+    return{ok:!f.length,info:f.length?'Fehler in '+f.join(', '):zcEur(steuerJahr(HEUTE_J).steuer,2)+' Steuer '+HEUTE_J};
+  });
+  sicher('Wertentwicklung (Modified Dietz)',()=>{const r=dietz(100,115,10,0);return{ok:Math.abs(r-5/105)<1e-12,info:zcZahl(r*100,2)+' %'};});
+  sicher('Dividenden-Kalender ohne Fehlwerte',()=>{const d=heatmapDaten(HEUTE_J);const bad=d.zeilen.some(z=>z.zellen.some(c=>isNaN(c.soll)||isNaN(c.ist)));return{ok:!bad,info:d.zeilen.length+' ETF'};});
+  sicher('Diagramme ohne Fehlwerte',()=>{const h=zcChart([{name:'a',werte:[1,2,3]},{name:'b',werte:[0,0,0]}],['x','y','z'],{});return{ok:!/NaN|Infinity/.test(h),info:'ok'};});
+  sicher('Konsolidierungsplan rechenbar',()=>{const p=konsPlan();return{ok:Array.isArray(p.spiegel)&&Array.isArray(p.verkauf),info:p.spiegel.length+' doppelte ETF'};});
+  sicher('Entnahmephase rechenbar',()=>{const e=entnahmeDaten();return{ok:!e||(!isNaN(e.empf)&&e.saldi.every(x=>!isNaN(x))),info:e?'Puffer '+zcEur(e.empf):'—'};});
+  sicher('Covered Call einheitlich',()=>{
+    const t=new Set((state.portfolios||[]).flatMap(pf=>pf.positions||[]).filter(q=>CC_ISINS.includes((q.isin||'').trim().toUpperCase())).map(q=>teilfreistellung(q)));
+    return{ok:t.size<=1,info:[...t].join('/')+' %'};
+  });
+  sicher('Überschriften-Korrektur',()=>{const r=zcTitel('ZIELE · SOLL/IST · DIV ETF Depot');return{ok:r==='Ziele · Soll/Ist · DIV ETF Depot',info:r};});
 }
 
 // ===== EXPORT (v3.61) =====
@@ -6887,6 +7336,7 @@ function render(){
     </button>`).join('');
   openAccs.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('open');});
   if(state.tab===4&&_setSuche)settingsFilter(_setSuche);
+  zcTitelKorrektur(document.getElementById('content'));
 }
 
 // App starten (kein automatischer Kursabruf — nur manuell via Button)
@@ -6895,7 +7345,7 @@ neuPruefen();swRegistrieren();
 
 // ===== BRÜCKE für Cloud-Sync-Modul =====
 window.__getState=()=>state;
-window.__setState=(newState)=>{state=newState;migriereDivPrognose(state);migriereV7(state);migriereV8(state);try{applyTheme(state.currentTheme);}catch(e){}};
+window.__setState=(newState)=>{state=newState;migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);try{applyTheme(state.currentTheme);}catch(e){}};
 window.render=render;
 
 // ===== UPDATE-CHECK =====
