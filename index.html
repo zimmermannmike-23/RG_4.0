@@ -990,8 +990,9 @@ function klassenName(pos){
   return k===null?((pos&&pos.isin)||''):KLASSEN[k];
 }
 const KLASSEN=['Globale Aktien','Schwellenländer','Anleihen','Dividenden/Covered','Tagesgeld'];
-const APP_VERSION='3.64';
+const APP_VERSION='3.65';
 const APP_CHANGELOG=[
+  {v:'3.65',d:'2026-10-26',t:'Abgleich mit getquin. (1) Ausschuettungen 2027 je ETF aus der getquin-Dividendenansicht (Stand 26.10.2026), Euro je Anteil und Zahlmonat; 2028 bis 2041 wachsen mit dem je ETF eingestellten Satz weiter. JEQP bleibt unveraendert, weil es in getquin fehlt. Von Hand gepflegte Jahre ab 2028 bleiben stehen. (2) Wechselkurs US-Dollar auf 0,8938 (EZB 26.10.2026, vorher 0,8290): die Dollar-Fonds waren um rund 8 % zu niedrig angesetzt. (3) QYLE: Ex-Tag und Zahltag fuer Oktober und November nach den angekuendigten Terminen, Juli 0,149 statt 0,171, September 0,146. (4) Prognosebetraege November/Dezember 2026 nach getquin.'},
   {v:'3.64',d:'2026-10-08',t:'Datenqualitaet und Entnahme. (A1) Eine Prognosezahl: Ziele zeigen die Live-Prognose, die Bestandsrechnung heisst „Ausschuettung aus heutigem Bestand“. (A2) Sparerpauschbetrag je Jahr, 2026 = 2.000 €, ab 2027 Standard. (A3) Teilfreistellung QYLE und XYLU einheitlich 30 % (justETF), umschaltbar. (A4) Ueberschriften in normaler Schreibweise. (B1) Gemessene Wertentwicklung je Monat mit Modified-Dietz-Rendite. (B2) Kurse zum 1. Januar gespeichert/eintragbar, Vorabpauschale nach Gesetz inkl. Zwoelftelung. (B3) Import brutto oder netto, mit Empfehlung. (B4) Plausibilitaetspruefung vor dem Buchen und Kurssprung-Hinweis. (C1) Entnahmephase: Puffer, Kontoverlauf, rollierender 12-Monats-Schnitt. (D2) Tastatur auf dem Mac, Befehlssuche mit ⌘K. (D4) Selbsttest um zwoelf Pruefungen erweitert.'},
   {v:'3.63',d:'2026-10-08',t:'Design und Werkzeuge. (D1) Zimmermann-Capital-Design in Navy/Gold, hell und dunkel; „Automatisch“ folgt iPhone und Mac. Die sieben alten Themes bleiben vorerst waehlbar. (D2) Dashboard beginnt mit Heute, Ziel (Prognose gegen 1.345,87 € real, Luecke als Sparrate) und naechster Aktion. (D3) Ab 1024 px Seitenleiste statt Tab-Balken, breiteres Raster, zweispaltige Abschnitte; Tippflaechen 44 px auf Touch, Safe-Area fuer Notch. (D4) Ein Diagrammsystem: Achsen als Text statt verzerrter SVG-Schrift, Werte beim Antippen/Ueberfahren, Soll gestrichelt. (D5) Kontraste WCAG AA, Mindestschrift, Ampel mit Symbol. (D6) Suche in den Einstellungen. (F1) Monatsroutine in fuenf Schritten. (F2) Kaufliste Buy-Only auf ganze Euro. (F3) Dividenden-Kalender Ist gegen Erwartung mit 10-%-Markierung. (F4) Stresstest: Kurseinbruch, Dividendenkuerzung, Sparpause. (F5) Vierteljaehrliche Warnung bei mehr als 5 % unter Soll. (F6) Steueruebersicht je Jahr, als PDF druckbar. (F7) Konsolidierungsplan 2027 mit Rueckgaengig. (T1) Offline ueber sw.js. (T2) Hinweis „Neu in dieser Version“. (T3) Stammdaten JEQP, JGPI, SDIV, XYLU, USDV (Termine 2026, Teilfreistellung 30 %, Prognosebasis justETF). QYLE-Basis 1,42 € (justETF) bestaetigt.'},
   {v:'3.62',d:'2026-10-08',t:'Zwoelf Verbesserungen. (1) Backup-Import uebernimmt jetzt alle Felder (vorher gingen u. a. Erfassungsbeginn, nachgetragene Ausschuettungsdaten, Wechselkurs und Jahrespruefungen verloren) und laeuft durch dieselben Migrationen wie das Laden. (2) Prognose 2027-2041 wird aus Basis 12M und Wachstum gerechnet; aendert sich eines davon, rechnen die Jahre neu. Von Hand geaenderte Jahre werden markiert und bleiben stehen; Aenderungen gelten fuer alle Spiegel derselben ISIN. (3) Live-Prognose im Ziele-Bereich mit Reglern fuer Sparrate, Sparende, Wachstum, Wiederanlage und US-Dollar. (4) Ziel-Luecke: noetige Sparrate, Wiederanlage oder Wachstum fuer das Ziel. (5) Rendite p. a. als XIRR aus Kaeufen und erhaltenen Ausschuettungen; die Szenario-Einordnung nutzt sie, sobald ein Jahr Historie vorliegt. (6) Bestand je ISIN mit Spiegel-Abgleich. (7) Stammdaten-Pruefung meldet fehlende Termine, ungeklaerte Teilfreistellung und abweichende 12M-Basis. (8) Kursdatum je ISIN, Hinweis bei Kursen aelter als 7 Tage. (9) Steuer-Annahmen: Pauschbetrag und Vorabpauschale (Basiszins 2026: 3,20 %). (10) Verrechnungskonto nach Sparende: noetiger Puffer und tiefster Stand. (11) Selbsttest in den Einstellungen. (12) Kurs-CAGR je ETF getrennt vom Dividendenwachstum einstellbar.'},
@@ -1191,7 +1192,7 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-02-18',pay:'2026-03-05',betrag:0.1537,status:'bestaetigt'},
     {ex:'2026-05-20',pay:'2026-06-03',betrag:0.0709,status:'bestaetigt'},
     {ex:'2026-08-19',pay:'2026-09-03',betrag:0.9015,status:'bestaetigt'},
-    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.2067,status:'prognose'}]},
+    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.2280,status:'prognose'}]},
   ISPA:{quelle:'stockanalysis / divvydiary (DE000A0F5UH1, EUR)',items:[
     {ex:'2026-01-15',pay:'2026-01-15',betrag:0.2515,status:'bestaetigt'},
     {ex:'2026-04-15',pay:'2026-04-15',betrag:0.1870,status:'bestaetigt'},
@@ -1201,22 +1202,22 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-02-02',pay:'2026-02-17',betrag:0.2676,status:'bestaetigt'},
     {ex:'2026-05-06',pay:'2026-05-20',betrag:0.3600,status:'bestaetigt'},
     {ex:'2026-08-03',pay:'2026-08-17',betrag:0.5726,status:'bestaetigt'},
-    {ex:'2026-11-02',pay:'2026-11-17',betrag:0.3559,status:'prognose'}]},
+    {ex:'2026-11-02',pay:'2026-11-17',betrag:0.4005,status:'prognose'}]},
   VGWD:{quelle:'Vanguard / dividenden.com (IE00B8GKDB10, EUR)',items:[
     {ex:'2026-03-19',pay:'2026-04-01',betrag:0.3730,status:'bestaetigt'},
     {ex:'2026-06-18',pay:'2026-07-01',betrag:0.8060,status:'bestaetigt'},
     {ex:'2026-09-17',pay:'2026-09-30',betrag:0.4470,status:'bestaetigt'},
-    {ex:'2026-12-17',pay:'2026-12-31',betrag:0.3920,status:'prognose'}]},
+    {ex:'2026-12-17',pay:'2026-12-31',betrag:0.4430,status:'prognose'}]},
   XGSD:{quelle:'DWS / divvydiary (LU0292096186, EUR)',items:[
     {ex:'2026-02-18',pay:'2026-03-05',betrag:0.3918,status:'bestaetigt'},
     {ex:'2026-05-20',pay:'2026-06-03',betrag:0.3301,status:'bestaetigt'},
     {ex:'2026-08-19',pay:'2026-09-03',betrag:0.4129,status:'bestaetigt'},
-    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.3967,status:'prognose'}]},
+    {ex:'2026-11-19',pay:'2026-12-04',betrag:0.3710,status:'prognose'}]},
   TDIV:{quelle:'stockanalysis / divvydiary (NL0011683594, EUR)',items:[
     {ex:'2026-03-04',pay:'2026-03-11',betrag:0.2100,status:'bestaetigt'},
     {ex:'2026-06-03',pay:'2026-06-10',betrag:0.8100,status:'bestaetigt'},
     {ex:'2026-09-02',pay:'2026-09-09',betrag:0.4000,status:'bestaetigt'},
-    {ex:'2026-12-03',pay:'2026-12-10',betrag:0.2700,status:'prognose'}]},
+    {ex:'2026-12-03',pay:'2026-12-10',betrag:0.2880,status:'prognose'}]},
   QYLE:{quelle:'stockanalysis ETR:QYLE / stockevents (IE00BM8R0J59, EUR)',items:[
     {ex:'2026-01-08',pay:'2026-01-16',betrag:0.1428,status:'bestaetigt'},
     {ex:'2026-01-29',pay:'2026-02-06',betrag:0.1398,status:'bestaetigt'},
@@ -1224,12 +1225,12 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-04-09',pay:'2026-04-17',betrag:0.1372,status:'bestaetigt'},
     {ex:'2026-05-07',pay:'2026-05-15',betrag:0.1404,status:'bestaetigt'},
     {ex:'2026-06-04',pay:'2026-06-12',betrag:0.1438,status:'bestaetigt'},
-    {ex:'2026-07-09',pay:'2026-07-17',betrag:0.1710,status:'bestaetigt'},
+    {ex:'2026-07-09',pay:'2026-07-17',betrag:0.1490,status:'bestaetigt'},
     {ex:'2026-07-30',pay:'2026-08-07',betrag:0.1400,status:'bestaetigt'},
-    {ex:'2026-09-10',pay:'2026-09-18',betrag:0.1400,status:'bestaetigt'},
-    {ex:'2026-10-02',pay:'2026-10-16',betrag:0.1400,status:'prognose'},
-    {ex:'2026-11-05',pay:'2026-11-13',betrag:0.1400,status:'prognose'},
-    {ex:'2026-12-03',pay:'2026-12-11',betrag:0.1400,status:'prognose'}]},
+    {ex:'2026-09-10',pay:'2026-09-18',betrag:0.1460,status:'bestaetigt'},
+    {ex:'2026-10-01',pay:'2026-10-09',betrag:0.1390,status:'bestaetigt'},
+    {ex:'2026-10-29',pay:'2026-11-06',betrag:0.1490,status:'bestaetigt'},
+    {ex:'2026-12-03',pay:'2026-12-11',betrag:0.1450,status:'prognose'}]},
   JEQP:{quelle:'JPM Ausschuettungskalender 2026 + Erklaerung 01.10.2026 / divvydiary (IE000U9J8HX9, USD)',waehrung:'USD',items:[
     {ex:'2026-01-15',pay:'2026-02-06',betrag:0.2771,status:'bestaetigt'},
     {ex:'2026-02-12',pay:'2026-03-06',betrag:0.2261,status:'bestaetigt'},
@@ -1254,8 +1255,8 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-08-13',pay:'2026-09-04',betrag:0.1909,status:'bestaetigt'},
     {ex:'2026-09-10',pay:'2026-10-07',betrag:0.1454,status:'bestaetigt'},
     {ex:'2026-10-08',pay:'2026-10-23',betrag:0.1193,status:'bestaetigt'},
-    {ex:'2026-11-12',pay:'2026-12-04',betrag:0.155,status:'prognose'},
-    {ex:'2026-12-10',pay:'2027-01-08',betrag:0.155,status:'prognose'}]},
+    {ex:'2026-11-12',pay:'2026-12-04',betrag:0.1600,status:'prognose'},
+    {ex:'2026-12-10',pay:'2027-01-08',betrag:0.1578,status:'prognose'}]},
   SDIV:{quelle:'divvydiary / globalxetfs.eu (IE00077FRP95, USD)',waehrung:'USD',items:[
     {ex:'2026-01-15',pay:'2026-01-23',betrag:0.075,status:'bestaetigt'},
     {ex:'2026-02-12',pay:'2026-02-20',betrag:0.075,status:'bestaetigt'},
@@ -1267,8 +1268,8 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-08-20',pay:'2026-08-28',betrag:0.082,status:'bestaetigt'},
     {ex:'2026-09-24',pay:'2026-10-02',betrag:0.08,status:'bestaetigt'},
     {ex:'2026-10-22',pay:'2026-10-30',betrag:0.08,status:'prognose'},
-    {ex:'2026-11-19',pay:'2026-11-27',betrag:0.08,status:'prognose'},
-    {ex:'2026-12-17',pay:'2026-12-28',betrag:0.08,status:'prognose'}]},
+    {ex:'2026-11-19',pay:'2026-11-27',betrag:0.0740,status:'prognose'},
+    {ex:'2026-12-17',pay:'2026-12-28',betrag:0.0745,status:'prognose'}]},
   XYLU:{quelle:'divvydiary (IE0002L5QB31, USD)',waehrung:'USD',items:[
     {ex:'2026-01-08',pay:'2026-01-16',betrag:0.12,status:'bestaetigt'},
     {ex:'2026-01-29',pay:'2026-02-06',betrag:0.132,status:'bestaetigt'},
@@ -1280,13 +1281,13 @@ const AUSSCHUETTUNGEN_2026={
     {ex:'2026-07-30',pay:'2026-08-07',betrag:0.1533,status:'bestaetigt'},
     {ex:'2026-09-10',pay:'2026-09-18',betrag:0.1151,status:'bestaetigt'},
     {ex:'2026-10-01',pay:'2026-10-09',betrag:0.1093,status:'bestaetigt'},
-    {ex:'2026-11-05',pay:'2026-11-13',betrag:0.13,status:'prognose'},
-    {ex:'2026-12-03',pay:'2026-12-11',betrag:0.13,status:'prognose'}]},
+    {ex:'2026-11-05',pay:'2026-11-13',betrag:0.1141,status:'prognose'},
+    {ex:'2026-12-03',pay:'2026-12-11',betrag:0.1522,status:'prognose'}]},
   USDV:{quelle:'divvydiary / justETF (IE00B6YX5D40, USD)',waehrung:'USD',items:[
     {ex:'2026-03-23',pay:'2026-03-31',betrag:0.4275,status:'bestaetigt'},
     {ex:'2026-06-22',pay:'2026-06-30',betrag:0.4599,status:'bestaetigt'},
     {ex:'2026-09-21',pay:'2026-09-29',betrag:0.4264,status:'bestaetigt'},
-    {ex:'2026-12-21',pay:'2026-12-29',betrag:0.43,status:'prognose'}]}
+    {ex:'2026-12-21',pay:'2026-12-29',betrag:0.4677,status:'prognose'}]}
 };
 // ===== FORTSCHREIBUNG 2027-2041 =====
 // Fuer kuenftige Jahre liegen noch keine echten Termine vor. Bis die tatsaechlichen Daten
@@ -1333,7 +1334,7 @@ function ausschuettungenZahlmonat(ticker,m,jahr){
 // ===== FREMDWAEHRUNG =====
 // Manche Fonds schuetten nicht in Euro aus (ZPRG in USD). Die Stammdaten halten den
 // Originalbetrag; die Umrechnung erfolgt mit einem gepflegten Kurs aus state.fx.
-const FX_STANDARD={USD:0.8290};   // EUR je 1 Einheit Fremdwaehrung, Stand 09/2026
+const FX_STANDARD={USD:0.8938};   // EUR je 1 Einheit Fremdwaehrung, EZB-Referenzkurs 26.10.2026 (1 EUR = 1,1188 USD); vorher 0,8290 (09/2026)
 function fondsWaehrung(ticker){return AUSSCHUETTUNGEN_2026[ticker]?.waehrung||'EUR';}
 function fxKurs(w){
   if(!w||w==='EUR')return 1;
@@ -1363,20 +1364,20 @@ const WACHSTUM_STANDARD={DXSA:3,ISPA:2,ZPRG:2,VGWD:3,XGSD:2,TDIV:3,QYLE:0,
 // Die Werte landen als EUR je Anteil in pos.divs und sind im ETF-Detail editierbar.
 const DIV_PROGNOSE_STAND='2026-10-07';
 const DIV_PROGNOSE={
-  'LU0292095535':{basis:1.33,g:3},   // DXSA
-  'DE000A0F5UH1':{basis:1.52,g:2},   // ISPA
-  'IE00B9CQXS71':{basis:1.34,g:2},   // ZPRG (EUR, zum heutigen Wechselkurs)
-  'IE00B8GKDB10':{basis:2.03,g:3},   // VGWD
-  'LU0292096186':{basis:1.53,g:2},   // XGSD
-  'NL0011683594':{basis:1.69,g:3},   // TDIV / VDIV
-  'IE00BM8R0J59':{basis:1.42,g:0},   // QYLE — justETF, bestaetigt 08.10.2026
+  'LU0292095535':{basis:1.3207,g:3},   // DXSA
+  'DE000A0F5UH1':{basis:1.5647,g:2},   // ISPA
+  'IE00B9CQXS71':{basis:1.4735,g:2},   // ZPRG (EUR, zum heutigen Wechselkurs)
+  'IE00B8GKDB10':{basis:2.135,g:3},   // VGWD
+  'LU0292096186':{basis:1.4657,g:2},   // XGSD
+  'NL0011683594':{basis:1.7078,g:3},   // TDIV / VDIV
+  'IE00BM8R0J59':{basis:1.768,g:0},   // QYLE — justETF, bestaetigt 08.10.2026
   // v3.63: justETF 12M-Ausschuettung in EUR (Stand 08.10.2026). XYLU: justETF zeigt 1,09 € und ist
   // erkennbar unvollstaendig; 1,38 € = Summe der zwoelf Einzelausschuettungen 10/2025-10/2026 in EUR.
   'IE000U9J8HX9':{basis:2.52,g:0},   // JEQP
-  'IE0003UVYC20':{basis:1.82,g:0},   // JGPI
-  'IE00077FRP95':{basis:0.83,g:0},   // SDIV
-  'IE0002L5QB31':{basis:1.38,g:0},   // XYLU
-  'IE00B6YX5D40':{basis:1.51,g:4}    // USDV (A1JKS0)
+  'IE0003UVYC20':{basis:1.871,g:0},   // JGPI
+  'IE00077FRP95':{basis:0.8615,g:0},   // SDIV
+  'IE0002L5QB31':{basis:1.4087,g:0},   // XYLU
+  'IE00B6YX5D40':{basis:1.5981,g:4}    // USDV (A1JKS0)
 };
 function prognoseDivsJahr(isin,jahr){
   const p=DIV_PROGNOSE[isin];const st=ISIN_TICKER[isin];
@@ -1927,6 +1928,7 @@ if(migriereDivPrognose(state))saveState();
 if(migriereV7(state))saveState();
 {const v8=(state.strategyV||1)<8;migriereV8(state);if(v8){saveState();applyTheme(state.currentTheme);}}
 if(migriereV9(state))saveState();
+if(migriereV10(state))saveState();
 
 
 // ===== ZIELE-DASHBOARD: IST-Ermittlung (ausschliesslich aus ZIEL_PORTFOLIOS) =====
@@ -5314,7 +5316,7 @@ function importiereStateObjekt(raw){
   state=defaultState();
   uebernimmGespeichert(sauber);
   initLose();syncAlleLose();
-  migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);applyTheme(state.currentTheme);
+  migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);migriereV10(state);applyTheme(state.currentTheme);
   saveState();
   return Object.keys(sauber).length;
 }
@@ -6749,6 +6751,48 @@ function migriereV8(st){
 }
 
 
+// ---------- Migration v10: Ausschuettungen 2027 nach Getquin (Stand 26.10.2026) ----------
+// Euro je Anteil und Zahlmonat (Jan..Dez), aus der Dividendenansicht von getquin (Premium). Getquin
+// schreibt die Zahlungen der letzten zwoelf Monate fort; fuer 2027 stehen deshalb dieselben Termine
+// und nahezu dieselben Betraege wie 2026. JEQP fehlt in Getquin und bleibt unveraendert.
+function migriereV10(st){
+  // Tabelle lokal: die Migration laeuft beim Start, bevor Konstanten weiter unten initialisiert sind
+  // Stand 2026-10-26; Euro je Anteil und Zahlmonat Jan..Dez
+  const GETQUIN_2027={
+  'LU0292095535':[0.0, 0.0, 0.154, 0.0, 0.0, 0.0713, 0.0, 0.0, 0.906, 0.0, 0.0, 0.229],   // DXSA
+  'DE000A0F5UH1':[0.262, 0.0, 0.0, 0.195, 0.0, 0.0, 0.704, 0.0, 0.0, 0.435, 0.0, 0.0],   // ISPA
+  'IE00B9CQXS71':[0.0, 0.251, 0.0, 0.0, 0.338, 0.0, 0.0, 0.538, 0.0, 0.0, 0.376, 0.0],   // ZPRG
+  'IE00B8GKDB10':[0.0, 0.0, 0.0, 0.398, 0.0, 0.0, 0.859, 0.0, 0.482, 0.0, 0.0, 0.46],   // VGWD
+  'LU0292096186':[0.0, 0.0, 0.389, 0.0, 0.0, 0.328, 0.0, 0.0, 0.41, 0.0, 0.0, 0.368],   // XGSD
+  'NL0011683594':[0.0, 0.0, 0.216, 0.0, 0.0, 0.835, 0.0, 0.0, 0.412, 0.0, 0.0, 0.296],   // TDIV
+  'IE00BM8R0J59':[0.149, 0.149, 0.148, 0.143, 0.147, 0.149, 0.153, 0.147, 0.15, 0.139, 0.149, 0.145],   // QYLE
+  'IE0003UVYC20':[0.141, 0.145, 0.141, 0.121, 0.172, 0.29, 0.167, 0.143, 0.171, 0.237, 0.0, 0.143],   // JGPI
+  'IE00077FRP95':[0.067, 0.067, 0.08, 0.0746, 0.0742, 0.0, 0.1497, 0.0733, 0.0, 0.143, 0.0661, 0.0666],   // SDIV
+  'IE0002L5QB31':[0.107, 0.118, 0.112, 0.132, 0.116, 0.135, 0.113, 0.137, 0.103, 0.0977, 0.102, 0.136],   // XYLU
+  'IE00B6YX5D40':[0.0, 0.0, 0.399, 0.0, 0.0, 0.429, 0.0, 0.0, 0.398, 0.0, 0.0, 0.436],   // USDV
+  };
+  st=st||state;
+  if(!st||!Array.isArray(st.portfolios)||(st.strategyV||1)>=10)return 0;
+  let n=0;
+  st.portfolios.forEach(pf=>(pf.positions||[]).forEach(pos=>{
+    const isin=(pos.isin||'').trim().toUpperCase();
+    const a=GETQUIN_2027[isin];if(!a)return;
+    if(!pos.divs)pos.divs={};
+    pos.divs[2027]=a.slice();
+    pos.divManuell=pos.divManuell||{};pos.divManuell[2027]=true;     // Stand Getquin, nicht aus Formel
+    const p=DIV_PROGNOSE[isin];
+    if(p){pos.divBasis=p.basis;if(pos.divWachstum===undefined||pos.divWachstum===null)pos.divWachstum=p.g;}
+    for(let j=2028;j<=PROGNOSE_BIS;j++){
+      if((pos.divManuell||{})[j])continue;                           // von Hand gepflegte Jahre bleiben
+      const arr=prognoseJahrArray(pos,j);if(arr)pos.divs[j]=arr;
+    }
+    n++;
+  }));
+  st.strategyV=10;
+  console.log('✓ Migration v10: Ausschuettungen 2027 aus Getquin fuer '+n+' Positionen');
+  return n;
+}
+
 // ===== v3.64 · DATENQUALITAET, ENTNAHME, TASTATUR (Modul) =====
 
 // ---------- A2 · Sparerpauschbetrag je Jahr ----------
@@ -7345,7 +7389,7 @@ neuPruefen();swRegistrieren();
 
 // ===== BRÜCKE für Cloud-Sync-Modul =====
 window.__getState=()=>state;
-window.__setState=(newState)=>{state=newState;migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);try{applyTheme(state.currentTheme);}catch(e){}};
+window.__setState=(newState)=>{state=newState;migriereDivPrognose(state);migriereV7(state);migriereV8(state);migriereV9(state);migriereV10(state);try{applyTheme(state.currentTheme);}catch(e){}};
 window.render=render;
 
 // ===== UPDATE-CHECK =====
